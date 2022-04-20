@@ -1,6 +1,7 @@
 package waffle
 
 import (
+	"Waffle/waffle/objects"
 	"bufio"
 	"fmt"
 	"net"
@@ -28,20 +29,22 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 	password, err := textReader.ReadString('\n')
 	userData, err := textReader.ReadString('\n')
 
-	strings.Replace(username, "\r\n", "", -1)
-	strings.Replace(password, "\r\n", "", -1)
-	strings.Replace(userData, "\r\n", "", -1)
+	username = strings.Replace(username, "\r\n", "", -1)
+	password = strings.Replace(password, "\r\n", "", -1)
+	userData = strings.Replace(userData, "\r\n", "", -1)
 
 	if err != nil {
 		fmt.Printf("Failed to read initial user data\n")
 		return
 	}
 
-	fmt.Printf("Username: %s", username)
-	fmt.Printf("Password: %s", password)
-	fmt.Printf("UserData: %s", userData)
+	fetchResult, user := objects.UserFromDatabaseByUsername(username)
 
-	connection.Close()
+	if fetchResult > 0 {
+		//User not Found
+	}
 
-	fmt.Printf("Login for %s took %dus", username, time.Since(loginStartTime).Microseconds())
+	fmt.Printf("Found user %s in database successfully!\n", user.Username)
+
+	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())
 }
