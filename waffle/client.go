@@ -13,6 +13,8 @@ type Client struct {
 }
 
 func HandleNewClient(bancho *Bancho, connection net.Conn) {
+	loginStartTime := time.Now()
+
 	deadlineErr := connection.SetReadDeadline(time.Now().Add(5 * time.Second))
 
 	if deadlineErr != nil {
@@ -40,4 +42,6 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 	fmt.Printf("UserData: %s", userData)
 
 	connection.Close()
+
+	fmt.Printf("Login for %s took %dus", username, time.Since(loginStartTime).Microseconds())
 }
