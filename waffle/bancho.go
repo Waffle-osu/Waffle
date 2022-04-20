@@ -6,8 +6,9 @@ import (
 )
 
 type Bancho struct {
-	server  net.Listener
-	clients []Client
+	Server         net.Listener
+	Clients        []Client
+	WorkerChannels []chan struct{}
 }
 
 func CreateBancho() *Bancho {
@@ -19,8 +20,8 @@ func CreateBancho() *Bancho {
 		fmt.Printf("Failed to Create TCP Server on 127.0.0.1:13381")
 	}
 
-	bancho.server = listener
-	bancho.clients = make([]Client, 128)
+	bancho.Server = listener
+	bancho.Clients = make([]Client, 128)
 
 	return bancho
 }
@@ -29,7 +30,7 @@ func (bancho Bancho) RunBancho() {
 	fmt.Printf("Running Bancho on 127.0.0.1:13381\n")
 
 	for {
-		conn, err := bancho.server.Accept()
+		conn, err := bancho.Server.Accept()
 		fmt.Printf("Connection Accepted!\n")
 
 		if err != nil {
