@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"time"
 )
 
 type DatabaseUser struct {
@@ -15,7 +14,7 @@ type DatabaseUser struct {
 	Banned       int8
 	BannedReason string
 	Privileges   int32
-	JoinedAt     time.Time
+	JoinedAt     string
 }
 
 type DatabaseUserStats struct {
@@ -102,6 +101,8 @@ func UserFromDatabaseByUsername(username string) (int8, DatabaseUser) {
 
 			return -2, returnUser
 		}
+
+		return 0, returnUser
 	}
 
 	//User not found

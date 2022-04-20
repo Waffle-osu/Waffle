@@ -42,7 +42,7 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 	fetchResult, user := database.UserFromDatabaseByUsername(username)
 
 	//No User Found
-	if fetchResult > 0 {
+	if fetchResult < 0 {
 		packets.BanchoSendLoginReply(connection, -1)
 	}
 
