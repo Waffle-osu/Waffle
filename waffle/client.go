@@ -1,7 +1,8 @@
 package waffle
 
 import (
-	"Waffle/waffle/objects"
+	"Waffle/waffle/database"
+	"Waffle/waffle/packets"
 	"bufio"
 	"fmt"
 	"net"
@@ -10,7 +11,7 @@ import (
 )
 
 type Client struct {
-	connection net.Conn
+	Connection net.Conn
 }
 
 func HandleNewClient(bancho *Bancho, connection net.Conn) {
@@ -38,13 +39,24 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 		return
 	}
 
-	fetchResult, user := objects.UserFromDatabaseByUsername(username)
+	fetchResult, user := database.UserFromDatabaseByUsername(username)
 
+	//No User Found
 	if fetchResult > 0 {
-		//User not Found
+		packets.BanchoSendLoginReply(connection, -1)
 	}
 
-	fmt.Printf("Found user %s in database successfully!\n", user.Username)
+	//Invalid Password
+	if user.Password != password {
+		packets.BanchoSendLoginReply(connection, -1)
+	}
+
+	//Banned
+	if user.Banned == 1 {
+		packets.BanchoSendLoginReply(connection, -3)
+	}
+
+	packets.BanchoSendLoginReply(connection, int32(user.UserID))
 
 	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())
 }
