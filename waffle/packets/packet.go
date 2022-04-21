@@ -91,21 +91,38 @@ const (
 	BanchoUserPresence             uint16 = 84
 	OsuUserStatsRequest            uint16 = 85
 	BanchoRestart                  uint16 = 86
+
+	BanchoHeaderSize int = 7
 )
 
 type BanchoPacket struct {
-	PacketId   uint16
-	PacketSize int32
-	PacketData []byte
+	PacketId          uint16
+	PacketCompression int8
+	PacketSize        int32
+	PacketData        []byte
 }
 
 func (packet BanchoPacket) GetBytes() []byte {
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, packet.PacketId)
-	binary.Write(buf, binary.LittleEndian, int8(0))
+	binary.Write(buf, binary.LittleEndian, packet.PacketCompression)
 	binary.Write(buf, binary.LittleEndian, packet.PacketSize)
 	binary.Write(buf, binary.LittleEndian, packet.PacketData)
 
 	return buf.Bytes()
+}
+
+func ReadBanchoPacketHeader(packetBuffer *bytes.Buffer) (int, BanchoPacket) {
+	packet := BanchoPacket{}
+
+	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketId)
+	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketCompression)
+	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketSize)
+
+	packet.PacketData = make([]byte, packet.PacketSize)
+
+	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketData)
+
+	return int(7 + packet.PacketSize), packet
 }

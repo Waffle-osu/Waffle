@@ -7,17 +7,17 @@ import (
 
 type BanchoWorker struct {
 	Bancho                  *Bancho
-	Id                      int32
+	Id                      int
 	LastProcessdIndex       int32
 	LastClientHandleRequest time.Time
 }
 
-func CreateNewWorker(id int32, bancho *Bancho, decommision chan struct{}) {
+func CreateNewWorker(id int, bancho *Bancho, decommision chan struct{}) {
 	continueWork := true
 
 	go WorkerWorkFunction(&continueWork, BanchoWorker{bancho, id, 0, time.Now()})
 
-	<-decommision //If something's recieved on the decomission channel, we decomission
+	<-decommision //If something's received on the decommission channel, we decommission
 
 	continueWork = false
 }
@@ -40,11 +40,10 @@ func WorkerWorkFunction(continueWork *bool, workerInformation BanchoWorker) {
 			continue
 		}
 
-		//TODO: uncomment
-		//client := workerInformation.Bancho.Clients[int32(index)]
+		client := workerInformation.Bancho.Clients[int32(index)]
 
 		workerInformation.LastProcessdIndex = (workerInformation.LastProcessdIndex + 1) % int32(indexRange)
 
-		//TODO: Process Client
+		client.HandleIncoming()
 	}
 }

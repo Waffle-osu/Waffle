@@ -3,11 +3,13 @@ package waffle
 import (
 	"fmt"
 	"net"
+	"sync"
 )
 
 type Bancho struct {
 	Server         net.Listener
 	Clients        []Client
+	ClientMutex    sync.Mutex
 	WorkerChannels []chan struct{}
 }
 
@@ -21,12 +23,20 @@ func CreateBancho() *Bancho {
 	}
 
 	bancho.Server = listener
-	bancho.Clients = make([]Client, 128)
+
+	numWorkers := 1
+
+	for i := 0; i < numWorkers; i++ {
+		workerDecommissionChan := make(chan struct{})
+		bancho.WorkerChannels = append(bancho.WorkerChannels, workerDecommissionChan)
+
+		go CreateNewWorker(len(bancho.WorkerChannels)-1, bancho, workerDecommissionChan)
+	}
 
 	return bancho
 }
 
-func (bancho Bancho) RunBancho() {
+func (bancho *Bancho) RunBancho() {
 	fmt.Printf("Running Bancho on 127.0.0.1:13381\n")
 
 	for {
@@ -37,6 +47,6 @@ func (bancho Bancho) RunBancho() {
 			continue
 		}
 
-		go HandleNewClient(&bancho, conn)
+		go HandleNewClient(bancho, conn)
 	}
 }
