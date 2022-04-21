@@ -51,7 +51,6 @@ func CleanupClient(client *Client) {
 	}
 
 	client.continueRunning = false
-	close(client.PacketQueue)
 
 	client.connection.Close()
 }

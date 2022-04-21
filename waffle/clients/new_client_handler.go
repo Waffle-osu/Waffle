@@ -176,8 +176,8 @@ func HandleNewClient(connection net.Conn) {
 			break
 		}
 
-		packets.BanchoSendUserPresence(currentClient.PacketQueue, currentClient.UserData, stats, currentClient.ClientData.Timezone)
-		packets.BanchoSendOsuUpdate(currentClient.PacketQueue, stats, currentClient.Status)
+		packets.BanchoSendUserPresence(client.PacketQueue, currentClient.UserData, stats, currentClient.ClientData.Timezone)
+		packets.BanchoSendOsuUpdate(client.PacketQueue, stats, currentClient.Status)
 	}
 
 	RegisterClient(&client)

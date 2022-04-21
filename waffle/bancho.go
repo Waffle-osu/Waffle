@@ -18,6 +18,7 @@ func CreateBancho() *Bancho {
 
 	chat.InitializeChannels()
 	database.Initialize()
+	clients.InitializeClientManager()
 
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
 
