@@ -14,7 +14,7 @@ func BasePacket(packetQueue *list.List) {
 	packetLength := len(packetBytes)
 
 	packet := BanchoPacket{
-		PacketId:          BanchoPing, //Change this out
+		PacketId:          BanchoPing, //TODO: change this out
 		PacketCompression: 0,
 		PacketSize:        int32(packetLength),
 		PacketData:        packetBytes,

@@ -29,6 +29,7 @@ type Client struct {
 	PacketQueue      *list.List
 	PacketQueueMutex sync.Mutex
 	UserData         database.User
+	Status           packets.OsuStatus
 	OsuStats         database.UserStats
 	TaikoStats       database.UserStats
 	CatchStats       database.UserStats
@@ -143,6 +144,14 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 		TaikoStats:  taikoStats,
 		CatchStats:  catchStats,
 		ManiaStats:  maniaStats,
+		Status: packets.OsuStatus{
+			BeatmapChecksum: "",
+			BeatmapId:       -1,
+			CurrentMods:     0,
+			CurrentPlaymode: packets.OsuGamemodeOsu,
+			CurrentStatus:   packets.OsuStatusIdle,
+			StatusText:      user.Username + " has just logged in!",
+		},
 	}
 
 	resetDeadlineErr := connection.SetReadDeadline(time.Time{})
@@ -154,8 +163,43 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 
 	packets.BanchoSendProtocolNegotiation(osuClient.PacketQueue)
 	packets.BanchoSendLoginPermissions(osuClient.PacketQueue, user.Privileges)
+	packets.BanchoSendUserPresence(osuClient.PacketQueue, user, osuStats, clientInfo.Timezone)
+	packets.BanchoSendOsuUpdate(osuClient.PacketQueue, osuStats, osuClient.Status)
 
 	bancho.ClientMutex.Lock()
+
+	for i := 0; i != len(bancho.Clients); i++ {
+		currentClient := bancho.Clients[i]
+
+		if currentClient.UserData.UserID == user.UserID {
+			continue
+		}
+
+		//Inform client
+		packets.BanchoSendUserPresence(currentClient.PacketQueue, user, osuStats, clientInfo.Timezone)
+		packets.BanchoSendOsuUpdate(currentClient.PacketQueue, osuStats, osuClient.Status)
+
+		var stats database.UserStats
+
+		switch currentClient.Status.CurrentPlaymode {
+		case packets.OsuGamemodeOsu:
+			stats = currentClient.OsuStats
+			break
+		case packets.OsuGamemodeTaiko:
+			stats = currentClient.TaikoStats
+			break
+		case packets.OsuGamemodeCatch:
+			stats = currentClient.CatchStats
+			break
+		case packets.OsuGamemodeMania:
+			stats = currentClient.ManiaStats
+			break
+		}
+
+		packets.BanchoSendUserPresence(currentClient.PacketQueue, currentClient.UserData, stats, currentClient.ClientData.Timezone)
+		packets.BanchoSendOsuUpdate(currentClient.PacketQueue, stats, currentClient.Status)
+	}
+
 	bancho.Clients = append(bancho.Clients, &osuClient)
 	bancho.ClientMutex.Unlock()
 
@@ -190,7 +234,6 @@ func (client *Client) HandleIncoming() {
 			//
 			//}
 		}
-
 	}
 }
 

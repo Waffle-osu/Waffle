@@ -41,12 +41,14 @@ func WorkerWorkFunction(continueWork *bool, workerInformation BanchoWorker) {
 		}
 
 		workerInformation.Bancho.ClientMutex.Lock()
-		client := &workerInformation.Bancho.Clients[int32(index)]
+		client := workerInformation.Bancho.Clients[int32(index)]
 		workerInformation.Bancho.ClientMutex.Unlock()
 
 		workerInformation.LastProcessdIndex = (workerInformation.LastProcessdIndex + 1) % int32(indexRange)
 
-		(*client).HandleIncoming()
-		(*client).SendOutgoing()
+		client.HandleIncoming()
+		client.SendOutgoing()
+
+		time.Sleep(time.Millisecond * 2)
 	}
 }

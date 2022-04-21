@@ -3,6 +3,7 @@ package packets
 import (
 	"bytes"
 	"encoding/binary"
+	"io"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 	BanchoPing                     uint16 = 8
 	BanchoHandleIrcChangeUsername  uint16 = 9
 	BanchoHandleIrcQuit            uint16 = 10
-	BanchoHandleIrcUpdate          uint16 = 11
+	BanchoHandleOsuUpdate          uint16 = 11
 	BanchoHandleOsuQuit            uint16 = 12
 	BanchoSpectatorJoined          uint16 = 13
 	BanchoSpectatorLeft            uint16 = 14
@@ -88,7 +89,7 @@ const (
 	BanchoMonitor                  uint16 = 80
 	BanchoMatchPlayerSkipped       uint16 = 81
 	OsuSetIrcAwayMessage           uint16 = 82
-	BanchoUserPresence             uint16 = 84
+	BanchoUserPresence             uint16 = 83
 	OsuUserStatsRequest            uint16 = 85
 	BanchoRestart                  uint16 = 86
 
@@ -125,4 +126,65 @@ func ReadBanchoPacketHeader(packetBuffer *bytes.Buffer) (int, BanchoPacket) {
 	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketData)
 
 	return int(7 + packet.PacketSize), packet
+}
+
+func WriteBanchoString(value string) []byte {
+	if value == "" {
+		return []byte{0}
+	}
+
+	var length int
+	var i int = len(value)
+	var ulebBytes []byte
+
+	if i == 0 {
+		ulebBytes = []byte{0}
+	}
+
+	for i > 0 {
+		ulebBytes = append(ulebBytes, 0)
+		ulebBytes[length] = byte(i & 0x7F)
+		i >>= 7
+		if i != 0 {
+			ulebBytes[length] |= 0x80
+		}
+		length++
+	}
+
+	returnBytes := []byte{11}
+	returnBytes = append(returnBytes, ulebBytes...)
+	returnBytes = append(returnBytes, []byte(value)...)
+
+	return returnBytes
+}
+
+func ReadBanchoString(reader io.Reader) []byte {
+	bytes := make([]byte, 1)
+
+	reader.Read(bytes)
+
+	if bytes[0] != 11 {
+		return []byte{}
+	}
+
+	var shift uint
+	var lastByte byte
+	var total int
+
+	for {
+		b := make([]byte, 1)
+		reader.Read(b)
+		lastByte = b[0]
+		total |= (int(lastByte&0x7F) << shift)
+		if lastByte&0x80 == 0 {
+			break
+		}
+		shift += 7
+	}
+
+	bytes = make([]byte, total)
+
+	reader.Read(bytes)
+
+	return bytes
 }
