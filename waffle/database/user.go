@@ -2,7 +2,6 @@ package database
 
 import (
 	"crypto/md5"
-	"database/sql"
 	"encoding/hex"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
@@ -48,15 +47,8 @@ type UserStats struct {
 func UserFromDatabaseById(id uint64) (int8, User) {
 	returnUser := User{}
 
-	db, connErr := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/waffle")
-
-	if connErr != nil {
-		fmt.Printf("Failed to Fetch User from Database, as a connection could not be successfully established.\n")
-
-		return -2, returnUser
-	}
-
-	queryResult, queryErr := db.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE user_id = ?", id)
+	queryResult, queryErr := database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE user_id = ?", id)
+	defer queryResult.Close()
 
 	if queryErr != nil {
 		fmt.Printf("Failed to Fetch User from Database, MySQL query failed.\n")
@@ -83,15 +75,8 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 func UserFromDatabaseByUsername(username string) (int8, User) {
 	returnUser := User{}
 
-	db, connErr := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/waffle")
-
-	if connErr != nil {
-		fmt.Printf("Failed to Fetch User from Database, as a connection could not be successfully established.\n")
-
-		return -2, returnUser
-	}
-
-	queryResult, queryErr := db.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE username = ?", username)
+	queryResult, queryErr := database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE username = ?", username)
+	defer queryResult.Close()
 
 	if queryErr != nil {
 		fmt.Printf("Failed to Fetch User from Database, MySQL query failed.\n")
@@ -119,15 +104,8 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 	returnStats := UserStats{}
 
-	db, connErr := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/waffle")
-
-	if connErr != nil {
-		fmt.Printf("Failed to Fetch User Stats from Database, as a connection could not be successfully established.\n")
-
-		return -2, returnStats
-	}
-
-	queryResult, queryErr := db.Query("SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank', ranked_score, total_score, user_level, accuracy, playcount, count_ssh, count_ss, count_sh, count_s, count_a, count_b, count_c, count_d, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, replays_watched FROM waffle.stats WHERE user_id = ? AND mode = ?", id, mode)
+	queryResult, queryErr := database.Query("SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank', ranked_score, total_score, user_level, accuracy, playcount, count_ssh, count_ss, count_sh, count_s, count_a, count_b, count_c, count_d, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, replays_watched FROM waffle.stats WHERE user_id = ? AND mode = ?", id, mode)
+	defer queryResult.Close()
 
 	if queryErr != nil {
 		fmt.Printf("Failed to Fetch User Stats from Database, MySQL query failed.\n")
@@ -151,15 +129,8 @@ func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 }
 
 func CreateNewUser(username string, rawPassword string) bool {
-	db, connErr := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/waffle")
-
-	if connErr != nil {
-		fmt.Printf("Failed to create new user, as a connection could not be successfully established.\n")
-
-		return false
-	}
-
-	duplicateUsernameQuery, duplicateUsernameQueryErr := db.Query("SELECT COUNT(*) FROM waffle.users WHERE username = ?", username)
+	duplicateUsernameQuery, duplicateUsernameQueryErr := database.Query("SELECT COUNT(*) FROM waffle.users WHERE username = ?", username)
+	defer duplicateUsernameQuery.Close()
 
 	if duplicateUsernameQueryErr != nil {
 		fmt.Printf("Failed to create new user, MySQL query failed.\n")
@@ -177,8 +148,11 @@ func CreateNewUser(username string, rawPassword string) bool {
 	var newUserId uint64
 	var newUsername string
 
-	_, queryErr := db.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, passwordHashedString)
-	queryResult, queryErr := db.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
+	insertResult, queryErr := database.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, passwordHashedString)
+	queryResult, queryErr := database.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
+
+	defer insertResult.Close()
+	defer queryResult.Close()
 
 	if queryErr != nil {
 		fmt.Printf("Failed to create new user, MySQL query failed.\n")
@@ -193,10 +167,10 @@ func CreateNewUser(username string, rawPassword string) bool {
 			return false
 		}
 
-		_, statsInsertErr := db.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
-		_, statsInsertErr = db.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
-		_, statsInsertErr = db.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
-		_, statsInsertErr = db.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
+		_, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
+		_, statsInsertErr = database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
+		_, statsInsertErr = database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
+		_, statsInsertErr = database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
 
 		if statsInsertErr != nil {
 			fmt.Printf("Failed to create new user, user stats creation failed. MySQL query failed.\n")

@@ -110,11 +110,10 @@ func HandleNewClient(connection net.Conn) {
 		return
 	}
 
-	osuClient := Client{
+	client := Client{
 		connection:      connection,
-		bufReader:       textReader,
 		lastPing:        time.Now(),
-		lastRecieve:     time.Now(),
+		lastReceive:     time.Now(),
 		continueRunning: true,
 
 		PacketQueue: packetQueue,
@@ -142,10 +141,10 @@ func HandleNewClient(connection net.Conn) {
 		return
 	}
 
-	packets.BanchoSendProtocolNegotiation(osuClient.PacketQueue)
-	packets.BanchoSendLoginPermissions(osuClient.PacketQueue, user.Privileges)
-	packets.BanchoSendUserPresence(osuClient.PacketQueue, user, osuStats, clientInfo.Timezone)
-	packets.BanchoSendOsuUpdate(osuClient.PacketQueue, osuStats, osuClient.Status)
+	packets.BanchoSendProtocolNegotiation(client.PacketQueue)
+	packets.BanchoSendLoginPermissions(client.PacketQueue, user.Privileges)
+	packets.BanchoSendUserPresence(client.PacketQueue, user, osuStats, clientInfo.Timezone)
+	packets.BanchoSendOsuUpdate(client.PacketQueue, osuStats, client.Status)
 
 	LockClientList()
 
@@ -158,7 +157,7 @@ func HandleNewClient(connection net.Conn) {
 
 		//Inform client
 		packets.BanchoSendUserPresence(currentClient.PacketQueue, user, osuStats, clientInfo.Timezone)
-		packets.BanchoSendOsuUpdate(currentClient.PacketQueue, osuStats, osuClient.Status)
+		packets.BanchoSendOsuUpdate(currentClient.PacketQueue, osuStats, client.Status)
 
 		var stats database.UserStats
 
@@ -181,20 +180,24 @@ func HandleNewClient(connection net.Conn) {
 		packets.BanchoSendOsuUpdate(currentClient.PacketQueue, stats, currentClient.Status)
 	}
 
-	RegisterClient(&osuClient)
+	RegisterClient(&client)
 	UnlockClientList()
 
-	if chat.TryJoinChannel(&osuClient, "#osu") {
-		packets.BanchoSendChannelJoinSuccess(osuClient.PacketQueue, "#osu")
+	if chat.TryJoinChannel(&client, "#osu") {
+		packets.BanchoSendChannelJoinSuccess(client.PacketQueue, "#osu")
+
+		client.joinedChannels = append(client.joinedChannels, "#osu")
 	}
 
-	if chat.TryJoinChannel(&osuClient, "#announce") {
-		packets.BanchoSendChannelJoinSuccess(osuClient.PacketQueue, "#announce")
+	if chat.TryJoinChannel(&client, "#announce") {
+		packets.BanchoSendChannelJoinSuccess(client.PacketQueue, "#announce")
+
+		client.joinedChannels = append(client.joinedChannels, "#announce")
 	}
 
 	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())
 
-	go osuClient.MaintainClient()
-	go osuClient.HandleIncoming()
-	go osuClient.SendOutgoing()
+	go client.MaintainClient()
+	go client.HandleIncoming()
+	go client.SendOutgoing()
 }

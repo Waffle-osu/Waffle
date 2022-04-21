@@ -30,3 +30,15 @@ func GetAmountClients() int {
 func RegisterClient(client *Client) {
 	clientList = append(clientList, client)
 }
+
+func UnregisterClient(client *Client) {
+	LockClientList()
+
+	for index, value := range clientList {
+		if value == client {
+			clientList = append(clientList[0:index], clientList[index+1:]...)
+		}
+	}
+
+	UnlockClientList()
+}

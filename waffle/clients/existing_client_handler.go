@@ -14,9 +14,11 @@ func (client *Client) HandleIncoming() {
 		read, readErr := client.connection.Read(readBuffer)
 
 		if readErr != nil {
-			fmt.Println("Failed to read; Error:\n" + readErr.Error())
+			CleanupClient(client)
 			return
 		}
+
+		client.lastReceive = time.Now()
 
 		//Get the bytes that were actually read
 		packetBuffer := bytes.NewBuffer(readBuffer[:read])
@@ -44,8 +46,8 @@ func (client *Client) SendOutgoing() {
 
 func (client *Client) MaintainClient() {
 	for client.continueRunning {
-		if client.lastRecieve.Add(ReceiveTimeout).Before(time.Now()) {
-			//Timeout client
+		if client.lastReceive.Add(ReceiveTimeout).Before(time.Now()) {
+			CleanupClient(client)
 		}
 
 		if client.lastPing.Add(PingTimeout).Before(time.Now()) {

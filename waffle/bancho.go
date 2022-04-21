@@ -3,6 +3,7 @@ package waffle
 import (
 	"Waffle/waffle/chat"
 	"Waffle/waffle/clients"
+	"Waffle/waffle/database"
 	"fmt"
 	"net"
 )
@@ -16,6 +17,7 @@ func CreateBancho() *Bancho {
 	bancho := new(Bancho)
 
 	chat.InitializeChannels()
+	database.Initialize()
 
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
 

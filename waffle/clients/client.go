@@ -1,9 +1,9 @@
 package clients
 
 import (
+	"Waffle/waffle/chat"
 	"Waffle/waffle/database"
 	"Waffle/waffle/packets"
-	"bufio"
 	"net"
 	"time"
 )
@@ -25,11 +25,12 @@ type ClientInformation struct {
 
 type Client struct {
 	connection      net.Conn
-	bufReader       *bufio.Reader
 	continueRunning bool
 
-	lastRecieve time.Time
+	lastReceive time.Time
 	lastPing    time.Time
+
+	joinedChannels []string
 
 	PacketQueue chan packets.BanchoPacket
 
@@ -40,4 +41,17 @@ type Client struct {
 	TaikoStats database.UserStats
 	CatchStats database.UserStats
 	ManiaStats database.UserStats
+}
+
+func CleanupClient(client *Client) {
+	UnregisterClient(client)
+
+	for _, channel := range client.joinedChannels {
+		chat.LeaveChannel(client, channel)
+	}
+
+	client.continueRunning = false
+	close(client.PacketQueue)
+
+	client.connection.Close()
 }
