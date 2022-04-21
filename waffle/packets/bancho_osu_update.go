@@ -3,7 +3,6 @@ package packets
 import (
 	"Waffle/waffle/database"
 	"bytes"
-	"container/list"
 	"encoding/binary"
 )
 
@@ -40,7 +39,7 @@ type OsuStatus struct {
 	StatusText      string
 }
 
-func BanchoSendOsuUpdate(packetQueue *list.List, user database.UserStats, status OsuStatus) {
+func BanchoSendOsuUpdate(packetQueue chan BanchoPacket, user database.UserStats, status OsuStatus) {
 	buf := new(bytes.Buffer)
 
 	//Write Data
@@ -69,5 +68,5 @@ func BanchoSendOsuUpdate(packetQueue *list.List, user database.UserStats, status
 		PacketData:        packetBytes,
 	}
 
-	packetQueue.PushBack(packet)
+	packetQueue <- packet
 }

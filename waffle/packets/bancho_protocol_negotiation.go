@@ -2,13 +2,12 @@ package packets
 
 import (
 	"bytes"
-	"container/list"
 	"encoding/binary"
 )
 
 const Build1816ProtocolVersion int32 = 7
 
-func BanchoSendProtocolNegotiation(packetQueue *list.List) {
+func BanchoSendProtocolNegotiation(packetQueue chan BanchoPacket) {
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, Build1816ProtocolVersion)
@@ -23,5 +22,5 @@ func BanchoSendProtocolNegotiation(packetQueue *list.List) {
 		PacketData:        packetBytes,
 	}
 
-	packetQueue.PushBack(packet)
+	packetQueue <- packet
 }

@@ -2,10 +2,9 @@ package packets
 
 import (
 	"bytes"
-	"container/list"
 )
 
-func BasePacket(packetQueue *list.List) {
+func BasePacket(packetQueue chan BanchoPacket) {
 	buf := new(bytes.Buffer)
 
 	//Write Data
@@ -20,5 +19,5 @@ func BasePacket(packetQueue *list.List) {
 		PacketData:        packetBytes,
 	}
 
-	packetQueue.PushBack(packet)
+	packetQueue <- packet
 }

@@ -25,15 +25,6 @@ func CreateBancho() *Bancho {
 
 	bancho.Server = listener
 
-	numWorkers := 1
-
-	for i := 0; i < numWorkers; i++ {
-		workerDecommissionChan := make(chan struct{})
-		bancho.WorkerChannels = append(bancho.WorkerChannels, workerDecommissionChan)
-
-		go CreateNewWorker(len(bancho.WorkerChannels)-1, bancho, workerDecommissionChan)
-	}
-
 	return bancho
 }
 

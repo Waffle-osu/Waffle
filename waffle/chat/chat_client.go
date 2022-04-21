@@ -1,12 +1,5 @@
 package chat
 
-import (
-	"container/list"
-	"sync"
-)
-
-type ChatClient interface {
+type AdminPrivilegable interface {
 	IsOfAdminPrivileges() bool
-	GetPacketQueue() *list.List
-	GetPacketQueueMutex() *sync.Mutex
 }

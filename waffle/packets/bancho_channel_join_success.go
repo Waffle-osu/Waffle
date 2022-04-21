@@ -2,11 +2,10 @@ package packets
 
 import (
 	"bytes"
-	"container/list"
 	"encoding/binary"
 )
 
-func BanchoSendChannelJoinSuccess(packetQueue *list.List, channelName string) {
+func BanchoSendChannelJoinSuccess(packetQueue chan BanchoPacket, channelName string) {
 	buf := new(bytes.Buffer)
 
 	//Write Data
@@ -22,5 +21,5 @@ func BanchoSendChannelJoinSuccess(packetQueue *list.List, channelName string) {
 		PacketData:        packetBytes,
 	}
 
-	packetQueue.PushBack(packet)
+	packetQueue <- packet
 }

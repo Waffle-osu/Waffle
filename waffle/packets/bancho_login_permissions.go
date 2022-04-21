@@ -2,7 +2,6 @@ package packets
 
 import (
 	"bytes"
-	"container/list"
 	"encoding/binary"
 )
 
@@ -13,7 +12,7 @@ const (
 	UserPermissionsFriend    = 8
 )
 
-func BanchoSendLoginPermissions(packetQueue *list.List, permissions int32) {
+func BanchoSendLoginPermissions(packetQueue chan BanchoPacket, permissions int32) {
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, permissions)
@@ -28,5 +27,5 @@ func BanchoSendLoginPermissions(packetQueue *list.List, permissions int32) {
 		PacketData:        packetBytes,
 	}
 
-	packetQueue.PushBack(packet)
+	packetQueue <- packet
 }

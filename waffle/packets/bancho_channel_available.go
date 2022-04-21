@@ -3,11 +3,10 @@ package packets
 import (
 	"Waffle/waffle/chat"
 	"bytes"
-	"container/list"
 	"encoding/binary"
 )
 
-func BanchoSendChannelAvailable(packetQueue *list.List, channel *chat.Channel) {
+func BanchoSendChannelAvailable(packetQueue chan BanchoPacket, channel *chat.Channel) {
 	buf := new(bytes.Buffer)
 
 	//Write Data
@@ -23,5 +22,5 @@ func BanchoSendChannelAvailable(packetQueue *list.List, channel *chat.Channel) {
 		PacketData:        packetBytes,
 	}
 
-	packetQueue.PushBack(packet)
+	packetQueue <- packet
 }

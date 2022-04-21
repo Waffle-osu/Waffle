@@ -5,7 +5,6 @@ import (
 	"Waffle/waffle/database"
 	"Waffle/waffle/packets"
 	"bufio"
-	"container/list"
 	"fmt"
 	"net"
 	"strconv"
@@ -29,7 +28,7 @@ func HandleNewClient(connection net.Conn) {
 	password, readErr := textReader.ReadString('\n')
 	userData, readErr := textReader.ReadString('\n')
 
-	packetQueue := list.New()
+	packetQueue := make(chan packets.BanchoPacket, 32)
 
 	if readErr != nil {
 		fmt.Printf("Failed to read initial user data\n")
@@ -96,9 +95,9 @@ func HandleNewClient(connection net.Conn) {
 	packets.BanchoSendLoginReply(packetQueue, int32(user.UserID))
 
 	statGetResult, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
-	statGetResult, taikoStats := database.UserStatsFromDatabase(user.UserID, 0)
-	statGetResult, catchStats := database.UserStatsFromDatabase(user.UserID, 0)
-	statGetResult, maniaStats := database.UserStatsFromDatabase(user.UserID, 0)
+	statGetResult, taikoStats := database.UserStatsFromDatabase(user.UserID, 1)
+	statGetResult, catchStats := database.UserStatsFromDatabase(user.UserID, 2)
+	statGetResult, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
 
 	if statGetResult == -1 {
 		//TODO: do a BanchoAnnounce to the user informing about the issue
@@ -112,15 +111,20 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	osuClient := Client{
-		Connection:  connection,
+		connection:      connection,
+		bufReader:       textReader,
+		lastPing:        time.Now(),
+		lastRecieve:     time.Now(),
+		continueRunning: true,
+
 		PacketQueue: packetQueue,
-		BufReader:   textReader,
-		UserData:    user,
-		ClientData:  clientInfo,
-		OsuStats:    osuStats,
-		TaikoStats:  taikoStats,
-		CatchStats:  catchStats,
-		ManiaStats:  maniaStats,
+
+		UserData:   user,
+		ClientData: clientInfo,
+		OsuStats:   osuStats,
+		TaikoStats: taikoStats,
+		CatchStats: catchStats,
+		ManiaStats: maniaStats,
 		Status: packets.OsuStatus{
 			BeatmapChecksum: "",
 			BeatmapId:       -1,
@@ -183,9 +187,14 @@ func HandleNewClient(connection net.Conn) {
 	if chat.TryJoinChannel(&osuClient, "#osu") {
 		packets.BanchoSendChannelJoinSuccess(osuClient.PacketQueue, "#osu")
 	}
+
 	if chat.TryJoinChannel(&osuClient, "#announce") {
 		packets.BanchoSendChannelJoinSuccess(osuClient.PacketQueue, "#announce")
 	}
 
 	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())
+
+	go osuClient.MaintainClient()
+	go osuClient.HandleIncoming()
+	go osuClient.SendOutgoing()
 }

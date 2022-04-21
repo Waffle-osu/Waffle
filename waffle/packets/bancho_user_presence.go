@@ -3,7 +3,6 @@ package packets
 import (
 	"Waffle/waffle/database"
 	"bytes"
-	"container/list"
 	"encoding/binary"
 )
 
@@ -13,7 +12,7 @@ const (
 	PresenceAvatarExtensionJpg  int8 = 2
 )
 
-func BanchoSendUserPresence(packetQueue *list.List, user database.User, stats database.UserStats, timezone int32) {
+func BanchoSendUserPresence(packetQueue chan BanchoPacket, user database.User, stats database.UserStats, timezone int32) {
 	buf := new(bytes.Buffer)
 
 	//Write Data
@@ -38,5 +37,5 @@ func BanchoSendUserPresence(packetQueue *list.List, user database.User, stats da
 		PacketData:        packetBytes,
 	}
 
-	packetQueue.PushBack(packet)
+	packetQueue <- packet
 }

@@ -8,11 +8,11 @@ type Channel struct {
 	Name         string
 	Description  string
 	AdminChannel bool
-	Clients      []*ChatClient
+	Clients      []*AdminPrivilegable
 	ClientMutex  sync.Mutex
 }
 
-func (channel Channel) Join(client ChatClient) bool {
+func (channel Channel) Join(client AdminPrivilegable) bool {
 	if channel.AdminChannel && client.IsOfAdminPrivileges() == false {
 		return false
 	}

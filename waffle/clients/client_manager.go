@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-var clients []*Client
+var clientList []*Client
 var clientMutex sync.Mutex
 
 func LockClientList() {
@@ -16,17 +16,17 @@ func UnlockClientList() {
 }
 
 func GetClientList() []*Client {
-	return clients
+	return clientList
 }
 
 func GetClientByIndex(index int) *Client {
-	return clients[index]
+	return clientList[index]
 }
 
 func GetAmountClients() int {
-	return len(clients)
+	return len(clientList)
 }
 
 func RegisterClient(client *Client) {
-	clients = append(clients, client)
+	clientList = append(clientList, client)
 }

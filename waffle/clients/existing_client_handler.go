@@ -4,18 +4,17 @@ import (
 	"Waffle/waffle/packets"
 	"bytes"
 	"fmt"
+	"time"
 )
 
 func (client *Client) HandleIncoming() {
 	readBuffer := make([]byte, 4096)
 
-	//Check if there's at least 1 packet header there
-	availableBytes := client.BufReader.Buffered()
-
-	if availableBytes > 0 {
-		read, readErr := client.Connection.Read(readBuffer)
+	for client.continueRunning {
+		read, readErr := client.connection.Read(readBuffer)
 
 		if readErr != nil {
+			fmt.Println("Failed to read; Error:\n" + readErr.Error())
 			return
 		}
 
@@ -38,21 +37,23 @@ func (client *Client) HandleIncoming() {
 }
 
 func (client *Client) SendOutgoing() {
-	sendBuffer := new(bytes.Buffer)
-
-	client.PacketQueueMutex.Lock()
-
-	for retrievedPacket := client.PacketQueue.Front(); retrievedPacket != nil; retrievedPacket = retrievedPacket.Next() {
-		packet := retrievedPacket.Value.(packets.BanchoPacket)
-
-		fmt.Printf("Sending Packet %d\n", packet.PacketId)
-
-		sendBuffer.Write(packet.GetBytes())
-
-		client.PacketQueue.Remove(retrievedPacket)
+	for packet := range client.PacketQueue {
+		client.connection.Write(packet.GetBytes())
 	}
+}
 
-	client.PacketQueueMutex.Unlock()
+func (client *Client) MaintainClient() {
+	for client.continueRunning {
+		if client.lastRecieve.Add(ReceiveTimeout).Before(time.Now()) {
+			//Timeout client
+		}
 
-	client.Connection.Write(sendBuffer.Bytes())
+		if client.lastPing.Add(PingTimeout).Before(time.Now()) {
+			packets.BanchoSendPing(client.PacketQueue)
+
+			client.lastPing = time.Now()
+		}
+
+		time.Sleep(time.Second)
+	}
 }

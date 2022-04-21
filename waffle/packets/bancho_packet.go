@@ -109,7 +109,10 @@ func (packet BanchoPacket) GetBytes() []byte {
 	binary.Write(buf, binary.LittleEndian, packet.PacketId)
 	binary.Write(buf, binary.LittleEndian, packet.PacketCompression)
 	binary.Write(buf, binary.LittleEndian, packet.PacketSize)
-	binary.Write(buf, binary.LittleEndian, packet.PacketData)
+
+	if packet.PacketSize != 0 {
+		binary.Write(buf, binary.LittleEndian, packet.PacketData)
+	}
 
 	return buf.Bytes()
 }
