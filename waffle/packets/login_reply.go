@@ -2,8 +2,8 @@ package packets
 
 import (
 	"bytes"
+	"container/list"
 	"encoding/binary"
-	"net"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 	UnauthorizedTestBuild int32 = -6
 )
 
-func BanchoSendLoginReply(connection net.Conn, id int32) (bool, BanchoPacket) {
+func BanchoSendLoginReply(packetQueue *list.List, id int32) {
 	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.LittleEndian, id)
@@ -26,11 +26,5 @@ func BanchoSendLoginReply(connection net.Conn, id int32) (bool, BanchoPacket) {
 		PacketData: buf.Bytes(),
 	}
 
-	_, err := connection.Write(loginReply.GetBytes())
-
-	if err != nil {
-		return false, BanchoPacket{}
-	}
-
-	return false, BanchoPacket{}
+	packetQueue.PushBack(loginReply)
 }

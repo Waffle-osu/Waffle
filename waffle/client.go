@@ -5,21 +5,34 @@ import (
 	"Waffle/waffle/packets"
 	"bufio"
 	"bytes"
+	"container/list"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
+type ClientInformation struct {
+	Timezone       int32
+	Version        string
+	AllowCity      bool
+	OsuClientHash  string
+	MacAddressHash string
+}
+
 type Client struct {
-	Connection  net.Conn
-	BufReader   *bufio.Reader
-	PacketQueue chan packets.BanchoPacket
-	UserData    database.DatabaseUser
-	OsuStats    database.DatabaseUserStats
-	TaikoStats  database.DatabaseUserStats
-	CatchStats  database.DatabaseUserStats
-	ManiaStats  database.DatabaseUserStats
+	Connection       net.Conn
+	ClientData       ClientInformation
+	BufReader        *bufio.Reader
+	PacketQueue      *list.List
+	PacketQueueMutex sync.Mutex
+	UserData         database.User
+	OsuStats         database.UserStats
+	TaikoStats       database.UserStats
+	CatchStats       database.UserStats
+	ManiaStats       database.UserStats
 }
 
 func HandleNewClient(bancho *Bancho, connection net.Conn) {
@@ -34,52 +47,103 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 
 	textReader := bufio.NewReader(connection)
 
-	username, err := textReader.ReadString('\n')
-	password, err := textReader.ReadString('\n')
-	userData, err := textReader.ReadString('\n')
+	username, readErr := textReader.ReadString('\n')
+	password, readErr := textReader.ReadString('\n')
+	userData, readErr := textReader.ReadString('\n')
+
+	packetQueue := list.New()
+
+	if readErr != nil {
+		fmt.Printf("Failed to read initial user data\n")
+		return
+	}
 
 	username = strings.Replace(username, "\r\n", "", -1)
 	password = strings.Replace(password, "\r\n", "", -1)
 	userData = strings.Replace(userData, "\r\n", "", -1)
 
-	if err != nil {
-		fmt.Printf("Failed to read initial user data\n")
+	userDataSplit := strings.Split(userData, "|")
+
+	if len(userDataSplit) != 4 {
+		packets.BanchoSendLoginReply(packetQueue, packets.InvalidVersion)
+		connection.Close()
 		return
+	}
+
+	securityPartsSplit := strings.Split(userDataSplit[3], ":")
+
+	timezone, convErr := strconv.Atoi(userDataSplit[1])
+
+	if convErr != nil {
+		packets.BanchoSendLoginReply(packetQueue, packets.InvalidVersion)
+		connection.Close()
+		return
+	}
+
+	clientInfo := ClientInformation{
+		Version:        userDataSplit[0],
+		Timezone:       int32(timezone),
+		AllowCity:      userDataSplit[2] == "1",
+		OsuClientHash:  securityPartsSplit[0],
+		MacAddressHash: securityPartsSplit[1],
 	}
 
 	fetchResult, user := database.UserFromDatabaseByUsername(username)
 
 	//No User Found
-	if fetchResult < 0 {
-		packets.BanchoSendLoginReply(connection, packets.InvalidLogin)
+	if fetchResult == -1 {
+		packets.BanchoSendLoginReply(packetQueue, packets.InvalidLogin)
+		connection.Close()
+		return
+	} else if fetchResult == -2 {
+		packets.BanchoSendLoginReply(packetQueue, packets.ServersideError)
+		connection.Close()
+		return
 	}
 
 	//Invalid Password
 	if user.Password != password {
-		packets.BanchoSendLoginReply(connection, packets.InvalidLogin)
+		packets.BanchoSendLoginReply(packetQueue, packets.InvalidLogin)
+		connection.Close()
+		return
 	}
 
 	//Banned
 	if user.Banned == 1 {
-		packets.BanchoSendLoginReply(connection, packets.UserBanned)
+		packets.BanchoSendLoginReply(packetQueue, packets.UserBanned)
+		connection.Close()
+		return
 	}
 
-	packets.BanchoSendLoginReply(connection, int32(user.UserID))
+	packets.BanchoSendLoginReply(packetQueue, int32(user.UserID))
 
-	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())
+	statGetResult, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
+	statGetResult, taikoStats := database.UserStatsFromDatabase(user.UserID, 0)
+	statGetResult, catchStats := database.UserStatsFromDatabase(user.UserID, 0)
+	statGetResult, maniaStats := database.UserStatsFromDatabase(user.UserID, 0)
+
+	if statGetResult == -1 {
+		//TODO: do a BanchoAnnounce to the user informing about the issue
+		fmt.Printf("Uhh, user exists in users but not in stats")
+		connection.Close()
+		return
+	} else if statGetResult == -2 {
+		//TODO: do a BanchoAnnounce to the user informing about the issue
+		connection.Close()
+		return
+	}
 
 	osuClient := Client{
 		Connection:  connection,
-		PacketQueue: make(chan packets.BanchoPacket),
+		PacketQueue: packetQueue,
 		BufReader:   textReader,
 		UserData:    user,
+		ClientData:  clientInfo,
+		OsuStats:    osuStats,
+		TaikoStats:  taikoStats,
+		CatchStats:  catchStats,
+		ManiaStats:  maniaStats,
 	}
-
-	bancho.ClientMutex.Lock()
-
-	bancho.Clients = append(bancho.Clients, osuClient)
-
-	bancho.ClientMutex.Unlock()
 
 	resetDeadlineErr := connection.SetReadDeadline(time.Time{})
 
@@ -87,21 +151,31 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 		fmt.Printf("Failed to Configure 5 second read deadline.\n")
 		return
 	}
+
+	packets.BanchoSendProtocolNegotiation(osuClient.PacketQueue)
+	packets.BanchoSendLoginPermissions(osuClient.PacketQueue, user.Privileges)
+
+	bancho.ClientMutex.Lock()
+	bancho.Clients = append(bancho.Clients, &osuClient)
+	bancho.ClientMutex.Unlock()
+
+	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())
 }
 
-func (client Client) HandleIncoming() {
+func (client *Client) HandleIncoming() {
 	readBuffer := make([]byte, 4096)
 
 	//Check if there's at least 1 packet header there
-	_, peekErr := client.BufReader.Peek(packets.BanchoHeaderSize)
+	availableBytes := client.BufReader.Buffered()
 
-	if peekErr == nil {
+	if availableBytes > 0 {
 		read, readErr := client.Connection.Read(readBuffer)
 
 		if readErr != nil {
 			return
 		}
 
+		//Get the bytes that were actually read
 		packetBuffer := bytes.NewBuffer(readBuffer[:read])
 		readIndex := 0
 
@@ -118,4 +192,24 @@ func (client Client) HandleIncoming() {
 		}
 
 	}
+}
+
+func (client *Client) SendOutgoing() {
+	sendBuffer := new(bytes.Buffer)
+
+	client.PacketQueueMutex.Lock()
+
+	for retrievedPacket := client.PacketQueue.Front(); retrievedPacket != nil; retrievedPacket = retrievedPacket.Next() {
+		packet := retrievedPacket.Value.(packets.BanchoPacket)
+
+		fmt.Printf("Sending Packet %d\n", packet.PacketId)
+
+		sendBuffer.Write(packet.GetBytes())
+
+		client.PacketQueue.Remove(retrievedPacket)
+	}
+
+	client.PacketQueueMutex.Unlock()
+
+	client.Connection.Write(sendBuffer.Bytes())
 }

@@ -8,7 +8,7 @@ import (
 
 type Bancho struct {
 	Server         net.Listener
-	Clients        []Client
+	Clients        []*Client
 	ClientMutex    sync.Mutex
 	WorkerChannels []chan struct{}
 }
