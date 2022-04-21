@@ -1,42 +1,19 @@
-package waffle
+package clients
 
 import (
+	"Waffle/waffle/chat"
 	"Waffle/waffle/database"
 	"Waffle/waffle/packets"
 	"bufio"
-	"bytes"
 	"container/list"
 	"fmt"
 	"net"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
-type ClientInformation struct {
-	Timezone       int32
-	Version        string
-	AllowCity      bool
-	OsuClientHash  string
-	MacAddressHash string
-}
-
-type Client struct {
-	Connection       net.Conn
-	ClientData       ClientInformation
-	BufReader        *bufio.Reader
-	PacketQueue      *list.List
-	PacketQueueMutex sync.Mutex
-	UserData         database.User
-	Status           packets.OsuStatus
-	OsuStats         database.UserStats
-	TaikoStats       database.UserStats
-	CatchStats       database.UserStats
-	ManiaStats       database.UserStats
-}
-
-func HandleNewClient(bancho *Bancho, connection net.Conn) {
+func HandleNewClient(connection net.Conn) {
 	loginStartTime := time.Now()
 
 	deadlineErr := connection.SetReadDeadline(time.Now().Add(5 * time.Second))
@@ -166,10 +143,10 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 	packets.BanchoSendUserPresence(osuClient.PacketQueue, user, osuStats, clientInfo.Timezone)
 	packets.BanchoSendOsuUpdate(osuClient.PacketQueue, osuStats, osuClient.Status)
 
-	bancho.ClientMutex.Lock()
+	LockClientList()
 
-	for i := 0; i != len(bancho.Clients); i++ {
-		currentClient := bancho.Clients[i]
+	for i := 0; i != GetAmountClients(); i++ {
+		currentClient := GetClientByIndex(i)
 
 		if currentClient.UserData.UserID == user.UserID {
 			continue
@@ -200,59 +177,15 @@ func HandleNewClient(bancho *Bancho, connection net.Conn) {
 		packets.BanchoSendOsuUpdate(currentClient.PacketQueue, stats, currentClient.Status)
 	}
 
-	bancho.Clients = append(bancho.Clients, &osuClient)
-	bancho.ClientMutex.Unlock()
+	RegisterClient(&osuClient)
+	UnlockClientList()
+
+	if chat.TryJoinChannel(&osuClient, "#osu") {
+		packets.BanchoSendChannelJoinSuccess(osuClient.PacketQueue, "#osu")
+	}
+	if chat.TryJoinChannel(&osuClient, "#announce") {
+		packets.BanchoSendChannelJoinSuccess(osuClient.PacketQueue, "#announce")
+	}
 
 	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())
-}
-
-func (client *Client) HandleIncoming() {
-	readBuffer := make([]byte, 4096)
-
-	//Check if there's at least 1 packet header there
-	availableBytes := client.BufReader.Buffered()
-
-	if availableBytes > 0 {
-		read, readErr := client.Connection.Read(readBuffer)
-
-		if readErr != nil {
-			return
-		}
-
-		//Get the bytes that were actually read
-		packetBuffer := bytes.NewBuffer(readBuffer[:read])
-		readIndex := 0
-
-		for readIndex < read {
-			read, packet := packets.ReadBanchoPacketHeader(packetBuffer)
-
-			readIndex += read
-
-			fmt.Printf("Read Packet ID: %d, of Size: %d, current readIndex: %d\n", packet.PacketId, packet.PacketSize, readIndex)
-
-			//switch packet.PacketId {
-			//
-			//}
-		}
-	}
-}
-
-func (client *Client) SendOutgoing() {
-	sendBuffer := new(bytes.Buffer)
-
-	client.PacketQueueMutex.Lock()
-
-	for retrievedPacket := client.PacketQueue.Front(); retrievedPacket != nil; retrievedPacket = retrievedPacket.Next() {
-		packet := retrievedPacket.Value.(packets.BanchoPacket)
-
-		fmt.Printf("Sending Packet %d\n", packet.PacketId)
-
-		sendBuffer.Write(packet.GetBytes())
-
-		client.PacketQueue.Remove(retrievedPacket)
-	}
-
-	client.PacketQueueMutex.Unlock()
-
-	client.Connection.Write(sendBuffer.Bytes())
 }

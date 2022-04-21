@@ -1,20 +1,21 @@
 package waffle
 
 import (
+	"Waffle/waffle/chat"
+	"Waffle/waffle/clients"
 	"fmt"
 	"net"
-	"sync"
 )
 
 type Bancho struct {
 	Server         net.Listener
-	Clients        []*Client
-	ClientMutex    sync.Mutex
 	WorkerChannels []chan struct{}
 }
 
 func CreateBancho() *Bancho {
 	bancho := new(Bancho)
+
+	chat.InitializeChannels()
 
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
 
@@ -47,6 +48,6 @@ func (bancho *Bancho) RunBancho() {
 			continue
 		}
 
-		go HandleNewClient(bancho, conn)
+		go clients.HandleNewClient(conn)
 	}
 }

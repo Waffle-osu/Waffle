@@ -1,6 +1,7 @@
 package waffle
 
 import (
+	"Waffle/waffle/clients"
 	"math"
 	"time"
 )
@@ -24,7 +25,7 @@ func CreateNewWorker(id int, bancho *Bancho, decommision chan struct{}) {
 
 func WorkerWorkFunction(continueWork *bool, workerInformation BanchoWorker) {
 	for *continueWork == true {
-		clientCount := len(workerInformation.Bancho.Clients)
+		clientCount := len(clients.GetClientList())
 
 		if clientCount == 0 {
 			continue
@@ -40,14 +41,16 @@ func WorkerWorkFunction(continueWork *bool, workerInformation BanchoWorker) {
 			continue
 		}
 
-		workerInformation.Bancho.ClientMutex.Lock()
-		client := workerInformation.Bancho.Clients[int32(index)]
-		workerInformation.Bancho.ClientMutex.Unlock()
+		clients.LockClientList()
+
+		processableClient := clients.GetClientByIndex(int(index))
+
+		clients.UnlockClientList()
 
 		workerInformation.LastProcessdIndex = (workerInformation.LastProcessdIndex + 1) % int32(indexRange)
 
-		client.HandleIncoming()
-		client.SendOutgoing()
+		processableClient.HandleIncoming()
+		processableClient.SendOutgoing()
 
 		time.Sleep(time.Millisecond * 2)
 	}
