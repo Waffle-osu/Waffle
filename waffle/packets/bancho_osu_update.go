@@ -56,7 +56,7 @@ func BanchoSendOsuUpdate(packetQueue chan BanchoPacket, user database.UserStats,
 	binary.Write(buf, binary.LittleEndian, user.Accuracy)
 	binary.Write(buf, binary.LittleEndian, int32(user.Playcount))
 	binary.Write(buf, binary.LittleEndian, int64(user.TotalScore))
-	binary.Write(buf, binary.LittleEndian, int32(1)) //TODO: rank
+	binary.Write(buf, binary.LittleEndian, int32(user.Rank))
 
 	packetBytes := buf.Bytes()
 	packetLength := len(packetBytes)

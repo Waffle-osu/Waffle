@@ -25,7 +25,7 @@ func BanchoSendUserPresence(packetQueue chan BanchoPacket, user database.User, s
 	binary.Write(buf, binary.LittleEndian, int8(user.Privileges&0b11111111))
 	binary.Write(buf, binary.LittleEndian, float32(0.0))
 	binary.Write(buf, binary.LittleEndian, float32(0.0))
-	binary.Write(buf, binary.LittleEndian, int32(1)) //TODO: rank
+	binary.Write(buf, binary.LittleEndian, int32(stats.Rank))
 
 	packetBytes := buf.Bytes()
 	packetLength := len(packetBytes)

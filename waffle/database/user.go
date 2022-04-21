@@ -1,7 +1,9 @@
 package database
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -20,6 +22,7 @@ type User struct {
 type UserStats struct {
 	UserID         uint64
 	Mode           uint8
+	Rank           uint64
 	RankedScore    uint64
 	TotalScore     uint64
 	Level          float64
@@ -124,7 +127,7 @@ func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 		return -2, returnStats
 	}
 
-	queryResult, queryErr := db.Query("SELECT user_id, mode, ranked_score, total_score, user_level, accuracy, playcount, count_ssh, count_ss, count_sh, count_s, count_a, count_b, count_c, count_d, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, replays_watched FROM waffle.stats WHERE user_id = ? AND mode = ?", id, mode)
+	queryResult, queryErr := db.Query("SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank', ranked_score, total_score, user_level, accuracy, playcount, count_ssh, count_ss, count_sh, count_s, count_a, count_b, count_c, count_d, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, replays_watched FROM waffle.stats WHERE user_id = ? AND mode = ?", id, mode)
 
 	if queryErr != nil {
 		fmt.Printf("Failed to Fetch User Stats from Database, MySQL query failed.\n")
@@ -133,7 +136,7 @@ func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 	}
 
 	if queryResult.Next() {
-		scanErr := queryResult.Scan(&returnStats.UserID, &returnStats.Mode, &returnStats.RankedScore, &returnStats.TotalScore, &returnStats.Level, &returnStats.Accuracy, &returnStats.Playcount, &returnStats.CountSSH, &returnStats.CountSS, &returnStats.CountSH, &returnStats.CountS, &returnStats.CountA, &returnStats.CountB, &returnStats.CountC, &returnStats.CountD, &returnStats.Hit300, &returnStats.Hit100, &returnStats.Hit50, &returnStats.HitMiss, &returnStats.HitGeki, &returnStats.HitKatu, &returnStats.ReplaysWatched)
+		scanErr := queryResult.Scan(&returnStats.UserID, &returnStats.Mode, &returnStats.Rank, &returnStats.RankedScore, &returnStats.TotalScore, &returnStats.Level, &returnStats.Accuracy, &returnStats.Playcount, &returnStats.CountSSH, &returnStats.CountSS, &returnStats.CountSH, &returnStats.CountS, &returnStats.CountA, &returnStats.CountB, &returnStats.CountC, &returnStats.CountD, &returnStats.Hit300, &returnStats.Hit100, &returnStats.Hit50, &returnStats.HitMiss, &returnStats.HitGeki, &returnStats.HitKatu, &returnStats.ReplaysWatched)
 
 		if scanErr != nil {
 			fmt.Printf("Failed to Scan database results onto UserStats object.\n")
@@ -145,4 +148,63 @@ func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 	}
 
 	return -1, returnStats
+}
+
+func CreateNewUser(username string, rawPassword string) bool {
+	db, connErr := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/waffle")
+
+	if connErr != nil {
+		fmt.Printf("Failed to create new user, as a connection could not be successfully established.\n")
+
+		return false
+	}
+
+	duplicateUsernameQuery, duplicateUsernameQueryErr := db.Query("SELECT COUNT(*) FROM waffle.users WHERE username = ?", username)
+
+	if duplicateUsernameQueryErr != nil {
+		fmt.Printf("Failed to create new user, MySQL query failed.\n")
+
+		return false
+	}
+
+	if duplicateUsernameQuery.Next() {
+		return false
+	}
+
+	passwordHashed := md5.Sum([]byte(rawPassword))
+	passwordHashedString := hex.EncodeToString(passwordHashed[:])
+
+	var newUserId uint64
+	var newUsername string
+
+	_, queryErr := db.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, passwordHashedString)
+	queryResult, queryErr := db.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
+
+	if queryErr != nil {
+		fmt.Printf("Failed to create new user, MySQL query failed.\n")
+
+		return false
+	}
+
+	if queryResult.Next() {
+		scanErr := queryResult.Scan(&newUserId, &newUsername)
+
+		if scanErr != nil {
+			return false
+		}
+
+		_, statsInsertErr := db.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
+		_, statsInsertErr = db.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
+		_, statsInsertErr = db.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
+		_, statsInsertErr = db.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
+
+		if statsInsertErr != nil {
+			fmt.Printf("Failed to create new user, user stats creation failed. MySQL query failed.\n")
+			return false
+		}
+	} else {
+		return false
+	}
+
+	return true
 }
