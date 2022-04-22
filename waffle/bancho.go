@@ -2,6 +2,7 @@ package waffle
 
 import (
 	"Waffle/waffle/chat"
+	"Waffle/waffle/client_manager"
 	"Waffle/waffle/clients"
 	"Waffle/waffle/database"
 	"fmt"
@@ -9,8 +10,7 @@ import (
 )
 
 type Bancho struct {
-	Server         net.Listener
-	WorkerChannels []chan struct{}
+	Server net.Listener
 }
 
 func CreateBancho() *Bancho {
@@ -18,7 +18,7 @@ func CreateBancho() *Bancho {
 
 	chat.InitializeChannels()
 	database.Initialize()
-	clients.InitializeClientManager()
+	client_manager.InitializeClientManager()
 
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
 

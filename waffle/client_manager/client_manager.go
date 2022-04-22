@@ -1,15 +1,15 @@
-package clients
+package client_manager
 
 import (
 	"sync"
 )
 
-var clientList []*Client
-var clientsById map[int32]*Client
+var clientList []OsuClient
+var clientsById map[int32]OsuClient
 var clientMutex sync.Mutex
 
 func InitializeClientManager() {
-	clientsById = make(map[int32]*Client)
+	clientsById = make(map[int32]OsuClient)
 }
 
 func LockClientList() {
@@ -20,15 +20,15 @@ func UnlockClientList() {
 	clientMutex.Unlock()
 }
 
-func GetClientList() []*Client {
+func GetClientList() []OsuClient {
 	return clientList
 }
 
-func GetClientByIndex(index int) *Client {
+func GetClientByIndex(index int) OsuClient {
 	return clientList[index]
 }
 
-func GetClientById(id int32) *Client {
+func GetClientById(id int32) OsuClient {
 	value, exists := clientsById[id]
 
 	if exists == false {
@@ -42,12 +42,12 @@ func GetAmountClients() int {
 	return len(clientList)
 }
 
-func RegisterClient(client *Client) {
+func RegisterClient(client OsuClient) {
 	clientList = append(clientList, client)
-	clientsById[int32(client.UserData.UserID)] = client
+	clientsById[client.GetUserId()] = client
 }
 
-func UnregisterClient(client *Client) {
+func UnregisterClient(client OsuClient) {
 	LockClientList()
 
 	for index, value := range clientList {
@@ -56,7 +56,7 @@ func UnregisterClient(client *Client) {
 		}
 	}
 
-	delete(clientsById, int32(client.UserData.UserID))
+	delete(clientsById, client.GetUserId())
 
 	UnlockClientList()
 }

@@ -2,6 +2,7 @@ package clients
 
 import (
 	"Waffle/waffle/chat"
+	"Waffle/waffle/client_manager"
 	"Waffle/waffle/database"
 	"Waffle/waffle/packets"
 	"bufio"
@@ -146,53 +147,40 @@ func HandleNewClient(connection net.Conn) {
 	packets.BanchoSendUserPresence(client.PacketQueue, user, osuStats, clientInfo.Timezone)
 	packets.BanchoSendOsuUpdate(client.PacketQueue, osuStats, client.Status)
 
-	LockClientList()
+	client_manager.LockClientList()
 
-	for i := 0; i != GetAmountClients(); i++ {
-		currentClient := GetClientByIndex(i)
+	for i := 0; i != client_manager.GetAmountClients(); i++ {
+		currentClient := client_manager.GetClientByIndex(i)
 
-		if currentClient.UserData.UserID == user.UserID {
+		if currentClient.GetUserId() == int32(user.UserID) {
 			continue
 		}
 
 		//Inform client
-		packets.BanchoSendUserPresence(currentClient.PacketQueue, user, osuStats, clientInfo.Timezone)
-		packets.BanchoSendOsuUpdate(currentClient.PacketQueue, osuStats, client.Status)
+		packets.BanchoSendUserPresence(currentClient.GetPacketQueue(), user, osuStats, clientInfo.Timezone)
+		packets.BanchoSendOsuUpdate(currentClient.GetPacketQueue(), osuStats, client.Status)
 
-		var stats database.UserStats
-
-		switch currentClient.Status.CurrentPlaymode {
-		case packets.OsuGamemodeOsu:
-			stats = currentClient.OsuStats
-			break
-		case packets.OsuGamemodeTaiko:
-			stats = currentClient.TaikoStats
-			break
-		case packets.OsuGamemodeCatch:
-			stats = currentClient.CatchStats
-			break
-		case packets.OsuGamemodeMania:
-			stats = currentClient.ManiaStats
-			break
-		}
-
-		packets.BanchoSendUserPresence(client.PacketQueue, currentClient.UserData, stats, currentClient.ClientData.Timezone)
-		packets.BanchoSendOsuUpdate(client.PacketQueue, stats, currentClient.Status)
+		packets.BanchoSendUserPresence(client.PacketQueue, currentClient.GetUserData(), currentClient.GetRelevantUserStats(), currentClient.GetClientTimezone())
+		packets.BanchoSendOsuUpdate(client.PacketQueue, currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
 	}
 
-	RegisterClient(&client)
-	UnlockClientList()
+	client_manager.RegisterClient(&client)
+	client_manager.UnlockClientList()
 
-	if chat.TryJoinChannel(&client, "#osu") {
+	osuJoinSuccess, osuChannel := chat.TryJoinChannel(&client, "#osu")
+
+	if osuJoinSuccess {
 		packets.BanchoSendChannelJoinSuccess(client.PacketQueue, "#osu")
 
-		client.joinedChannels = append(client.joinedChannels, "#osu")
+		client.joinedChannels = append(client.joinedChannels, osuChannel)
 	}
 
-	if chat.TryJoinChannel(&client, "#announce") {
+	announceJoinSuccess, announceChannel := chat.TryJoinChannel(&client, "#announce")
+
+	if announceJoinSuccess {
 		packets.BanchoSendChannelJoinSuccess(client.PacketQueue, "#announce")
 
-		client.joinedChannels = append(client.joinedChannels, "#announce")
+		client.joinedChannels = append(client.joinedChannels, announceChannel)
 	}
 
 	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())

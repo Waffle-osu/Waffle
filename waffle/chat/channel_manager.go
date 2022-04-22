@@ -9,8 +9,8 @@ var channelList []*Channel
 
 func InitializeChannels() {
 	channels = map[string]*Channel{
-		"#osu":      {"#osu", "The main channel of osu!", false, []AdminPrivilegable{}, sync.Mutex{}},
-		"#announce": {"#announce", "The main channel of osu!", false, []AdminPrivilegable{}, sync.Mutex{}},
+		"#osu":      {"#osu", "The main channel of osu!", false, []ChatClient{}, sync.Mutex{}},
+		"#announce": {"#announce", "The main channel of osu!", false, []ChatClient{}, sync.Mutex{}},
 	}
 }
 
@@ -24,22 +24,12 @@ func GetAvailableChannels() []*Channel {
 	return channelList
 }
 
-func TryJoinChannel(client AdminPrivilegable, channelName string) bool {
+func TryJoinChannel(client ChatClient, channelName string) (joinSuccess bool, joinedChannel *Channel) {
 	channel, exists := channels[channelName]
 
 	if exists == false {
-		return false
+		return false, nil
 	}
 
-	return channel.Join(client)
-}
-
-func LeaveChannel(client AdminPrivilegable, channelName string) {
-	channel, exists := channels[channelName]
-
-	if exists == false {
-		return
-	}
-
-	channel.Leave(client)
+	return channel.Join(client), channel
 }

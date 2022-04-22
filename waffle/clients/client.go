@@ -2,6 +2,7 @@ package clients
 
 import (
 	"Waffle/waffle/chat"
+	"Waffle/waffle/client_manager"
 	"Waffle/waffle/database"
 	"Waffle/waffle/packets"
 	"net"
@@ -30,7 +31,7 @@ type Client struct {
 	lastReceive time.Time
 	lastPing    time.Time
 
-	joinedChannels []string
+	joinedChannels []*chat.Channel
 
 	PacketQueue chan packets.BanchoPacket
 
@@ -44,10 +45,13 @@ type Client struct {
 }
 
 func CleanupClient(client *Client) {
-	UnregisterClient(client)
+	client_manager.UnregisterClient(client)
+	client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
+		packets.BanchoSendHandleOsuQuit(packetQueue, int32(client.UserData.UserID))
+	})
 
 	for _, channel := range client.joinedChannels {
-		chat.LeaveChannel(client, channel)
+		channel.Leave(client)
 	}
 
 	client.continueRunning = false

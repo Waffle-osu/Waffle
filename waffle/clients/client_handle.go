@@ -1,7 +1,7 @@
 package clients
 
 import (
-	"Waffle/waffle/database"
+	"Waffle/waffle/client_manager"
 	"Waffle/waffle/packets"
 	"bytes"
 	"encoding/binary"
@@ -31,7 +31,7 @@ func (client *Client) HandleIncoming() {
 
 			readIndex += read
 
-			if packet.PacketId == 4 {
+			if packet.PacketId == 4 || packet.PacketId == 79 {
 				continue
 			}
 
@@ -39,25 +39,8 @@ func (client *Client) HandleIncoming() {
 
 			switch packet.PacketId {
 			case packets.OsuRequestStatusUpdate:
-				var stats database.UserStats
-
-				switch client.Status.CurrentPlaymode {
-				case packets.OsuGamemodeOsu:
-					stats = client.OsuStats
-					break
-				case packets.OsuGamemodeTaiko:
-					stats = client.TaikoStats
-					break
-				case packets.OsuGamemodeCatch:
-					stats = client.CatchStats
-					break
-				case packets.OsuGamemodeMania:
-					stats = client.ManiaStats
-					break
-				}
-
-				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.OsuStats, client.ClientData.Timezone)
-				packets.BanchoSendOsuUpdate(client.PacketQueue, stats, client.Status)
+				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.OsuStats, client.GetClientTimezone())
+				packets.BanchoSendOsuUpdate(client.PacketQueue, client.GetRelevantUserStats(), client.Status)
 				break
 			case packets.OsuUserStatsRequest:
 				var listLength int16
@@ -68,30 +51,13 @@ func (client *Client) HandleIncoming() {
 					var currentId int32
 					binary.Read(packetDataReader, binary.LittleEndian, currentId)
 
-					user := GetClientById(currentId)
+					user := client_manager.GetClientById(currentId)
 
 					if user == nil {
 						continue
 					}
 
-					var stats database.UserStats
-
-					switch user.Status.CurrentPlaymode {
-					case packets.OsuGamemodeOsu:
-						stats = user.OsuStats
-						break
-					case packets.OsuGamemodeTaiko:
-						stats = user.TaikoStats
-						break
-					case packets.OsuGamemodeCatch:
-						stats = user.CatchStats
-						break
-					case packets.OsuGamemodeMania:
-						stats = user.ManiaStats
-						break
-					}
-
-					packets.BanchoSendOsuUpdate(client.PacketQueue, stats, user.Status)
+					packets.BanchoSendOsuUpdate(client.PacketQueue, user.GetRelevantUserStats(), user.GetUserStatus())
 					break
 				}
 			default:
@@ -103,6 +69,10 @@ func (client *Client) HandleIncoming() {
 
 func (client *Client) SendOutgoing() {
 	for packet := range client.PacketQueue {
+		if packet.PacketId != 8 {
+			fmt.Printf("Sending Packet %d to %s\n", packet.PacketId, client.UserData.Username)
+		}
+
 		client.connection.Write(packet.GetBytes())
 	}
 }
@@ -122,5 +92,6 @@ func (client *Client) MaintainClient() {
 		time.Sleep(time.Second)
 	}
 
+	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
 	close(client.PacketQueue)
 }
