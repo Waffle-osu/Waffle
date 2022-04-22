@@ -21,7 +21,7 @@ func BanchoSendUserPresence(packetQueue chan BanchoPacket, user database.User, s
 	binary.Write(buf, binary.LittleEndian, PresenceAvatarExtensionPng)
 	binary.Write(buf, binary.LittleEndian, int8(timezone))
 	binary.Write(buf, binary.LittleEndian, int8(user.Country))
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString("No city for you!"))
+	binary.Write(buf, binary.LittleEndian, WriteBanchoString(""))
 	binary.Write(buf, binary.LittleEndian, int8(user.Privileges&0b11111111))
 	binary.Write(buf, binary.LittleEndian, float32(0.0))
 	binary.Write(buf, binary.LittleEndian, float32(0.0))

@@ -9,8 +9,8 @@ var channelList []*Channel
 
 func InitializeChannels() {
 	channels = map[string]*Channel{
-		"#osu":      {"#osu", "The main channel of osu!", false, []ChatClient{}, sync.Mutex{}},
-		"#announce": {"#announce", "The main channel of osu!", false, []ChatClient{}, sync.Mutex{}},
+		"#osu":      {"#osu", "The main channel of osu!", false, false, []ChatClient{}, sync.Mutex{}},
+		"#announce": {"#announce", "The main channel of osu!", false, true, []ChatClient{}, sync.Mutex{}},
 	}
 }
 
