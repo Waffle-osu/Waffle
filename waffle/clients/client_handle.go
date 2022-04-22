@@ -41,31 +41,18 @@ func (client *Client) HandleIncoming() {
 
 			switch packet.PacketId {
 			case packets.OsuSendUserStatus:
-				var status uint8
-				var statusText string
-				var beatmapChecksum string
-				var currentMods uint16
-				var currentPlaymode uint8
-				var beatmapId int32
+				statusUpdate := packet_structures.ReadStatusUpdate(packetDataReader)
 
-				binary.Read(packetDataReader, binary.LittleEndian, &status)
-				statusText = string(packets.ReadBanchoString(packetDataReader))
-				beatmapChecksum = string(packets.ReadBanchoString(packetDataReader))
-				binary.Read(packetDataReader, binary.LittleEndian, &currentMods)
-				binary.Read(packetDataReader, binary.LittleEndian, &currentPlaymode)
-				binary.Read(packetDataReader, binary.LittleEndian, &beatmapId)
-
-				client.Status.CurrentStatus = status
-				client.Status.StatusText = statusText
-				client.Status.BeatmapChecksum = beatmapChecksum
-				client.Status.CurrentMods = currentMods
-				client.Status.CurrentPlaymode = currentPlaymode
-				client.Status.BeatmapId = beatmapId
+				client.Status.CurrentStatus = statusUpdate.Status
+				client.Status.StatusText = statusUpdate.StatusText
+				client.Status.BeatmapChecksum = statusUpdate.BeatmapChecksum
+				client.Status.CurrentMods = statusUpdate.CurrentMods
+				client.Status.CurrentPlaymode = statusUpdate.Playmode
+				client.Status.BeatmapId = statusUpdate.BeatmapId
 
 				client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
 					packets.BanchoSendOsuUpdate(packetQueue, client.OsuStats, client.Status)
 				})
-
 				break
 			case packets.OsuRequestStatusUpdate:
 				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.OsuStats, client.GetClientTimezone())
