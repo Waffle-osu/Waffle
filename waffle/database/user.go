@@ -104,7 +104,7 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 	returnStats := UserStats{}
 
-	queryResult, queryErr := database.Query("SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank', ranked_score, total_score, user_level, accuracy, playcount, count_ssh, count_ss, count_sh, count_s, count_a, count_b, count_c, count_d, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, replays_watched FROM waffle.stats WHERE user_id = ? AND mode = ?", id, mode)
+	queryResult, queryErr := database.Query("SELECT * FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank', ranked_score, total_score, user_level, accuracy, playcount, count_ssh, count_ss, count_sh, count_s, count_a, count_b, count_c, count_d, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, replays_watched FROM waffle.stats WHERE mode = ?) t WHERE user_id = ?", mode, id)
 	defer queryResult.Close()
 
 	if queryErr != nil {
