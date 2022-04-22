@@ -5,15 +5,17 @@ import (
 	"Waffle/waffle/client_manager"
 	"Waffle/waffle/database"
 	"Waffle/waffle/packets"
+	"fmt"
 	"net"
+	"sync"
 	"time"
 )
 
 const (
-	// ReceiveTimeout 15 Seconds
-	ReceiveTimeout = 15000000000
-	// PingTimeout 10 Seconds
-	PingTimeout = 10000000000
+	// ReceiveTimeout 48 Seconds
+	ReceiveTimeout = 48000000000
+	// PingTimeout 8 Seconds
+	PingTimeout = 8000000000
 )
 
 type ClientInformation struct {
@@ -31,7 +33,10 @@ type Client struct {
 	lastReceive time.Time
 	lastPing    time.Time
 
-	joinedChannels []*chat.Channel
+	joinedChannels   []*chat.Channel
+	spectators       map[int32]client_manager.OsuClient
+	spectatorMutex   sync.Mutex
+	spectatingClient client_manager.OsuClient
 
 	PacketQueue chan packets.BanchoPacket
 
@@ -45,6 +50,8 @@ type Client struct {
 }
 
 func CleanupClient(client *Client) {
+	fmt.Printf("Cleaning up %s\n", client.UserData.Username)
+
 	client_manager.UnregisterClient(client)
 	client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
 		packets.BanchoSendHandleOsuQuit(packetQueue, int32(client.UserData.UserID))

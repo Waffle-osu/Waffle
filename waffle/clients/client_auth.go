@@ -20,6 +20,7 @@ func HandleNewClient(connection net.Conn) {
 
 	if deadlineErr != nil {
 		fmt.Printf("Failed to Configure 5 second read deadline.\n")
+		connection.Close()
 		return
 	}
 
@@ -33,6 +34,7 @@ func HandleNewClient(connection net.Conn) {
 
 	if readErr != nil {
 		fmt.Printf("Failed to read initial user data\n")
+		connection.Close()
 		return
 	}
 
@@ -44,7 +46,7 @@ func HandleNewClient(connection net.Conn) {
 
 	if len(userDataSplit) != 4 {
 		packets.BanchoSendLoginReply(packetQueue, packets.InvalidVersion)
-		connection.Close()
+		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
@@ -54,7 +56,7 @@ func HandleNewClient(connection net.Conn) {
 
 	if convErr != nil {
 		packets.BanchoSendLoginReply(packetQueue, packets.InvalidVersion)
-		connection.Close()
+		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
@@ -71,25 +73,25 @@ func HandleNewClient(connection net.Conn) {
 	//No User Found
 	if fetchResult == -1 {
 		packets.BanchoSendLoginReply(packetQueue, packets.InvalidLogin)
-		connection.Close()
+		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	} else if fetchResult == -2 {
 		packets.BanchoSendLoginReply(packetQueue, packets.ServersideError)
-		connection.Close()
+		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
 	//Invalid Password
 	if user.Password != password {
 		packets.BanchoSendLoginReply(packetQueue, packets.InvalidLogin)
-		connection.Close()
+		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
 	//Banned
 	if user.Banned == 1 {
 		packets.BanchoSendLoginReply(packetQueue, packets.UserBanned)
-		connection.Close()
+		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
@@ -101,13 +103,12 @@ func HandleNewClient(connection net.Conn) {
 	statGetResult, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
 
 	if statGetResult == -1 {
-		//TODO: do a BanchoAnnounce to the user informing about the issue
-		fmt.Printf("Uhh, user exists in users but not in stats")
-		connection.Close()
+		packets.BanchoSendAnnounce(packetQueue, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
+		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	} else if statGetResult == -2 {
-		//TODO: do a BanchoAnnounce to the user informing about the issue
-		connection.Close()
+		packets.BanchoSendAnnounce(packetQueue, "A weird server-side fuckup occured, stats could not be loaded...")
+		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
@@ -116,6 +117,8 @@ func HandleNewClient(connection net.Conn) {
 		lastPing:        time.Now(),
 		lastReceive:     time.Now(),
 		continueRunning: true,
+
+		spectators: make(map[int32]client_manager.OsuClient),
 
 		PacketQueue: packetQueue,
 
@@ -139,7 +142,7 @@ func HandleNewClient(connection net.Conn) {
 
 	if resetDeadlineErr != nil {
 		fmt.Printf("Failed to Configure 5 second read deadline.\n")
-		return
+		go SendOffPacketsAndClose(connection, packetQueue)
 	}
 
 	packets.BanchoSendProtocolNegotiation(client.PacketQueue)
@@ -188,4 +191,12 @@ func HandleNewClient(connection net.Conn) {
 	go client.MaintainClient()
 	go client.HandleIncoming()
 	go client.SendOutgoing()
+}
+
+func SendOffPacketsAndClose(connection net.Conn, packetQueue chan packets.BanchoPacket) {
+	for i := 0; i != len(packetQueue); i++ {
+		connection.Write((<-packetQueue).GetBytes())
+	}
+
+	connection.Close()
 }

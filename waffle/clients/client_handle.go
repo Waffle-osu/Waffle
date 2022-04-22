@@ -2,6 +2,7 @@ package clients
 
 import (
 	"Waffle/waffle/client_manager"
+	"Waffle/waffle/packet_structures"
 	"Waffle/waffle/packets"
 	"bytes"
 	"encoding/binary"
@@ -10,6 +11,7 @@ import (
 )
 
 func (client *Client) HandleIncoming() {
+
 	readBuffer := make([]byte, 4096)
 
 	for client.continueRunning {
@@ -31,13 +33,40 @@ func (client *Client) HandleIncoming() {
 
 			readIndex += read
 
-			if packet.PacketId == 4 || packet.PacketId == 79 {
+			if packet.PacketId == 79 {
 				continue
 			}
 
 			packetDataReader := bytes.NewBuffer(packet.PacketData)
 
 			switch packet.PacketId {
+			case packets.OsuSendUserStatus:
+				var status uint8
+				var statusText string
+				var beatmapChecksum string
+				var currentMods uint16
+				var currentPlaymode uint8
+				var beatmapId int32
+
+				binary.Read(packetDataReader, binary.LittleEndian, &status)
+				statusText = string(packets.ReadBanchoString(packetDataReader))
+				beatmapChecksum = string(packets.ReadBanchoString(packetDataReader))
+				binary.Read(packetDataReader, binary.LittleEndian, &currentMods)
+				binary.Read(packetDataReader, binary.LittleEndian, &currentPlaymode)
+				binary.Read(packetDataReader, binary.LittleEndian, &beatmapId)
+
+				client.Status.CurrentStatus = status
+				client.Status.StatusText = statusText
+				client.Status.BeatmapChecksum = beatmapChecksum
+				client.Status.CurrentMods = currentMods
+				client.Status.CurrentPlaymode = currentPlaymode
+				client.Status.BeatmapId = beatmapId
+
+				client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
+					packets.BanchoSendOsuUpdate(packetQueue, client.OsuStats, client.Status)
+				})
+
+				break
 			case packets.OsuRequestStatusUpdate:
 				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.OsuStats, client.GetClientTimezone())
 				packets.BanchoSendOsuUpdate(client.PacketQueue, client.GetRelevantUserStats(), client.Status)
@@ -74,6 +103,38 @@ func (client *Client) HandleIncoming() {
 					}
 				}
 
+				break
+			case packets.OsuExit:
+				CleanupClient(client)
+				break
+			case packets.OsuStartSpectating:
+				var spectatorId int32
+
+				binary.Read(packetDataReader, binary.LittleEndian, &spectatorId)
+
+				toSpectate := client_manager.GetClientById(spectatorId)
+				toSpectate.InformSpectatorJoin(client)
+
+				client.spectatingClient = toSpectate
+				break
+			case packets.OsuStopSpectating:
+				client.spectatingClient.InformSpectatorLeft(client)
+				client.spectatingClient = nil
+				break
+			case packets.OsuSpectateFrames:
+				frameBundle := packet_structures.ReadSpectatorFrameBundle(packetDataReader)
+
+				client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
+					packets.BanchoSendSpectateFrames(packetQueue, frameBundle)
+				})
+				break
+			case packets.OsuErrorReport:
+				errorString := string(packets.ReadBanchoString(packetDataReader))
+
+				fmt.Printf("%s Encountered an error!! Error Details:\n%s", client.UserData.Username, errorString)
+				break
+			case packets.OsuPong:
+				client.lastReceive = time.Now()
 				break
 			default:
 				fmt.Printf("Read Packet ID: %d, of Size: %d, current readIndex: %d\n", packet.PacketId, packet.PacketSize, readIndex)

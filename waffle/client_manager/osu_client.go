@@ -12,4 +12,6 @@ type OsuClient interface {
 	GetUserStatus() packets.OsuStatus
 	GetUserData() database.User
 	GetClientTimezone() int32
+	InformSpectatorJoin(client OsuClient)
+	InformSpectatorLeft(client OsuClient)
 }
