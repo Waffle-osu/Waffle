@@ -6,10 +6,12 @@ import (
 
 var clientList []OsuClient
 var clientsById map[int32]OsuClient
+var clientsByName map[string]OsuClient
 var clientMutex sync.Mutex
 
 func InitializeClientManager() {
 	clientsById = make(map[int32]OsuClient)
+	clientsByName = make(map[string]OsuClient)
 }
 
 func LockClientList() {
@@ -38,6 +40,16 @@ func GetClientById(id int32) OsuClient {
 	return value
 }
 
+func GetClientByName(username string) OsuClient {
+	value, exists := clientsByName[username]
+
+	if exists == false {
+		return nil
+	}
+
+	return value
+}
+
 func GetAmountClients() int {
 	return len(clientList)
 }
@@ -45,6 +57,7 @@ func GetAmountClients() int {
 func RegisterClient(client OsuClient) {
 	clientList = append(clientList, client)
 	clientsById[client.GetUserId()] = client
+	clientsByName[client.GetUserData().Username] = client
 }
 
 func UnregisterClient(client OsuClient) {
@@ -57,6 +70,7 @@ func UnregisterClient(client OsuClient) {
 	}
 
 	delete(clientsById, client.GetUserId())
+	delete(clientsByName, client.GetUserData().Username)
 
 	UnlockClientList()
 }

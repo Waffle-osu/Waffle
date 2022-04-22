@@ -1,7 +1,6 @@
 package packet_structures
 
 import (
-	"Waffle/waffle/packets"
 	"encoding/binary"
 	"io"
 )
@@ -19,12 +18,11 @@ func ReadStatusUpdate(reader io.Reader) StatusUpdate {
 	statusUpdate := StatusUpdate{}
 
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.Status)
-	statusUpdate.StatusText = string(packets.ReadBanchoString(reader))
-	statusUpdate.BeatmapChecksum = string(packets.ReadBanchoString(reader))
+	statusUpdate.StatusText = string(ReadBanchoString(reader))
+	statusUpdate.BeatmapChecksum = string(ReadBanchoString(reader))
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.CurrentMods)
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.Playmode)
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.BeatmapId)
 
 	return statusUpdate
 }
-

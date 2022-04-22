@@ -91,6 +91,20 @@ func (client *Client) HandleIncoming() {
 				}
 
 				break
+			case packets.OsuSendIrcMessagePrivate:
+				var message string
+				var target string
+
+				packets.ReadBanchoString(packetDataReader) //We get the Username from the client, no need for this though the client sends it anyway so we gotta read
+				message = string(packets.ReadBanchoString(packetDataReader))
+				target = string(packets.ReadBanchoString(packetDataReader))
+
+				targetClient := client_manager.GetClientByName(target)
+
+				if targetClient != nil {
+					packets.BanchoSendIrcMessage(targetClient.GetPacketQueue(), client.UserData.Username, target, message)
+				}
+				break
 			case packets.OsuExit:
 				CleanupClient(client)
 				break
