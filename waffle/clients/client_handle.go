@@ -60,6 +60,21 @@ func (client *Client) HandleIncoming() {
 					packets.BanchoSendOsuUpdate(client.PacketQueue, user.GetRelevantUserStats(), user.GetUserStatus())
 					break
 				}
+			case packets.OsuSendIrcMessage:
+				var message string
+				var target string
+
+				packets.ReadBanchoString(packetDataReader) //We get the Username from the client, no need for this though the client sends it anyway so we gotta read
+				message = string(packets.ReadBanchoString(packetDataReader))
+				target = string(packets.ReadBanchoString(packetDataReader))
+
+				for _, channel := range client.joinedChannels {
+					if channel.Name == target {
+						channel.SendMessage(client, message, target)
+					}
+				}
+
+				break
 			default:
 				fmt.Printf("Read Packet ID: %d, of Size: %d, current readIndex: %d\n", packet.PacketId, packet.PacketSize, readIndex)
 			}

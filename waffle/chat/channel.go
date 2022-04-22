@@ -40,7 +40,9 @@ func (channel *Channel) SendMessage(sendingClient ChatClient, message string, ta
 	channel.ClientMutex.Lock()
 
 	for _, value := range channel.Clients {
-		value.SendChatMessage(sendingClient.GetUsername(), message, target)
+		if value != sendingClient {
+			value.SendChatMessage(sendingClient.GetUsername(), message, target)
+		}
 	}
 
 	channel.ClientMutex.Unlock()
