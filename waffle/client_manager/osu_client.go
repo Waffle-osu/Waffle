@@ -14,4 +14,5 @@ type OsuClient interface {
 	GetClientTimezone() int32
 	InformSpectatorJoin(client OsuClient)
 	InformSpectatorLeft(client OsuClient)
+	InformSpectatorCantSpectate(client OsuClient)
 }

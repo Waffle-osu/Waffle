@@ -113,11 +113,20 @@ func (client *Client) HandleIncoming() {
 				binary.Read(packetDataReader, binary.LittleEndian, &spectatorId)
 
 				toSpectate := client_manager.GetClientById(spectatorId)
+
+				if toSpectate == nil {
+					break
+				}
+
 				toSpectate.InformSpectatorJoin(client)
 
 				client.spectatingClient = toSpectate
 				break
 			case packets.OsuStopSpectating:
+				if client.spectatingClient == nil {
+					break
+				}
+
 				client.spectatingClient.InformSpectatorLeft(client)
 				client.spectatingClient = nil
 				break
@@ -127,6 +136,11 @@ func (client *Client) HandleIncoming() {
 				client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
 					packets.BanchoSendSpectateFrames(packetQueue, frameBundle)
 				})
+				break
+			case packets.OsuCantSpectate:
+				if client.spectatingClient != nil {
+					client.spectatingClient.InformSpectatorCantSpectate(client)
+				}
 				break
 			case packets.OsuErrorReport:
 				errorString := string(packets.ReadBanchoString(packetDataReader))

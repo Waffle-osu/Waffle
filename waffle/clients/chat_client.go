@@ -1,6 +1,8 @@
 package clients
 
-import "Waffle/waffle/packets"
+import (
+	"Waffle/waffle/packets"
+)
 
 func (client *Client) IsOfAdminPrivileges() bool {
 	return client.UserData.Privileges&16 > 0

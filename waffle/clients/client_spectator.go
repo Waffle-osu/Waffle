@@ -46,3 +46,9 @@ func (client *Client) InformSpectatorLeft(spectatingClient client_manager.OsuCli
 		packets.BanchoSendFellowSpectatorLeft(packetQueue, spectatingClient.GetUserId())
 	})
 }
+
+func (client *Client) InformSpectatorCantSpectate(spectateClient client_manager.OsuClient) {
+	client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
+		packets.BanchoSendSpectatorCantSpectate(packetQueue, spectateClient.GetUserId())
+	})
+}

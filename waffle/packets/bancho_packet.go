@@ -13,7 +13,6 @@ const (
 	OsuRequestStatusUpdate         uint16 = 3
 	OsuPong                        uint16 = 4
 	BanchoLoginReply               uint16 = 5
-	BanchoCommandError             uint16 = 6
 	BanchoSendMessage              uint16 = 7
 	BanchoPing                     uint16 = 8
 	BanchoHandleIrcChangeUsername  uint16 = 9
@@ -26,7 +25,6 @@ const (
 	OsuStartSpectating             uint16 = 16
 	OsuStopSpectating              uint16 = 17
 	OsuSpectateFrames              uint16 = 18
-	BanchoVersionUpdate            uint16 = 19
 	OsuErrorReport                 uint16 = 20
 	OsuCantSpectate                uint16 = 21
 	BanchoSpectatorCantSpectate    uint16 = 22
@@ -85,7 +83,7 @@ const (
 	BanchoTitleUpdate              uint16 = 76
 	OsuMatchChangeTeam             uint16 = 77
 	OsuChannelLeave                uint16 = 78
-	OsuRecieveUpdates              uint16 = 79
+	OsuReceiveUpdates              uint16 = 79
 	BanchoMonitor                  uint16 = 80
 	BanchoMatchPlayerSkipped       uint16 = 81
 	OsuSetIrcAwayMessage           uint16 = 82

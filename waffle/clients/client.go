@@ -52,6 +52,12 @@ type Client struct {
 func CleanupClient(client *Client) {
 	fmt.Printf("Cleaning up %s\n", client.UserData.Username)
 
+	if client.spectatingClient != nil {
+		client.spectatingClient.InformSpectatorLeft(client)
+	}
+
+	client.spectators = map[int32]client_manager.OsuClient{}
+
 	client_manager.UnregisterClient(client)
 	client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
 		packets.BanchoSendHandleOsuQuit(packetQueue, int32(client.UserData.UserID))
