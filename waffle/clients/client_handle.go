@@ -2,6 +2,7 @@ package clients
 
 import (
 	"Waffle/waffle/client_manager"
+	"Waffle/waffle/lobby"
 	"Waffle/waffle/packet_structures"
 	"Waffle/waffle/packets"
 	"bytes"
@@ -150,6 +151,12 @@ func (client *Client) HandleIncoming() {
 				break
 			case packets.OsuPong:
 				client.lastReceive = time.Now()
+				break
+			case packets.OsuLobbyJoin:
+				lobby.JoinLobby(client)
+				break
+			case packets.OsuLobbyPart:
+				lobby.PartLobby(client)
 				break
 			default:
 				fmt.Printf("Read Packet ID: %d, of Size: %d, current readIndex: %d\n", packet.PacketId, packet.PacketSize, readIndex)
