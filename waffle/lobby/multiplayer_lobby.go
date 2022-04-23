@@ -14,6 +14,7 @@ type MultiplayerLobby struct {
 	PlayersLoaded       [8]bool
 	PlayerSkipRequested [8]bool
 	PlayerCompleted     [8]bool
+	PlayerFailed        [8]bool
 	LastScoreFrames     [8]packets.ScoreFrame
 	MatchInfoMutex      sync.Mutex
 	InProgress          bool
@@ -294,6 +295,148 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 
 	if multiLobby.GetOpenSlotCount() > 2 && multiLobby.MatchInformation.SlotStatus[slotId] == packets.MultiplayerMatchSlotStatusOpen {
 		multiLobby.MatchInformation.SlotStatus[slotId] = packets.MultiplayerMatchSlotStatusLocked
+	}
+
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) InformNoBeatmap(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	multiLobby.MatchInformation.SlotStatus[slot] = packets.MultiplayerMatchSlotStatusMissingMap
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) InformGotBeatmap(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	multiLobby.MatchInformation.SlotStatus[slot] = packets.MultiplayerMatchSlotStatusNotReady
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) InformLoadComplete(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	multiLobby.PlayersLoaded[slot] = true
+
+	if multiLobby.HaveAllPlayersLoaded() {
+		for i := 0; i != 8; i++ {
+			if multiLobby.MultiClients[i] != nil {
+				packets.BanchoSendMatchAllPlayersLoaded(multiLobby.MultiClients[i].GetPacketQueue())
+			}
+		}
+	}
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) InformScoreUpdate(client LobbyClient, scoreFrame packets.ScoreFrame) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	scoreFrame.Id = uint8(slot)
+	multiLobby.LastScoreFrames[slot] = scoreFrame
+
+	for i := 0; i != 8; i++ {
+		if multiLobby.MultiClients[i] != nil {
+			packets.BanchoSendMatchScoreUpdate(multiLobby.MultiClients[i].GetPacketQueue(), scoreFrame)
+		}
+	}
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) InformCompletion(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	multiLobby.PlayerCompleted[slot] = true
+
+	if multiLobby.HaveAllPlayersCompleted() {
+		multiLobby.InProgress = false
+
+		for i := 0; i != 8; i++ {
+			multiLobby.PlayerCompleted[i] = false
+			multiLobby.PlayerSkipRequested[i] = false
+			multiLobby.PlayersLoaded[i] = false
+			multiLobby.PlayerFailed[i] = false
+
+			if multiLobby.MultiClients[i] != nil {
+				multiLobby.MatchInformation.SlotStatus[i] = packets.MultiplayerMatchSlotStatusNotReady
+
+				packets.BanchoSendMatchComplete(multiLobby.MultiClients[i].GetPacketQueue())
+			}
+		}
+	}
+
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) InformPressedSkip(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	multiLobby.PlayerSkipRequested[slot] = true
+
+	if multiLobby.HaveAllPlayersSkipped() {
+		for i := 0; i != 8; i++ {
+			if multiLobby.MultiClients[i] != nil {
+				packets.BanchoSendMatchSkip(multiLobby.MultiClients[i].GetPacketQueue())
+			}
+		}
+	}
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) InformFailed(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	multiLobby.PlayerFailed[slot] = true
+
+	for i := 0; i != 8; i++ {
+		if multiLobby.MultiClients[i] != nil {
+			packets.BanchoSendMatchPlayerFailed(multiLobby.MultiClients[i].GetPacketQueue(), int32(slot))
+		}
+	}
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) StartGame(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	if multiLobby.MatchHost != client {
+		return
+	}
+
+	multiLobby.InProgress = true
+
+	for i := 0; i != 8; i++ {
+		if multiLobby.MultiClients[i] != nil {
+			multiLobby.MatchInformation.SlotStatus[i] = packets.MultiplayerMatchSlotStatusPlaying
+
+			packets.BanchoSendMatchStart(multiLobby.MultiClients[i].GetPacketQueue(), multiLobby.MatchInformation)
+		}
 	}
 
 	multiLobby.UpdateMatch()

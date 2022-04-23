@@ -246,6 +246,48 @@ func (client *Client) HandleIncoming() {
 					client.currentMultiLobby.LockSlot(client, int(slot))
 				}
 				break
+			case packets.OsuMatchNoBeatmap:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.InformNoBeatmap(client)
+				}
+				break
+			case packets.OsuMatchHasBeatmap:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.InformGotBeatmap(client)
+				}
+				break
+			case packets.OsuMatchComplete:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.InformCompletion(client)
+				}
+				break
+			case packets.OsuMatchLoadComplete:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.InformLoadComplete(client)
+				}
+				break
+			case packets.OsuMatchScoreUpdate:
+				if client.currentMultiLobby != nil {
+					scoreFrame := packets.ReadScoreFrame(packetDataReader)
+
+					client.currentMultiLobby.InformScoreUpdate(client, scoreFrame)
+				}
+				break
+			case packets.OsuMatchSkipRequest:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.InformPressedSkip(client)
+				}
+				break
+			case packets.OsuMatchFailed:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.InformFailed(client)
+				}
+				break
+			case packets.OsuMatchStart:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.StartGame(client)
+				}
+				break
 			default:
 				fmt.Printf("Got %s, of Size: %d\n", packets.GetPacketName(packet.PacketId), packet.PacketSize)
 			}
@@ -279,5 +321,14 @@ func (client *Client) MaintainClient() {
 	}
 
 	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
+	go client.WaitAndClose()
+}
+
+func (client *Client) WaitAndClose() {
+	for len(client.PacketQueue) != 0 {
+		time.Sleep(1000)
+		<-client.PacketQueue
+	}
+
 	close(client.PacketQueue)
 }
