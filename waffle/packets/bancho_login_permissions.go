@@ -1,10 +1,5 @@
 package packets
 
-import (
-	"bytes"
-	"encoding/binary"
-)
-
 const (
 	UserPermissionsRegular   = 1
 	UserPermissionsBAT       = 2
@@ -13,19 +8,5 @@ const (
 )
 
 func BanchoSendLoginPermissions(packetQueue chan BanchoPacket, permissions int32) {
-	buf := new(bytes.Buffer)
-
-	binary.Write(buf, binary.LittleEndian, permissions)
-
-	packetBytes := buf.Bytes()
-	packetLength := len(packetBytes)
-
-	packet := BanchoPacket{
-		PacketId:          BanchoLoginPermissions,
-		PacketCompression: 0,
-		PacketSize:        int32(packetLength),
-		PacketData:        packetBytes,
-	}
-
-	packetQueue <- packet
+	BanchoSendIntPacket(packetQueue, BanchoLoginPermissions, permissions)
 }
