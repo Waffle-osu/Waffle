@@ -171,6 +171,14 @@ func (client *Client) HandleIncoming() {
 					}
 				}
 				break
+			case packets.OsuMatchCreate:
+				match := packets.ReadMultiplayerMatch(packetDataReader)
+
+				lobby.CreateNewMultiMatch(match, client)
+				break
+			case packets.OsuMatchPart:
+				client.LeaveCurrentMatch()
+				break
 			default:
 				fmt.Printf("Got %s, of Size: %d\n", packets.GetPacketName(packet.PacketId), packet.PacketSize)
 			}

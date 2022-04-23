@@ -10,9 +10,14 @@ var clientsById map[int32]LobbyClient
 var clientsByName map[string]LobbyClient
 var clientMutex sync.Mutex
 
+var multiLobbies []*MultiplayerLobby
+var multiLobbiesById map[uint16]*MultiplayerLobby
+var multiMutex sync.Mutex
+
 func InitializeLobby() {
 	clientsById = make(map[int32]LobbyClient)
 	clientsByName = make(map[string]LobbyClient)
+	multiLobbiesById = make(map[uint16]*MultiplayerLobby)
 }
 
 func LockClientList() {
@@ -75,4 +80,58 @@ func PartLobby(client LobbyClient) {
 	}
 
 	UnlockClientList()
+}
+
+func BroadcastToLobby(packetFunction func(chan packets.BanchoPacket)) {
+	LockClientList()
+
+	for _, lobbyUser := range clientsById {
+		packetFunction(lobbyUser.GetPacketQueue())
+	}
+
+	UnlockClientList()
+}
+
+func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
+	multiMutex.Lock()
+
+	for i := 0; i != 65536; i++ {
+		_, exists := multiLobbiesById[uint16(i)]
+
+		if exists == false {
+			match.MatchId = uint16(i)
+			break
+		}
+	}
+
+	multiLobby := CreateNewMatch(match, host)
+	multiLobby.MatchInformation.HostId = host.GetUserId()
+
+	host.JoinMatch(multiLobby)
+
+	multiLobbies = append(multiLobbies, multiLobby)
+
+	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
+		packets.BanchoSendMatchNew(packetQueue, multiLobby.MatchInformation)
+	})
+
+	multiMutex.Unlock()
+}
+
+func RemoveMultiMatch(matchId uint16) {
+	multiMutex.Lock()
+
+	for index, value := range multiLobbies {
+		if value.MatchInformation.MatchId == matchId {
+			multiLobbies = append(multiLobbies[0:index], multiLobbies[index+1:]...)
+		}
+	}
+
+	delete(multiLobbiesById, matchId)
+
+	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
+		packets.BanchoSendMatchDisband(packetQueue, int32(matchId))
+	})
+
+	multiMutex.Unlock()
 }

@@ -91,7 +91,7 @@ const (
 	OsuUserStatsRequest            uint16 = 85
 	BanchoRestart                  uint16 = 86
 
-	BanchoHeaderSize int = 7
+	BanchoHeaderSize int32 = 7
 )
 
 type BanchoPacket struct {
@@ -126,7 +126,7 @@ func ReadBanchoPacketHeader(packetBuffer *bytes.Buffer) (int, BanchoPacket) {
 
 	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketData)
 
-	return int(7 + packet.PacketSize), packet
+	return int(BanchoHeaderSize + packet.PacketSize), packet
 }
 
 func WriteBanchoString(value string) []byte {

@@ -39,7 +39,8 @@ type Client struct {
 	spectatorMutex   sync.Mutex
 	spectatingClient client_manager.OsuClient
 
-	isInLobby bool
+	isInLobby         bool
+	currentMultiLobby *lobby.MultiplayerLobby
 
 	PacketQueue chan packets.BanchoPacket
 
