@@ -4,6 +4,7 @@ import (
 	"Waffle/waffle/chat"
 	"Waffle/waffle/client_manager"
 	"Waffle/waffle/database"
+	"Waffle/waffle/lobby"
 	"Waffle/waffle/packets"
 	"fmt"
 	"net"
@@ -38,11 +39,13 @@ type Client struct {
 	spectatorMutex   sync.Mutex
 	spectatingClient client_manager.OsuClient
 
+	isInLobby bool
+
 	PacketQueue chan packets.BanchoPacket
 
 	UserData   database.User
 	ClientData ClientInformation
-	Status     packets.OsuStatus
+	Status     packets.StatusUpdate
 	OsuStats   database.UserStats
 	TaikoStats database.UserStats
 	CatchStats database.UserStats
@@ -57,6 +60,10 @@ func CleanupClient(client *Client) {
 	}
 
 	client.spectators = map[int32]client_manager.OsuClient{}
+
+	if client.isInLobby {
+		lobby.PartLobby(client)
+	}
 
 	client_manager.UnregisterClient(client)
 	client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {

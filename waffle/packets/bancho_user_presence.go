@@ -3,29 +3,31 @@ package packets
 import (
 	"Waffle/waffle/database"
 	"bytes"
-	"encoding/binary"
 )
 
 const (
-	PresenceAvatarExtensionNone int8 = 0
-	PresenceAvatarExtensionPng  int8 = 1
-	PresenceAvatarExtensionJpg  int8 = 2
+	PresenceAvatarExtensionNone uint8 = 0
+	PresenceAvatarExtensionPng  uint8 = 1
+	PresenceAvatarExtensionJpg  uint8 = 2
 )
 
 func BanchoSendUserPresence(packetQueue chan BanchoPacket, user database.User, stats database.UserStats, timezone int32) {
 	buf := new(bytes.Buffer)
 
-	//Write Data
-	binary.Write(buf, binary.LittleEndian, int32(user.UserID))
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(user.Username))
-	binary.Write(buf, binary.LittleEndian, PresenceAvatarExtensionPng)
-	binary.Write(buf, binary.LittleEndian, int8(timezone))
-	binary.Write(buf, binary.LittleEndian, int8(user.Country))
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(""))
-	binary.Write(buf, binary.LittleEndian, int8(user.Privileges&0b11111111))
-	binary.Write(buf, binary.LittleEndian, float32(0.0))
-	binary.Write(buf, binary.LittleEndian, float32(0.0))
-	binary.Write(buf, binary.LittleEndian, int32(stats.Rank))
+	presence := UserPresence{
+		UserId:          int32(user.UserID),
+		Username:        user.Username,
+		AvatarExtension: PresenceAvatarExtensionPng,
+		Timezone:        uint8(timezone),
+		Country:         uint8(user.Country),
+		City:            "",
+		Permissions:     uint8(user.Privileges),
+		Longitude:       0,
+		Latitude:        0,
+		Rank:            int32(stats.Rank),
+	}
+
+	presence.WriteUserPresence(buf)
 
 	packetBytes := buf.Bytes()
 	packetLength := len(packetBytes)

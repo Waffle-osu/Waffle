@@ -2,16 +2,12 @@ package packets
 
 import (
 	"bytes"
-	"encoding/binary"
 )
 
-func BanchoSendIrcMessage(packetQueue chan BanchoPacket, senderUsername string, target string, content string) {
+func BanchoSendIrcMessage(packetQueue chan BanchoPacket, message Message) {
 	buf := new(bytes.Buffer)
 
-	//Write Data
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(senderUsername))
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(content))
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(target))
+	message.WriteMessage(buf)
 
 	packetBytes := buf.Bytes()
 	packetLength := len(packetBytes)

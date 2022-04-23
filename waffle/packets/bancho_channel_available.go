@@ -1,16 +1,15 @@
 package packets
 
 import (
-	"Waffle/waffle/chat"
 	"bytes"
 	"encoding/binary"
 )
 
-func BanchoSendChannelAvailable(packetQueue chan BanchoPacket, channel *chat.Channel) {
+func BanchoSendChannelAvailable(packetQueue chan BanchoPacket, channelName string) {
 	buf := new(bytes.Buffer)
 
 	//Write Data
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(channel.Name))
+	binary.Write(buf, binary.LittleEndian, WriteBanchoString(channelName))
 
 	packetBytes := buf.Bytes()
 	packetLength := len(packetBytes)

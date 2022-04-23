@@ -9,7 +9,7 @@ type OsuClient interface {
 	GetUserId() int32
 	GetPacketQueue() chan packets.BanchoPacket
 	GetRelevantUserStats() database.UserStats
-	GetUserStatus() packets.OsuStatus
+	GetUserStatus() packets.StatusUpdate
 	GetUserData() database.User
 	GetClientTimezone() int32
 	InformSpectatorJoin(client OsuClient)

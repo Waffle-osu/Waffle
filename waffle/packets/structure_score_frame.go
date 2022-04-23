@@ -1,4 +1,4 @@
-package packet_structures
+package packets
 
 import (
 	"encoding/binary"

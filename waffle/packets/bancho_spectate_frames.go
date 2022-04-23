@@ -1,11 +1,10 @@
 package packets
 
 import (
-	"Waffle/waffle/packet_structures"
 	"bytes"
 )
 
-func BanchoSendSpectateFrames(packetQueue chan BanchoPacket, frameBundle packet_structures.SpectatorFrameBundle) {
+func BanchoSendSpectateFrames(packetQueue chan BanchoPacket, frameBundle SpectatorFrameBundle) {
 	buf := new(bytes.Buffer)
 
 	frameBundle.WriteSpectatorFrameBundle(buf)

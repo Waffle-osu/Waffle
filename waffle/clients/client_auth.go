@@ -135,12 +135,12 @@ func HandleNewClient(connection net.Conn) {
 		TaikoStats: taikoStats,
 		CatchStats: catchStats,
 		ManiaStats: maniaStats,
-		Status: packets.OsuStatus{
+		Status: packets.StatusUpdate{
 			BeatmapChecksum: "",
 			BeatmapId:       -1,
 			CurrentMods:     0,
-			CurrentPlaymode: packets.OsuGamemodeOsu,
-			CurrentStatus:   packets.OsuStatusIdle,
+			Playmode:        packets.OsuGamemodeOsu,
+			Status:          packets.OsuStatusIdle,
 			StatusText:      user.Username + " has just logged in!",
 		},
 	}
@@ -153,7 +153,7 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	packets.BanchoSendProtocolNegotiation(client.PacketQueue)
-	packets.BanchoSendLoginPermissions(client.PacketQueue, user.Privileges)
+	packets.BanchoSendLoginPermissions(client.PacketQueue, user.Privileges|packets.UserPermissionsSupporter)
 	packets.BanchoSendUserPresence(client.PacketQueue, user, osuStats, clientInfo.Timezone)
 	packets.BanchoSendOsuUpdate(client.PacketQueue, osuStats, client.Status)
 

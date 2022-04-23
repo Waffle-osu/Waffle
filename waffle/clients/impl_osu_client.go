@@ -16,7 +16,7 @@ func (client *Client) GetPacketQueue() chan packets.BanchoPacket {
 func (client *Client) GetRelevantUserStats() database.UserStats {
 	var stats database.UserStats
 
-	switch client.Status.CurrentPlaymode {
+	switch client.Status.Playmode {
 	case packets.OsuGamemodeOsu:
 		stats = client.OsuStats
 		break
@@ -34,7 +34,7 @@ func (client *Client) GetRelevantUserStats() database.UserStats {
 	return stats
 }
 
-func (client *Client) GetUserStatus() packets.OsuStatus {
+func (client *Client) GetUserStatus() packets.StatusUpdate {
 	return client.Status
 }
 

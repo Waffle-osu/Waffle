@@ -3,7 +3,6 @@ package clients
 import (
 	"Waffle/waffle/client_manager"
 	"Waffle/waffle/lobby"
-	"Waffle/waffle/packet_structures"
 	"Waffle/waffle/packets"
 	"bytes"
 	"encoding/binary"
@@ -42,14 +41,9 @@ func (client *Client) HandleIncoming() {
 
 			switch packet.PacketId {
 			case packets.OsuSendUserStatus:
-				statusUpdate := packet_structures.ReadStatusUpdate(packetDataReader)
+				statusUpdate := packets.ReadStatusUpdate(packetDataReader)
 
-				client.Status.CurrentStatus = statusUpdate.Status
-				client.Status.StatusText = statusUpdate.StatusText
-				client.Status.BeatmapChecksum = statusUpdate.BeatmapChecksum
-				client.Status.CurrentMods = statusUpdate.CurrentMods
-				client.Status.CurrentPlaymode = statusUpdate.Playmode
-				client.Status.BeatmapId = statusUpdate.BeatmapId
+				client.Status = statusUpdate
 
 				client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
 					packets.BanchoSendOsuUpdate(packetQueue, client.OsuStats, client.Status)
@@ -78,32 +72,22 @@ func (client *Client) HandleIncoming() {
 					break
 				}
 			case packets.OsuSendIrcMessage:
-				var message string
-				var target string
-
-				packets.ReadBanchoString(packetDataReader) //We get the Username from the client, no need for this though the client sends it anyway so we gotta read
-				message = string(packets.ReadBanchoString(packetDataReader))
-				target = string(packets.ReadBanchoString(packetDataReader))
+				message := packets.ReadMessage(packetDataReader)
 
 				for _, channel := range client.joinedChannels {
-					if channel.Name == target {
-						channel.SendMessage(client, message, target)
+					if channel.Name == message.Target {
+						channel.SendMessage(client, message.Message, message.Target)
 					}
 				}
 
 				break
 			case packets.OsuSendIrcMessagePrivate:
-				var message string
-				var target string
+				message := packets.ReadMessage(packetDataReader)
 
-				packets.ReadBanchoString(packetDataReader) //We get the Username from the client, no need for this though the client sends it anyway so we gotta read
-				message = string(packets.ReadBanchoString(packetDataReader))
-				target = string(packets.ReadBanchoString(packetDataReader))
-
-				targetClient := client_manager.GetClientByName(target)
+				targetClient := client_manager.GetClientByName(message.Target)
 
 				if targetClient != nil {
-					packets.BanchoSendIrcMessage(targetClient.GetPacketQueue(), client.UserData.Username, target, message)
+					packets.BanchoSendIrcMessage(targetClient.GetPacketQueue(), message)
 				}
 				break
 			case packets.OsuExit:
@@ -133,7 +117,7 @@ func (client *Client) HandleIncoming() {
 				client.spectatingClient = nil
 				break
 			case packets.OsuSpectateFrames:
-				frameBundle := packet_structures.ReadSpectatorFrameBundle(packetDataReader)
+				frameBundle := packets.ReadSpectatorFrameBundle(packetDataReader)
 
 				client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
 					packets.BanchoSendSpectateFrames(packetQueue, frameBundle)
@@ -154,9 +138,11 @@ func (client *Client) HandleIncoming() {
 				break
 			case packets.OsuLobbyJoin:
 				lobby.JoinLobby(client)
+				client.isInLobby = true
 				break
 			case packets.OsuLobbyPart:
 				lobby.PartLobby(client)
+				client.isInLobby = false
 				break
 			default:
 				fmt.Printf("Read Packet ID: %d, of Size: %d, current readIndex: %d\n", packet.PacketId, packet.PacketSize, readIndex)

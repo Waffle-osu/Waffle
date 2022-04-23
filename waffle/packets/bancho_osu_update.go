@@ -3,7 +3,6 @@ package packets
 import (
 	"Waffle/waffle/database"
 	"bytes"
-	"encoding/binary"
 )
 
 const (
@@ -30,33 +29,20 @@ const (
 	OsuGamemodeMania uint8 = 3
 )
 
-type OsuStatus struct {
-	BeatmapChecksum string
-	BeatmapId       int32
-	CurrentMods     uint16
-	CurrentPlaymode uint8
-	CurrentStatus   uint8
-	StatusText      string
-}
-
-func BanchoSendOsuUpdate(packetQueue chan BanchoPacket, user database.UserStats, status OsuStatus) {
+func BanchoSendOsuUpdate(packetQueue chan BanchoPacket, user database.UserStats, status StatusUpdate) {
 	buf := new(bytes.Buffer)
 
-	//Write Data
-	binary.Write(buf, binary.LittleEndian, int32(user.UserID))
+	stats := OsuStats{
+		UserId:      int32(user.UserID),
+		Status:      status,
+		RankedScore: int64(user.RankedScore),
+		Accuracy:    user.Accuracy,
+		Playcount:   int32(user.Playcount),
+		TotalScore:  int64(user.TotalScore),
+		Rank:        int32(user.Rank),
+	}
 
-	binary.Write(buf, binary.LittleEndian, status.CurrentStatus)
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(status.StatusText))
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(status.BeatmapChecksum))
-	binary.Write(buf, binary.LittleEndian, status.CurrentMods)
-	binary.Write(buf, binary.LittleEndian, status.CurrentPlaymode)
-	binary.Write(buf, binary.LittleEndian, status.BeatmapId)
-
-	binary.Write(buf, binary.LittleEndian, int64(user.RankedScore))
-	binary.Write(buf, binary.LittleEndian, user.Accuracy)
-	binary.Write(buf, binary.LittleEndian, int32(user.Playcount))
-	binary.Write(buf, binary.LittleEndian, int64(user.TotalScore))
-	binary.Write(buf, binary.LittleEndian, int32(user.Rank))
+	stats.WriteOsuStats(buf)
 
 	packetBytes := buf.Bytes()
 	packetLength := len(packetBytes)

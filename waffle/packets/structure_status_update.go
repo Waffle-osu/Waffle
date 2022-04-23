@@ -1,4 +1,4 @@
-package packet_structures
+package packets
 
 import (
 	"encoding/binary"
@@ -25,4 +25,13 @@ func ReadStatusUpdate(reader io.Reader) StatusUpdate {
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.BeatmapId)
 
 	return statusUpdate
+}
+
+func (statusUpdate *StatusUpdate) WriteStatusUpdate(writer io.Writer) {
+	binary.Write(writer, binary.LittleEndian, statusUpdate.Status)
+	binary.Write(writer, binary.LittleEndian, WriteBanchoString(statusUpdate.StatusText))
+	binary.Write(writer, binary.LittleEndian, WriteBanchoString(statusUpdate.BeatmapChecksum))
+	binary.Write(writer, binary.LittleEndian, statusUpdate.CurrentMods)
+	binary.Write(writer, binary.LittleEndian, statusUpdate.Playmode)
+	binary.Write(writer, binary.LittleEndian, statusUpdate.BeatmapId)
 }

@@ -9,7 +9,7 @@ func (client *Client) IsOfAdminPrivileges() bool {
 }
 
 func (client *Client) SendChatMessage(sender string, content string, channel string) {
-	packets.BanchoSendIrcMessage(client.PacketQueue, sender, channel, content)
+	packets.BanchoSendIrcMessage(client.PacketQueue, packets.Message{Sender: sender, Message: content, Target: channel})
 }
 
 func (client *Client) GetUsername() string {
