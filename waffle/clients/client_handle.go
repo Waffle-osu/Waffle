@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"Waffle/waffle/chat"
 	"Waffle/waffle/client_manager"
 	"Waffle/waffle/lobby"
 	"Waffle/waffle/packets"
@@ -144,8 +145,34 @@ func (client *Client) HandleIncoming() {
 				lobby.PartLobby(client)
 				client.isInLobby = false
 				break
+			case packets.OsuChannelJoin:
+				channelName := string(packets.ReadBanchoString(packetDataReader))
+
+				channel, exists := chat.GetChannelByName(channelName)
+
+				if exists {
+					if channel.Join(client) {
+						packets.BanchoSendChannelJoinSuccess(client.PacketQueue, channelName)
+						client.joinedChannels = append(client.joinedChannels, channel)
+					} else {
+						packets.BanchoSendChannelRevoked(client.PacketQueue, channelName)
+					}
+				} else {
+					packets.BanchoSendChannelRevoked(client.PacketQueue, channelName)
+				}
+				break
+			case packets.OsuChannelLeave:
+				channelName := string(packets.ReadBanchoString(packetDataReader))
+
+				for index, channel := range client.joinedChannels {
+					if channel.Name == channelName {
+						channel.Leave(client)
+						client.joinedChannels = append(client.joinedChannels[0:index], client.joinedChannels[index+1:]...)
+					}
+				}
+				break
 			default:
-				fmt.Printf("Read Packet ID: %d, of Size: %d, current readIndex: %d\n", packet.PacketId, packet.PacketSize, readIndex)
+				fmt.Printf("Got %s, of Size: %d\n", packets.GetPacketName(packet.PacketId), packet.PacketSize)
 			}
 		}
 	}
@@ -154,7 +181,7 @@ func (client *Client) HandleIncoming() {
 func (client *Client) SendOutgoing() {
 	for packet := range client.PacketQueue {
 		if packet.PacketId != 8 {
-			fmt.Printf("Sending Packet %d to %s\n", packet.PacketId, client.UserData.Username)
+			fmt.Printf("Sending %s to %s\n", packets.GetPacketName(packet.PacketId), client.UserData.Username)
 		}
 
 		client.connection.Write(packet.GetBytes())

@@ -177,20 +177,17 @@ func HandleNewClient(connection net.Conn) {
 	client_manager.RegisterClient(&client)
 	client_manager.UnlockClientList()
 
-	osuJoinSuccess, osuChannel := chat.TryJoinChannel(&client, "#osu")
-
-	if osuJoinSuccess {
-		packets.BanchoSendChannelJoinSuccess(client.PacketQueue, "#osu")
-
-		client.joinedChannels = append(client.joinedChannels, osuChannel)
-	}
-
-	announceJoinSuccess, announceChannel := chat.TryJoinChannel(&client, "#announce")
-
-	if announceJoinSuccess {
-		packets.BanchoSendChannelJoinSuccess(client.PacketQueue, "#announce")
-
-		client.joinedChannels = append(client.joinedChannels, announceChannel)
+	for _, channel := range chat.GetAvailableChannels() {
+		if channel.Autojoin {
+			if channel.Join(&client) {
+				packets.BanchoSendChannelJoinSuccess(client.PacketQueue, channel.Name)
+				client.joinedChannels = append(client.joinedChannels, channel)
+			} else {
+				packets.BanchoSendChannelRevoked(client.PacketQueue, channel.Name)
+			}
+		} else {
+			packets.BanchoSendChannelAvailable(client.PacketQueue, channel.Name)
+		}
 	}
 
 	working, recorded := guaranteedWorkingVersion[clientInfo.Version]

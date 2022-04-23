@@ -9,6 +9,7 @@ type Channel struct {
 	Description string
 	AdminRead   bool
 	AdminWrite  bool
+	Autojoin    bool
 	Clients     []ChatClient
 	ClientMutex sync.Mutex
 }
@@ -19,6 +20,15 @@ func (channel *Channel) Join(client ChatClient) bool {
 	}
 
 	channel.ClientMutex.Lock()
+
+	for _, chatUser := range channel.Clients {
+		//Check for duplicate client
+		if chatUser.GetUserId() == client.GetUserId() {
+			channel.ClientMutex.Unlock()
+			return true
+		}
+	}
+
 	channel.Clients = append(channel.Clients, client)
 	channel.ClientMutex.Unlock()
 
@@ -44,9 +54,9 @@ func (channel *Channel) SendMessage(sendingClient ChatClient, message string, ta
 
 	channel.ClientMutex.Lock()
 
-	for _, value := range channel.Clients {
-		if value != sendingClient {
-			value.SendChatMessage(sendingClient.GetUsername(), message, target)
+	for _, client := range channel.Clients {
+		if client != sendingClient {
+			client.SendChatMessage(sendingClient.GetUsername(), message, target)
 		}
 	}
 
