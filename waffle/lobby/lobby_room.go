@@ -61,6 +61,14 @@ func JoinLobby(client LobbyClient) {
 	}
 
 	UnlockClientList()
+
+	multiMutex.Lock()
+
+	for _, multiLobby := range multiLobbiesById {
+		packets.BanchoSendMatchNew(client.GetPacketQueue(), multiLobby.MatchInformation)
+	}
+
+	multiMutex.Unlock()
 }
 
 func PartLobby(client LobbyClient) {
@@ -110,6 +118,7 @@ func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
 	host.JoinMatch(multiLobby)
 
 	multiLobbies = append(multiLobbies, multiLobby)
+	multiLobbiesById[match.MatchId] = multiLobby
 
 	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
 		packets.BanchoSendMatchNew(packetQueue, multiLobby.MatchInformation)
@@ -134,4 +143,14 @@ func RemoveMultiMatch(matchId uint16) {
 	})
 
 	multiMutex.Unlock()
+}
+
+func GetMultiMatchById(matchId uint16) *MultiplayerLobby {
+	match, exists := multiLobbiesById[matchId]
+
+	if exists == false {
+		return nil
+	}
+
+	return match
 }

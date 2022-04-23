@@ -176,6 +176,16 @@ func (client *Client) HandleIncoming() {
 
 				lobby.CreateNewMultiMatch(match, client)
 				break
+			case packets.OsuMatchJoin:
+				match := packets.ReadMultiplayerMatch(packetDataReader)
+
+				foundMatch := lobby.GetMultiMatchById(match.MatchId)
+
+				if foundMatch != nil {
+					client.JoinMatch(foundMatch)
+				} else {
+					packets.BanchoSendMatchJoinFail(client.PacketQueue)
+				}
 			case packets.OsuMatchPart:
 				client.LeaveCurrentMatch()
 				break

@@ -175,7 +175,7 @@ func (multiLobby *MultiplayerLobby) GetUsedUpSlots() int {
 	count := 0
 
 	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusHasPlayer {
+		if (multiLobby.MatchInformation.SlotStatus[i] & packets.MultiplayerMatchSlotStatusHasPlayer) > 0 {
 			count++
 		}
 	}
@@ -227,7 +227,9 @@ func (multiLobby *MultiplayerLobby) Disband() {
 }
 
 func (multiLobby *MultiplayerLobby) HandleHostLeave(slot int) {
-	//if nobody is inside: disband and return
+	if multiLobby.GetUsedUpSlots() == 0 {
+		multiLobby.Disband()
+	}
 
 	for i := 0; i != 8; i++ {
 		if multiLobby.MultiClients[i] != nil {

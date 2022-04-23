@@ -19,8 +19,7 @@ func (client *Client) JoinMatch(match *lobby.MultiplayerLobby) {
 		client.currentMultiLobby = match
 
 		packets.BanchoSendMatchJoinSuccess(client.PacketQueue, match.MatchInformation)
-		packets.BanchoSendChannelAvailable(client.PacketQueue, "#multiplayer")
-		packets.BanchoSendChannelJoinSuccess(client.PacketQueue, "#multiplayer")
+		packets.BanchoSendChannelAvailableAutojoin(client.PacketQueue, "#multiplayer")
 	} else {
 		packets.BanchoSendMatchJoinFail(client.PacketQueue)
 	}
