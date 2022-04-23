@@ -1,6 +1,7 @@
 package lobby
 
 import (
+	"Waffle/waffle/chat"
 	"Waffle/waffle/packets"
 	"sync"
 )
@@ -112,10 +113,22 @@ func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
 		}
 	}
 
-	multiLobby := CreateNewMatch(match, host)
+	multiLobby := new(MultiplayerLobby)
+
+	multiLobby.MultiChannel = new(chat.Channel)
+	multiLobby.MultiChannel.Name = "#multiplayer"
+	multiLobby.MultiChannel.Description = ""
+	multiLobby.MultiChannel.AdminWrite = false
+	multiLobby.MultiChannel.AdminRead = false
+	multiLobby.MultiChannel.Autojoin = false
+	multiLobby.MultiChannel.Clients = []chat.ChatClient{}
+	multiLobby.MultiChannel.ClientMutex = sync.Mutex{}
+
+	multiLobby.MatchInformation = match
+	multiLobby.MatchHost = host
 	multiLobby.MatchInformation.HostId = host.GetUserId()
 
-	host.JoinMatch(multiLobby)
+	host.JoinMatch(multiLobby, multiLobby.MatchInformation.GamePassword)
 
 	multiLobbies = append(multiLobbies, multiLobby)
 	multiLobbiesById[match.MatchId] = multiLobby

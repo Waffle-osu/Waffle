@@ -16,5 +16,5 @@ type LobbyClient interface {
 	GetStatus() packets.StatusUpdate
 
 	LeaveCurrentMatch()
-	JoinMatch(match *MultiplayerLobby)
+	JoinMatch(match *MultiplayerLobby, password string)
 }

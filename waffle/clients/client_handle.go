@@ -177,12 +177,12 @@ func (client *Client) HandleIncoming() {
 				lobby.CreateNewMultiMatch(match, client)
 				break
 			case packets.OsuMatchJoin:
-				match := packets.ReadMultiplayerMatch(packetDataReader)
+				matchJoin := packets.ReadMatchJoin(packetDataReader)
 
-				foundMatch := lobby.GetMultiMatchById(match.MatchId)
+				foundMatch := lobby.GetMultiMatchById(uint16(matchJoin.MatchId))
 
 				if foundMatch != nil {
-					client.JoinMatch(foundMatch)
+					client.JoinMatch(foundMatch, matchJoin.Password)
 				} else {
 					packets.BanchoSendMatchJoinFail(client.PacketQueue)
 				}

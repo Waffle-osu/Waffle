@@ -19,25 +19,11 @@ type MultiplayerLobby struct {
 	InProgress          bool
 }
 
-func CreateNewMatch(match packets.MultiplayerMatch, host LobbyClient) *MultiplayerLobby {
-	multiLobby := new(MultiplayerLobby)
+func (multiLobby *MultiplayerLobby) Join(client LobbyClient, password string) bool {
+	if multiLobby.MatchInformation.GamePassword != password {
+		return false
+	}
 
-	multiLobby.MultiChannel = new(chat.Channel)
-	multiLobby.MultiChannel.Name = "#multiplayer"
-	multiLobby.MultiChannel.Description = ""
-	multiLobby.MultiChannel.AdminWrite = false
-	multiLobby.MultiChannel.AdminRead = false
-	multiLobby.MultiChannel.Autojoin = false
-	multiLobby.MultiChannel.Clients = []chat.ChatClient{}
-	multiLobby.MultiChannel.ClientMutex = sync.Mutex{}
-
-	multiLobby.MatchInformation = match
-	multiLobby.MatchHost = host
-
-	return multiLobby
-}
-
-func (multiLobby *MultiplayerLobby) Join(client LobbyClient) bool {
 	multiLobby.MatchInfoMutex.Lock()
 
 	for i := 0; i < 7; i++ {
@@ -113,86 +99,6 @@ func (multiLobby *MultiplayerLobby) UpdateMatch() {
 	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
 		packets.BanchoSendMatchUpdate(packetQueue, multiLobby.MatchInformation)
 	})
-}
-
-func (multiLobby *MultiplayerLobby) GetSlotFromUserId(userId int32) int {
-	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotUserId[i] == userId {
-			return i
-		}
-	}
-
-	return -1
-}
-
-func (multiLobby *MultiplayerLobby) GetOpenSlotCount() int {
-	count := 0
-
-	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusLocked {
-			count++
-		}
-	}
-
-	return count
-}
-
-func (multiLobby *MultiplayerLobby) HaveAllPlayersSkipped() bool {
-	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusPlaying && multiLobby.PlayerSkipRequested[i] == false {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (multiLobby *MultiplayerLobby) HaveAllPlayersCompleted() bool {
-	count := 0
-
-	for i := 0; i != 8; i++ {
-		if multiLobby.PlayerCompleted[i] == true {
-			count++
-		}
-	}
-
-	return count == multiLobby.GetUsedUpSlots()
-}
-
-func (multiLobby *MultiplayerLobby) HaveAllPlayersLoaded() bool {
-	count := 0
-
-	for i := 0; i != 8; i++ {
-		if multiLobby.PlayersLoaded[i] == true {
-			count++
-		}
-	}
-
-	return count == multiLobby.GetUsedUpSlots()
-}
-
-func (multiLobby *MultiplayerLobby) GetUsedUpSlots() int {
-	count := 0
-
-	for i := 0; i != 8; i++ {
-		if (multiLobby.MatchInformation.SlotStatus[i] & packets.MultiplayerMatchSlotStatusHasPlayer) > 0 {
-			count++
-		}
-	}
-
-	return count
-}
-
-func (multiLobby *MultiplayerLobby) HaveAllPlayersFinished() bool {
-	finished := 0
-
-	for i := 0; i != 8; i++ {
-		if multiLobby.PlayerCompleted[i] == true {
-			finished++
-		}
-	}
-
-	return finished == multiLobby.GetUsedUpSlots()
 }
 
 func (multiLobby *MultiplayerLobby) Part(client LobbyClient) {

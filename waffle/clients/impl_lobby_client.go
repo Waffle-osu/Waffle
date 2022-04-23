@@ -12,10 +12,10 @@ func (client *Client) LeaveCurrentMatch() {
 	}
 }
 
-func (client *Client) JoinMatch(match *lobby.MultiplayerLobby) {
+func (client *Client) JoinMatch(match *lobby.MultiplayerLobby, password string) {
 	client.LeaveCurrentMatch()
 
-	if match.Join(client) {
+	if match.Join(client, password) {
 		client.currentMultiLobby = match
 
 		packets.BanchoSendMatchJoinSuccess(client.PacketQueue, match.MatchInformation)
