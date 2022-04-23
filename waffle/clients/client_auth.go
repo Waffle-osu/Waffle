@@ -13,6 +13,13 @@ import (
 	"time"
 )
 
+var guaranteedWorkingVersion = map[string]bool{
+	"b1816.test":  true,
+	"b1816.peppy": true,
+	"b1816":       true,
+	"b1815":       true,
+}
+
 func HandleNewClient(connection net.Conn) {
 	loginStartTime := time.Now()
 
@@ -186,7 +193,18 @@ func HandleNewClient(connection net.Conn) {
 		client.joinedChannels = append(client.joinedChannels, announceChannel)
 	}
 
-	fmt.Printf("Login for %s took %dus\n", username, time.Since(loginStartTime).Microseconds())
+	working, recorded := guaranteedWorkingVersion[clientInfo.Version]
+
+	if recorded == false {
+		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s has not yet been tested and may not work as intended! Unforseen problems may occur, report them to Furball if you can, depending on version it could be fixed.", clientInfo.Version))
+	} else if working == false {
+		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s may not work as intended on waffle! Your experience may not be the best.", clientInfo.Version))
+	} else {
+		packets.BanchoSendAnnounce(client.PacketQueue, "Welcome to Waffle!")
+	}
+
+	fmt.Printf("%s successfully logged into Waffle using osu!%s\n", username, clientInfo.Version)
+	fmt.Printf("Login took %.2fms\n", float64(time.Since(loginStartTime).Microseconds())/1000.0)
 
 	go client.MaintainClient()
 	go client.HandleIncoming()

@@ -23,14 +23,6 @@ func UnlockClientList() {
 	clientMutex.Unlock()
 }
 
-func GetClientList() []LobbyClient {
-	return clientList
-}
-
-func GetClientByIndex(index int) LobbyClient {
-	return clientList[index]
-}
-
 func GetClientById(id int32) LobbyClient {
 	value, exists := clientsById[id]
 
@@ -49,10 +41,6 @@ func GetClientByName(username string) LobbyClient {
 	}
 
 	return value
-}
-
-func GetAmountClients() int {
-	return len(clientList)
 }
 
 func JoinLobby(client LobbyClient) {
