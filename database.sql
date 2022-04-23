@@ -42,12 +42,10 @@ CREATE TABLE `stats` (
   `hit100` bigint unsigned NOT NULL DEFAULT '0',
   `hit50` bigint unsigned NOT NULL DEFAULT '0',
   `hitMiss` bigint unsigned NOT NULL DEFAULT '0',
-  `replays_watched` bigint unsigned NOT NULL DEFAULT '0',
   `hitGeki` bigint unsigned NOT NULL DEFAULT '0',
   `hitKatu` bigint unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `mode_UNIQUE` (`mode`),
-  UNIQUE KEY `user_id_UNIQUE` (`user_id`),
+  `replays_watched` bigint unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`user_id`,`mode`),
   CONSTRAINT `userid` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -58,6 +56,7 @@ CREATE TABLE `stats` (
 
 LOCK TABLES `stats` WRITE;
 /*!40000 ALTER TABLE `stats` DISABLE KEYS */;
+INSERT INTO `stats` VALUES (2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
 /*!40000 ALTER TABLE `stats` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -81,7 +80,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `id_UNIQUE` (`user_id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
   KEY `user_INDEX` (`username`,`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -90,7 +89,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'Furball','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',0,'2022-04-20 22:26:46');
+INSERT INTO `users` VALUES (2,'Furball','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',0,'2022-04-20 22:26:46'),(3,'Eevee','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',0,'2022-04-21 20:36:26'),(4,'marshall_racer','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',0,'2022-04-22 23:39:09');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -103,4 +102,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-21  0:14:44
+-- Dump completed on 2022-04-23 22:47:44

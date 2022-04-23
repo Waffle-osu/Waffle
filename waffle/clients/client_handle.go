@@ -189,6 +189,63 @@ func (client *Client) HandleIncoming() {
 			case packets.OsuMatchPart:
 				client.LeaveCurrentMatch()
 				break
+			case packets.OsuMatchChangeSlot:
+				if client.currentMultiLobby != nil {
+					var newSlot int32
+
+					binary.Read(packetDataReader, binary.LittleEndian, &newSlot)
+
+					client.currentMultiLobby.TryChangeSlot(client, int(newSlot))
+				}
+				break
+			case packets.OsuMatchChangeTeam:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.ChangeTeam(client)
+				}
+				break
+			case packets.OsuMatchTransferHost:
+				if client.currentMultiLobby != nil {
+					var newHost int32
+
+					binary.Read(packetDataReader, binary.LittleEndian, &newHost)
+
+					client.currentMultiLobby.TransferHost(client, int(newHost))
+				}
+				break
+			case packets.OsuMatchReady:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.ReadyUp(client)
+				}
+				break
+			case packets.OsuMatchNotReady:
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.Unready(client)
+				}
+				break
+			case packets.OsuMatchChangeSettings:
+				if client.currentMultiLobby != nil {
+					newMatch := packets.ReadMultiplayerMatch(packetDataReader)
+					client.currentMultiLobby.ChangeSettings(client, newMatch)
+				}
+				break
+			case packets.OsuMatchChangeMods:
+				if client.currentMultiLobby != nil {
+					var newMods int32
+
+					binary.Read(packetDataReader, binary.LittleEndian, &newMods)
+
+					client.currentMultiLobby.ChangeMods(client, newMods)
+				}
+				break
+			case packets.OsuMatchLock:
+				if client.currentMultiLobby != nil {
+					var slot int32
+
+					binary.Read(packetDataReader, binary.LittleEndian, &slot)
+
+					client.currentMultiLobby.LockSlot(client, int(slot))
+				}
+				break
 			default:
 				fmt.Printf("Got %s, of Size: %d\n", packets.GetPacketName(packet.PacketId), packet.PacketSize)
 			}

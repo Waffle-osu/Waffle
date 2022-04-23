@@ -152,3 +152,151 @@ func (multiLobby *MultiplayerLobby) HandleHostLeave(slot int) {
 
 	multiLobby.UpdateMatch()
 }
+
+func (multiLobby *MultiplayerLobby) TryChangeSlot(client LobbyClient, slotId int) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	if multiLobby.MatchInformation.SlotStatus[slotId] == packets.MultiplayerMatchSlotStatusLocked || (multiLobby.MatchInformation.SlotStatus[slotId]&packets.MultiplayerMatchSlotStatusHasPlayer) > 0 {
+		return
+	}
+
+	multiLobby.MoveSlot(multiLobby.GetSlotFromUserId(client.GetUserId()), slotId)
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) ChangeTeam(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	if clientSlot == -1 {
+		return
+	}
+
+	if multiLobby.MatchInformation.SlotTeam[clientSlot] == packets.MultiplayerSlotTeamRed {
+		multiLobby.MatchInformation.SlotTeam[clientSlot] = packets.MultiplayerSlotTeamBlue
+	} else if multiLobby.MatchInformation.SlotTeam[clientSlot] == packets.MultiplayerSlotTeamBlue {
+		multiLobby.MatchInformation.SlotTeam[clientSlot] = packets.MultiplayerSlotTeamRed
+	} else {
+		multiLobby.MatchInformation.SlotTeam[clientSlot] = packets.MultiplayerSlotTeamRed
+	}
+
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) TransferHost(client LobbyClient, slotId int) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	if multiLobby.MatchHost != client {
+		return
+	}
+
+	multiLobby.MatchHost = multiLobby.MultiClients[slotId]
+	multiLobby.MatchInformation.HostId = multiLobby.MatchHost.GetUserId()
+
+	packets.BanchoSendMatchTransferHost(multiLobby.MatchHost.GetPacketQueue())
+
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) ReadyUp(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	if clientSlot == -1 {
+		return
+	}
+
+	multiLobby.MatchInformation.SlotStatus[clientSlot] = packets.MultiplayerMatchSlotStatusReady
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) Unready(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	if clientSlot == -1 {
+		return
+	}
+
+	multiLobby.MatchInformation.SlotStatus[clientSlot] = packets.MultiplayerMatchSlotStatusNotReady
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSettings packets.MultiplayerMatch) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	if multiLobby.MatchHost != client {
+		return
+	}
+
+	multiLobby.MatchInformation = matchSettings
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) ChangeMods(client LobbyClient, newMods int32) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	if multiLobby.MatchHost != client {
+		return
+	}
+
+	multiLobby.MatchInformation.ActiveMods = uint16(newMods)
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}
+
+func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	if multiLobby.MatchHost != client {
+		return
+	}
+
+	if multiLobby.MultiClients[slotId] == multiLobby.MatchHost {
+		return
+	}
+
+	if (multiLobby.MatchInformation.SlotStatus[slotId] & packets.MultiplayerMatchSlotStatusHasPlayer) > 0 {
+		droppedClient := multiLobby.MultiClients[slotId]
+
+		multiLobby.MatchInfoMutex.Unlock()
+
+		droppedClient.LeaveCurrentMatch()
+		packets.BanchoSendMatchUpdate(droppedClient.GetPacketQueue(), multiLobby.MatchInformation)
+
+		multiLobby.MatchInfoMutex.Lock()
+	}
+
+	if multiLobby.MatchInformation.SlotStatus[slotId] == packets.MultiplayerMatchSlotStatusLocked {
+		multiLobby.MatchInformation.SlotStatus[slotId] = packets.MultiplayerMatchSlotStatusOpen
+
+		multiLobby.UpdateMatch()
+		multiLobby.MatchInfoMutex.Unlock()
+
+		return
+	}
+
+	if multiLobby.GetOpenSlotCount() > 2 && multiLobby.MatchInformation.SlotStatus[slotId] == packets.MultiplayerMatchSlotStatusOpen {
+		multiLobby.MatchInformation.SlotStatus[slotId] = packets.MultiplayerMatchSlotStatusLocked
+	}
+
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
+}

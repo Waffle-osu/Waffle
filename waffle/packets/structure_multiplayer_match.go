@@ -33,7 +33,7 @@ type MultiplayerMatch struct {
 	MatchId          uint16
 	InProgress       bool
 	MatchType        uint8
-	ActiveMods       int16
+	ActiveMods       uint16
 	GameName         string
 	GamePassword     string
 	BeatmapName      string

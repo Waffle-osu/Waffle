@@ -16,7 +16,7 @@ func (multiLobby *MultiplayerLobby) GetOpenSlotCount() int {
 	count := 0
 
 	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusLocked {
+		if multiLobby.MatchInformation.SlotStatus[i] != packets.MultiplayerMatchSlotStatusLocked {
 			count++
 		}
 	}
