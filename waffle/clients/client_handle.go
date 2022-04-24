@@ -3,6 +3,7 @@ package clients
 import (
 	"Waffle/waffle/chat"
 	"Waffle/waffle/client_manager"
+	"Waffle/waffle/database"
 	"Waffle/waffle/lobby"
 	"Waffle/waffle/packets"
 	"bytes"
@@ -291,6 +292,31 @@ func (client *Client) HandleIncoming() {
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.StartGame(client)
 				}
+				break
+			case packets.OsuFriendsAdd:
+				var friendId int32
+
+				binary.Read(packetDataReader, binary.LittleEndian, &friendId)
+
+				client.FriendsList = append(client.FriendsList, database.FriendEntry{
+					User1: client.UserData.UserID,
+					User2: uint64(friendId),
+				})
+
+				go database.AddFriend(client.UserData.UserID, uint64(friendId))
+				break
+			case packets.OsuFriendsRemove:
+				var friendId int32
+
+				binary.Read(packetDataReader, binary.LittleEndian, &friendId)
+
+				for index, value := range client.FriendsList {
+					if value.User2 == uint64(friendId) {
+						client.FriendsList = append(client.FriendsList[0:index], client.FriendsList[index+1:]...)
+					}
+				}
+
+				go database.RemoveFriend(client.UserData.UserID, uint64(friendId))
 				break
 			default:
 				fmt.Printf("Got %s, of Size: %d\n", packets.GetPacketName(packet.PacketId), packet.PacketSize)

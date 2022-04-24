@@ -44,13 +44,14 @@ type Client struct {
 
 	PacketQueue chan packets.BanchoPacket
 
-	UserData   database.User
-	ClientData ClientInformation
-	Status     packets.StatusUpdate
-	OsuStats   database.UserStats
-	TaikoStats database.UserStats
-	CatchStats database.UserStats
-	ManiaStats database.UserStats
+	UserData    database.User
+	ClientData  ClientInformation
+	Status      packets.StatusUpdate
+	OsuStats    database.UserStats
+	TaikoStats  database.UserStats
+	CatchStats  database.UserStats
+	ManiaStats  database.UserStats
+	FriendsList []database.FriendEntry
 }
 
 func (client *Client) CleanupClient() {

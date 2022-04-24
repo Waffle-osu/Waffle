@@ -132,6 +132,14 @@ func HandleNewClient(connection net.Conn) {
 		return
 	}
 
+	friendsResult, friendsList := database.GetFriendsList(user.UserID)
+
+	if friendsResult != 0 {
+		packets.BanchoSendAnnounce(packetQueue, "Friend List failed to load!")
+	}
+
+	packets.BanchoSendFriendsList(packetQueue, friendsList)
+
 	client := Client{
 		connection:      connection,
 		lastPing:        time.Now(),
