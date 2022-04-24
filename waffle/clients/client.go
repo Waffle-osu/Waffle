@@ -66,6 +66,10 @@ func CleanupClient(client *Client) {
 		lobby.PartLobby(client)
 	}
 
+	if client.currentMultiLobby != nil {
+		client.LeaveCurrentMatch()
+	}
+
 	client_manager.UnregisterClient(client)
 	client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
 		packets.BanchoSendHandleOsuQuit(packetQueue, int32(client.UserData.UserID))
@@ -74,8 +78,6 @@ func CleanupClient(client *Client) {
 	for _, channel := range client.joinedChannels {
 		channel.Leave(client)
 	}
-
-	client.continueRunning = false
 
 	client.connection.Close()
 }

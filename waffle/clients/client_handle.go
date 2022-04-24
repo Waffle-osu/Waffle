@@ -19,7 +19,6 @@ func (client *Client) HandleIncoming() {
 		read, readErr := client.connection.Read(readBuffer)
 
 		if readErr != nil {
-			CleanupClient(client)
 			return
 		}
 
@@ -74,6 +73,11 @@ func (client *Client) HandleIncoming() {
 				}
 			case packets.OsuSendIrcMessage:
 				message := packets.ReadMessage(packetDataReader)
+
+				if message.Target == "#multiplayer" {
+					client.currentMultiLobby.MultiChannel.SendMessage(client, message.Message, message.Target)
+					break
+				}
 
 				for _, channel := range client.joinedChannels {
 					if channel.Name == message.Target {
@@ -309,6 +313,8 @@ func (client *Client) MaintainClient() {
 	for client.continueRunning {
 		if client.lastReceive.Add(ReceiveTimeout).Before(time.Now()) {
 			CleanupClient(client)
+
+			client.continueRunning = false
 		}
 
 		if client.lastPing.Add(PingTimeout).Before(time.Now()) {
@@ -321,14 +327,5 @@ func (client *Client) MaintainClient() {
 	}
 
 	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
-	go client.WaitAndClose()
-}
-
-func (client *Client) WaitAndClose() {
-	for len(client.PacketQueue) != 0 {
-		time.Sleep(1000)
-		<-client.PacketQueue
-	}
-
 	close(client.PacketQueue)
 }
