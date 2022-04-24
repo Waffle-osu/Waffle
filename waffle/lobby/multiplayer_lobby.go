@@ -307,6 +307,10 @@ func (multiLobby *MultiplayerLobby) InformNoBeatmap(client LobbyClient) {
 
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
+	if slot == -1 {
+		return
+	}
+
 	multiLobby.MatchInformation.SlotStatus[slot] = packets.MultiplayerMatchSlotStatusMissingMap
 	multiLobby.UpdateMatch()
 
@@ -318,6 +322,10 @@ func (multiLobby *MultiplayerLobby) InformGotBeatmap(client LobbyClient) {
 
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
+	if slot == -1 {
+		return
+	}
+
 	multiLobby.MatchInformation.SlotStatus[slot] = packets.MultiplayerMatchSlotStatusNotReady
 	multiLobby.UpdateMatch()
 
@@ -328,6 +336,10 @@ func (multiLobby *MultiplayerLobby) InformLoadComplete(client LobbyClient) {
 	multiLobby.MatchInfoMutex.Lock()
 
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	if slot == -1 {
+		return
+	}
 
 	multiLobby.PlayersLoaded[slot] = true
 
@@ -347,6 +359,10 @@ func (multiLobby *MultiplayerLobby) InformScoreUpdate(client LobbyClient, scoreF
 
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
+	if slot == -1 {
+		return
+	}
+
 	scoreFrame.Id = uint8(slot)
 	multiLobby.LastScoreFrames[slot] = scoreFrame
 
@@ -363,6 +379,10 @@ func (multiLobby *MultiplayerLobby) InformCompletion(client LobbyClient) {
 	multiLobby.MatchInfoMutex.Lock()
 
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	if slot == -1 {
+		return
+	}
 
 	multiLobby.PlayerCompleted[slot] = true
 
@@ -393,7 +413,17 @@ func (multiLobby *MultiplayerLobby) InformPressedSkip(client LobbyClient) {
 
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
+	if slot == -1 {
+		return
+	}
+
 	multiLobby.PlayerSkipRequested[slot] = true
+
+	for i := 0; i != 8; i++ {
+		if multiLobby.MultiClients[i] != nil {
+			packets.BanchoSendMatchPlayerSkipped(multiLobby.MultiClients[i].GetPacketQueue(), int32(slot))
+		}
+	}
 
 	if multiLobby.HaveAllPlayersSkipped() {
 		for i := 0; i != 8; i++ {
@@ -410,6 +440,10 @@ func (multiLobby *MultiplayerLobby) InformFailed(client LobbyClient) {
 	multiLobby.MatchInfoMutex.Lock()
 
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
+
+	if slot == -1 {
+		return
+	}
 
 	multiLobby.PlayerFailed[slot] = true
 
