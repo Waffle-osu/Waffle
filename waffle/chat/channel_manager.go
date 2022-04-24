@@ -7,11 +7,20 @@ import (
 var channels map[string]*Channel
 var channelList []*Channel
 
+const (
+	PrivilegesNormal    int32 = 1
+	PrivilegesBAT       int32 = 2
+	PrivilegesSupporter int32 = 4
+	PrivilegesFriend    int32 = 8
+	PrivilegesAdmin     int32 = 16
+)
+
 func InitializeChannels() {
 	channels = map[string]*Channel{
-		"#osu":      {"#osu", "The main channel of osu!", false, false, true, []ChatClient{}, sync.Mutex{}},
-		"#announce": {"#announce", "The main channel of osu!", false, true, true, []ChatClient{}, sync.Mutex{}},
-		"#lobby":    {"#lobby", "Find people to multi with here!", false, false, false, []ChatClient{}, sync.Mutex{}},
+		"#osu":      {"#osu", "The main channel of osu!", PrivilegesNormal, PrivilegesNormal, true, []ChatClient{}, sync.Mutex{}},
+		"#announce": {"#announce", "The main channel of osu!", PrivilegesNormal, PrivilegesBAT | PrivilegesAdmin, true, []ChatClient{}, sync.Mutex{}},
+		"#lobby":    {"#lobby", "Find people to multi with here!", PrivilegesNormal, PrivilegesNormal, false, []ChatClient{}, sync.Mutex{}},
+		"#bat":      {"#bat", "Staff channel for BAT's", PrivilegesBAT | PrivilegesAdmin, PrivilegesBAT | PrivilegesAdmin, false, []ChatClient{}, sync.Mutex{}},
 	}
 }
 

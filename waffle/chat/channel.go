@@ -5,17 +5,17 @@ import (
 )
 
 type Channel struct {
-	Name        string
-	Description string
-	AdminRead   bool
-	AdminWrite  bool
-	Autojoin    bool
-	Clients     []ChatClient
-	ClientMutex sync.Mutex
+	Name            string
+	Description     string
+	ReadPrivileges  int32
+	WritePrivileges int32
+	Autojoin        bool
+	Clients         []ChatClient
+	ClientMutex     sync.Mutex
 }
 
 func (channel *Channel) Join(client ChatClient) bool {
-	if channel.AdminRead && client.IsOfAdminPrivileges() == false {
+	if (channel.ReadPrivileges & client.GetUserPrivileges()) <= 0 {
 		return false
 	}
 
@@ -48,8 +48,9 @@ func (channel *Channel) Leave(client ChatClient) {
 }
 
 func (channel *Channel) SendMessage(sendingClient ChatClient, message string, target string) {
-	if (channel.AdminWrite || channel.AdminRead) && sendingClient.IsOfAdminPrivileges() == false {
+	if (channel.WritePrivileges & sendingClient.GetUserPrivileges()) <= 0 {
 		sendingClient.SendChatMessage("WaffleBot", "You're not allowed to post in this channel! Your message has been discarded.", target)
+		return
 	}
 
 	channel.ClientMutex.Lock()

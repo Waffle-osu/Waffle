@@ -118,8 +118,8 @@ func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
 	multiLobby.MultiChannel = new(chat.Channel)
 	multiLobby.MultiChannel.Name = "#multiplayer"
 	multiLobby.MultiChannel.Description = ""
-	multiLobby.MultiChannel.AdminWrite = false
-	multiLobby.MultiChannel.AdminRead = false
+	multiLobby.MultiChannel.ReadPrivileges = chat.PrivilegesNormal
+	multiLobby.MultiChannel.WritePrivileges = chat.PrivilegesNormal
 	multiLobby.MultiChannel.Autojoin = false
 	multiLobby.MultiChannel.Clients = []chat.ChatClient{}
 	multiLobby.MultiChannel.ClientMutex = sync.Mutex{}

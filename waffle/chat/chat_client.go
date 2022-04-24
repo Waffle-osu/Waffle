@@ -1,7 +1,7 @@
 package chat
 
 type ChatClient interface {
-	IsOfAdminPrivileges() bool
+	GetUserPrivileges() int32
 	SendChatMessage(sender string, content string, channel string)
 	GetUsername() string
 	GetUserId() int32

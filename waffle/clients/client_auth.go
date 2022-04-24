@@ -201,6 +201,10 @@ func HandleNewClient(connection net.Conn) {
 	client_manager.UnlockClientList()
 
 	for _, channel := range chat.GetAvailableChannels() {
+		if (channel.ReadPrivileges & user.Privileges) <= 0 {
+			continue
+		}
+
 		if channel.Autojoin {
 			if channel.Join(&client) {
 				packets.BanchoSendChannelJoinSuccess(client.PacketQueue, channel.Name)

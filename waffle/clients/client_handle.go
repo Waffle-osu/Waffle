@@ -89,6 +89,7 @@ func (client *Client) HandleIncoming() {
 				break
 			case packets.OsuSendIrcMessagePrivate:
 				message := packets.ReadMessage(packetDataReader)
+				message.Sender = client.UserData.Username
 
 				targetClient := client_manager.GetClientByName(message.Target)
 
@@ -347,9 +348,9 @@ func (client *Client) HandleIncoming() {
 					})
 				}
 				break
-			default:
-				fmt.Printf("Got %s, of Size: %d\n", packets.GetPacketName(packet.PacketId), packet.PacketSize)
 			}
+
+			fmt.Printf("%s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
 		}
 	}
 }
@@ -367,6 +368,8 @@ func (client *Client) SendOutgoing() {
 func (client *Client) MaintainClient() {
 	for client.continueRunning {
 		if client.lastReceive.Add(ReceiveTimeout).Before(time.Now()) {
+			fmt.Printf("%s Timed out!\n", client.UserData.Username)
+
 			client.CleanupClient()
 
 			client.continueRunning = false

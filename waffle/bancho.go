@@ -21,6 +21,7 @@ func CreateBancho() *Bancho {
 	database.Initialize()
 	client_manager.InitializeClientManager()
 	lobby.InitializeLobby()
+	clients.CreateWaffleBot()
 
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
 

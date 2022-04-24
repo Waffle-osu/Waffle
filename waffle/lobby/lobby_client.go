@@ -9,7 +9,7 @@ type LobbyClient interface {
 	GetPacketQueue() chan packets.BanchoPacket
 	GetUserId() int32
 	GetUserData() database.User
-	IsOfAdminPrivileges() bool
+	GetUserPrivileges() int32
 	SendChatMessage(sender string, content string, channel string)
 	GetUsername() string
 	GetRelevantUserStats() database.UserStats
