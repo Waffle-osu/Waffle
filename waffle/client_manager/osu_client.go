@@ -17,4 +17,5 @@ type OsuClient interface {
 	InformSpectatorCantSpectate(client OsuClient)
 	CleanupClient()
 	Cut()
+	GetAwayMessage() string
 }

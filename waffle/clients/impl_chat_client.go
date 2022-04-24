@@ -15,3 +15,7 @@ func (client *Client) SendChatMessage(sender string, content string, channel str
 func (client *Client) GetUsername() string {
 	return client.UserData.Username
 }
+
+func (client *Client) GetAwayMessage() string {
+	return client.awayMessage
+}

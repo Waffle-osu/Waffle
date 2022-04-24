@@ -164,6 +164,8 @@ func HandleNewClient(connection net.Conn) {
 			Status:          packets.OsuStatusIdle,
 			StatusText:      user.Username + " has just logged in!",
 		},
+		FriendsList: friendsList,
+		awayMessage: "",
 	}
 
 	resetDeadlineErr := connection.SetReadDeadline(time.Time{})

@@ -94,6 +94,16 @@ func (client *Client) HandleIncoming() {
 
 				if targetClient != nil {
 					packets.BanchoSendIrcMessage(targetClient.GetPacketQueue(), message)
+
+					awayMessage := targetClient.GetAwayMessage()
+
+					if awayMessage != "" {
+						packets.BanchoSendIrcMessage(client.PacketQueue, packets.Message{
+							Sender:  targetClient.GetUserData().Username,
+							Message: fmt.Sprintf("/me is away! %s", awayMessage),
+							Target:  client.GetUserData().Username,
+						})
+					}
 				}
 				break
 			case packets.OsuExit:
@@ -317,6 +327,25 @@ func (client *Client) HandleIncoming() {
 				}
 
 				go database.RemoveFriend(client.UserData.UserID, uint64(friendId))
+				break
+			case packets.OsuSetIrcAwayMessage:
+				awayMessage := packets.ReadMessage(packetDataReader)
+
+				client.awayMessage = awayMessage.Message
+
+				if awayMessage.Message == "" {
+					packets.BanchoSendIrcMessage(client.PacketQueue, packets.Message{
+						Sender:  "WaffleBot",
+						Message: "You're no longer marked as away!",
+						Target:  client.UserData.Username,
+					})
+				} else {
+					packets.BanchoSendIrcMessage(client.PacketQueue, packets.Message{
+						Sender:  "WaffleBot",
+						Message: fmt.Sprintf("You're now marked as away: %s", awayMessage.Message),
+						Target:  client.UserData.Username,
+					})
+				}
 				break
 			default:
 				fmt.Printf("Got %s, of Size: %d\n", packets.GetPacketName(packet.PacketId), packet.PacketSize)

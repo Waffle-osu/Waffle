@@ -11,7 +11,7 @@ func BanchoSendMatchUpdate(packetQueue chan BanchoPacket, match MultiplayerMatch
 	packetLength := len(packetBytes)
 
 	packet := BanchoPacket{
-		PacketId:          BanchoMatchUpdate, //TODO: change this out
+		PacketId:          BanchoMatchUpdate,
 		PacketCompression: 0,
 		PacketSize:        int32(packetLength),
 		PacketData:        packetBytes,

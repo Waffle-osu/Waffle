@@ -17,4 +17,5 @@ type LobbyClient interface {
 
 	LeaveCurrentMatch()
 	JoinMatch(match *MultiplayerLobby, password string)
+	GetAwayMessage() string
 }
