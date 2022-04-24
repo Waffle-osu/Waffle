@@ -19,7 +19,7 @@ func BanchoSendFriendsList(packetQueue chan BanchoPacket, friendsList []database
 	packetLength := len(packetBytes)
 
 	packet := BanchoPacket{
-		PacketId:          BanchoPing, //TODO: change this out
+		PacketId:          BanchoFriendsList, //TODO: change this out
 		PacketCompression: 0,
 		PacketSize:        int32(packetLength),
 		PacketData:        packetBytes,
