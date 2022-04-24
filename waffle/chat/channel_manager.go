@@ -15,6 +15,7 @@ const (
 	PrivilegesAdmin     int32 = 16
 )
 
+//InitializeChannels initializes the initial channels
 func InitializeChannels() {
 	channels = map[string]*Channel{
 		"#osu":      {"#osu", "The main channel of osu!", PrivilegesNormal, PrivilegesNormal, true, []ChatClient{}, sync.Mutex{}},
@@ -24,12 +25,14 @@ func InitializeChannels() {
 	}
 }
 
+//GetChannelByName retrieves a channel given a name, returns whether the channel exists and the channel it found
 func GetChannelByName(name string) (channel *Channel, exists bool) {
 	foundChannel, found := channels[name]
 
 	return foundChannel, found
 }
 
+// GetAvailableChannels Gets all available channels and returns it
 func GetAvailableChannels() []*Channel {
 	if channelList == nil {
 		for _, value := range channels {
@@ -38,14 +41,4 @@ func GetAvailableChannels() []*Channel {
 	}
 
 	return channelList
-}
-
-func TryJoinChannel(client ChatClient, channelName string) (joinSuccess bool, joinedChannel *Channel) {
-	channel, exists := channels[channelName]
-
-	if exists == false {
-		return false, nil
-	}
-
-	return channel.Join(client), channel
 }

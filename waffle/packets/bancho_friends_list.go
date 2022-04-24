@@ -9,7 +9,7 @@ import (
 func BanchoSendFriendsList(packetQueue chan BanchoPacket, friendsList []database.FriendEntry) {
 	buf := new(bytes.Buffer)
 
-	binary.Write(buf, binary.LittleEndian, int32(len(friendsList)))
+	binary.Write(buf, binary.LittleEndian, int16(len(friendsList)))
 
 	for _, friend := range friendsList {
 		binary.Write(buf, binary.LittleEndian, int32(friend.User2))

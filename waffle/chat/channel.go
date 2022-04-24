@@ -14,7 +14,9 @@ type Channel struct {
 	ClientMutex     sync.Mutex
 }
 
+// Join Makes `client` Join the Channel, returns whether the attempt was successful
 func (channel *Channel) Join(client ChatClient) bool {
+	//If the user doesn't have read privileges, they shouldn't be allowed to join
 	if (channel.ReadPrivileges & client.GetUserPrivileges()) <= 0 {
 		return false
 	}
@@ -35,9 +37,11 @@ func (channel *Channel) Join(client ChatClient) bool {
 	return true
 }
 
+//Leave Makes `client` Leave the Channel
 func (channel *Channel) Leave(client ChatClient) {
 	channel.ClientMutex.Lock()
 
+	//Removes user from the Client list
 	for index, value := range channel.Clients {
 		if value == client {
 			channel.Clients = append(channel.Clients[0:index], channel.Clients[index+1:]...)
@@ -47,7 +51,9 @@ func (channel *Channel) Leave(client ChatClient) {
 	channel.ClientMutex.Unlock()
 }
 
+//SendMessage sends a message to the channel, `sendingClient` is the sender
 func (channel *Channel) SendMessage(sendingClient ChatClient, message string, target string) {
+	//If the user doesn't have write privileges, don't allow message sending
 	if (channel.WritePrivileges & sendingClient.GetUserPrivileges()) <= 0 {
 		sendingClient.SendChatMessage("WaffleBot", "You're not allowed to post in this channel! Your message has been discarded.", target)
 		return
@@ -55,6 +61,7 @@ func (channel *Channel) SendMessage(sendingClient ChatClient, message string, ta
 
 	channel.ClientMutex.Lock()
 
+	//Broadcast message to everyone in the channel
 	for _, client := range channel.Clients {
 		if client != sendingClient {
 			client.SendChatMessage(sendingClient.GetUsername(), message, target)

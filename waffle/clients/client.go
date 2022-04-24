@@ -56,6 +56,7 @@ type Client struct {
 	FriendsList []database.FriendEntry
 }
 
+// CleanupClient cleans the client up, leaves spectator and the lobby and the multi match if applicable, also lets everyone know its departure
 func (client *Client) CleanupClient() {
 	fmt.Printf("Cleaning up %s\n", client.UserData.Username)
 
@@ -83,6 +84,7 @@ func (client *Client) CleanupClient() {
 	}
 }
 
+// Cut cuts the client's connection and forces a disconnect.
 func (client *Client) Cut() {
 	client.continueRunning = false
 	client.connection.Close()

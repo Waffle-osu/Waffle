@@ -5,6 +5,7 @@ import (
 	"Waffle/waffle/packets"
 )
 
+// OsuClient defines an Interface of what we need from client.Client to be able to manage this client in the ClientLists
 type OsuClient interface {
 	GetUserId() int32
 	GetPacketQueue() chan packets.BanchoPacket

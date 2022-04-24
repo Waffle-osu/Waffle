@@ -87,19 +87,18 @@ func CreateWaffleBot() {
 
 	client_manager.LockClientList()
 
-	for i := 0; i != client_manager.GetAmountClients(); i++ {
-		currentClient := client_manager.GetClientByIndex(i)
-
+	for _, currentClient := range client_manager.GetClientList() {
 		if currentClient.GetUserId() == int32(user.UserID) {
 			continue
 		}
 
-		//Inform client
+		//Inform client of our own existence
 		packets.BanchoSendUserPresence(currentClient.GetPacketQueue(), user, osuStats, clientInfo.Timezone)
-		packets.BanchoSendOsuUpdate(currentClient.GetPacketQueue(), osuStats, botClient.Status)
+		packets.BanchoSendOsuUpdate(currentClient.GetPacketQueue(), osuStats, client.Status)
 
-		packets.BanchoSendUserPresence(botClient.PacketQueue, currentClient.GetUserData(), currentClient.GetRelevantUserStats(), currentClient.GetClientTimezone())
-		packets.BanchoSendOsuUpdate(botClient.PacketQueue, currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
+		//Inform new client of the other client's existence
+		packets.BanchoSendUserPresence(client.PacketQueue, currentClient.GetUserData(), currentClient.GetRelevantUserStats(), currentClient.GetClientTimezone())
+		packets.BanchoSendOsuUpdate(client.PacketQueue, currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
 	}
 
 	client_manager.RegisterClient(&botClient)

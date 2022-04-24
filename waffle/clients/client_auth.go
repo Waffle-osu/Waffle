@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// All the currently tested versions and whether they work well or not
 var guaranteedWorkingVersion = map[string]bool{
 	"b1816.test":  true,
 	"b1816.peppy": true,
@@ -20,7 +21,9 @@ var guaranteedWorkingVersion = map[string]bool{
 	"b1815":       true,
 }
 
+// HandleNewClient handles a new connection
 func HandleNewClient(connection net.Conn) {
+	//Used to time how long a login takes
 	loginStartTime := time.Now()
 
 	deadlineErr := connection.SetReadDeadline(time.Now().Add(5 * time.Second))
@@ -33,10 +36,12 @@ func HandleNewClient(connection net.Conn) {
 
 	textReader := bufio.NewReader(connection)
 
+	//Read everything the client gave us
 	username, readErr := textReader.ReadString('\n')
 	password, readErr := textReader.ReadString('\n')
 	userData, readErr := textReader.ReadString('\n')
 
+	//Create a packet queue
 	packetQueue := make(chan packets.BanchoPacket, 128)
 
 	if readErr != nil {
@@ -45,20 +50,25 @@ func HandleNewClient(connection net.Conn) {
 		return
 	}
 
+	//They have \r\n at the end, we trim that off
 	username = strings.Replace(username, "\r\n", "", -1)
 	password = strings.Replace(password, "\r\n", "", -1)
 	userData = strings.Replace(userData, "\r\n", "", -1)
 
+	//Start parsing the userData
 	userDataSplit := strings.Split(userData, "|")
 
+	//b1816 sends 4 components there, version|timezone|allow_city|security_parts
 	if len(userDataSplit) != 4 {
 		packets.BanchoSendLoginReply(packetQueue, packets.InvalidVersion)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
+	//Parse security parts
 	securityPartsSplit := strings.Split(userDataSplit[3], ":")
 
+	//Parse timezone
 	timezone, convErr := strconv.Atoi(userDataSplit[1])
 
 	if convErr != nil {
@@ -67,6 +77,7 @@ func HandleNewClient(connection net.Conn) {
 		return
 	}
 
+	//Construct Client information
 	clientInfo := ClientInformation{
 		Version:        userDataSplit[0],
 		Timezone:       int32(timezone),
@@ -75,6 +86,7 @@ func HandleNewClient(connection net.Conn) {
 		MacAddressHash: securityPartsSplit[1],
 	}
 
+	//Try fetching the user from the Database
 	fetchResult, user := database.UserFromDatabaseByUsername(username)
 
 	//No User Found
@@ -83,6 +95,7 @@ func HandleNewClient(connection net.Conn) {
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	} else if fetchResult == -2 {
+		//Server failed to fetch the user
 		packets.BanchoSendLoginReply(packetQueue, packets.ServersideError)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
@@ -110,13 +123,16 @@ func HandleNewClient(connection net.Conn) {
 			packets.BanchoSendAnnounce(duplicateClient.GetPacketQueue(), "Disconnecting because of another client conneting to your Account.")
 			duplicateClient.CleanupClient()
 
+			//we wait for 2 seconds before cutting off the connection
 			time.Sleep(2000)
 			duplicateClient.Cut()
 		}()
 	}
 
+	//Send successful login reply
 	packets.BanchoSendLoginReply(packetQueue, int32(user.UserID))
 
+	//Retrieve stats
 	statGetResult, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
 	statGetResult, taikoStats := database.UserStatsFromDatabase(user.UserID, 1)
 	statGetResult, catchStats := database.UserStatsFromDatabase(user.UserID, 2)
@@ -132,14 +148,17 @@ func HandleNewClient(connection net.Conn) {
 		return
 	}
 
+	//Retrieve friends list
 	friendsResult, friendsList := database.GetFriendsList(user.UserID)
 
 	if friendsResult != 0 {
 		packets.BanchoSendAnnounce(packetQueue, "Friend List failed to load!")
 	}
 
+	//Send Friends list to client
 	packets.BanchoSendFriendsList(packetQueue, friendsList)
 
+	//Construct Client object
 	client := Client{
 		connection:      connection,
 		lastPing:        time.Now(),
@@ -175,6 +194,7 @@ func HandleNewClient(connection net.Conn) {
 		go SendOffPacketsAndClose(connection, packetQueue)
 	}
 
+	//Send Protocol negotiation aswell as information about itself
 	packets.BanchoSendProtocolNegotiation(client.PacketQueue)
 	packets.BanchoSendLoginPermissions(client.PacketQueue, user.Privileges|packets.UserPermissionsSupporter)
 	packets.BanchoSendUserPresence(client.PacketQueue, user, osuStats, clientInfo.Timezone)
@@ -182,25 +202,29 @@ func HandleNewClient(connection net.Conn) {
 
 	client_manager.LockClientList()
 
-	for i := 0; i != client_manager.GetAmountClients(); i++ {
-		currentClient := client_manager.GetClientByIndex(i)
-
+	//Loop over every client which exists
+	for _, currentClient := range client_manager.GetClientList() {
+		//We already informed the new client, no need to do it again
 		if currentClient.GetUserId() == int32(user.UserID) {
 			continue
 		}
 
-		//Inform client
+		//Inform client of our own existence
 		packets.BanchoSendUserPresence(currentClient.GetPacketQueue(), user, osuStats, clientInfo.Timezone)
 		packets.BanchoSendOsuUpdate(currentClient.GetPacketQueue(), osuStats, client.Status)
 
+		//Inform new client of the other client's existence
 		packets.BanchoSendUserPresence(client.PacketQueue, currentClient.GetUserData(), currentClient.GetRelevantUserStats(), currentClient.GetClientTimezone())
 		packets.BanchoSendOsuUpdate(client.PacketQueue, currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
 	}
 
+	//Register client in the client manager
 	client_manager.RegisterClient(&client)
 	client_manager.UnlockClientList()
 
+	//Join all the channels we need/can
 	for _, channel := range chat.GetAvailableChannels() {
+		//No need to join admin channels, or stuff above our privilege
 		if (channel.ReadPrivileges & user.Privileges) <= 0 {
 			continue
 		}
@@ -217,6 +241,7 @@ func HandleNewClient(connection net.Conn) {
 		}
 	}
 
+	//Try getting info on the version the user's running
 	working, recorded := guaranteedWorkingVersion[clientInfo.Version]
 
 	if recorded == false {
@@ -227,16 +252,19 @@ func HandleNewClient(connection net.Conn) {
 		packets.BanchoSendAnnounce(client.PacketQueue, "Welcome to Waffle!")
 	}
 
+	//Log some things
 	fmt.Printf("%s successfully logged into Waffle using osu!%s\n", username, clientInfo.Version)
 	fmt.Printf("Login took %.2fms\n", float64(time.Since(loginStartTime).Microseconds())/1000.0)
 
+	//Start handlers
 	go client.MaintainClient()
 	go client.HandleIncoming()
 	go client.SendOutgoing()
 }
 
+// SendOffPacketsAndClose sends off any remaining packets in the packet queue
 func SendOffPacketsAndClose(connection net.Conn, packetQueue chan packets.BanchoPacket) {
-	for i := 0; i != len(packetQueue); i++ {
+	for len(packetQueue) != 0 {
 		connection.Write((<-packetQueue).GetBytes())
 	}
 

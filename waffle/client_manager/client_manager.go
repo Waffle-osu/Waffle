@@ -9,27 +9,28 @@ var clientsById map[int32]OsuClient
 var clientsByName map[string]OsuClient
 var clientMutex sync.Mutex
 
+// InitializeClientManager initializes the ClientManager
 func InitializeClientManager() {
 	clientsById = make(map[int32]OsuClient)
 	clientsByName = make(map[string]OsuClient)
 }
 
+// LockClientList locks the client list, disallowing other threads from accessing until it's done
 func LockClientList() {
 	clientMutex.Lock()
 }
 
+// UnlockClientList unlocks the client list, allowing other threads to access it freely
 func UnlockClientList() {
 	clientMutex.Unlock()
 }
 
+// GetClientList returns a list of currently online and registered clients
 func GetClientList() []OsuClient {
 	return clientList
 }
 
-func GetClientByIndex(index int) OsuClient {
-	return clientList[index]
-}
-
+// GetClientById gets a client, assuming it's online, by their UserID
 func GetClientById(id int32) OsuClient {
 	value, exists := clientsById[id]
 
@@ -40,6 +41,7 @@ func GetClientById(id int32) OsuClient {
 	return value
 }
 
+// GetClientByName gets a client, assuming it's online, by their Username
 func GetClientByName(username string) OsuClient {
 	value, exists := clientsByName[username]
 
@@ -50,16 +52,14 @@ func GetClientByName(username string) OsuClient {
 	return value
 }
 
-func GetAmountClients() int {
-	return len(clientList)
-}
-
+// RegisterClient adds the Client to all the client lists it owns, it does NOT inform client's of its existence.
 func RegisterClient(client OsuClient) {
 	clientList = append(clientList, client)
 	clientsById[client.GetUserId()] = client
 	clientsByName[client.GetUserData().Username] = client
 }
 
+// UnregisterClient removes the Client from all the client lists it owns, it does NOT inform client's that it left
 func UnregisterClient(client OsuClient) {
 	LockClientList()
 
