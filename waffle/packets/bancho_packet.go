@@ -115,18 +115,22 @@ func (packet BanchoPacket) GetBytes() []byte {
 	return buf.Bytes()
 }
 
-func ReadBanchoPacketHeader(packetBuffer *bytes.Buffer) (int, BanchoPacket) {
+func ReadBanchoPacketHeader(packetBuffer *bytes.Buffer) (int, BanchoPacket, bool) {
 	packet := BanchoPacket{}
 
 	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketId)
 	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketCompression)
 	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketSize)
 
+	if packet.PacketSize >= 2048 || packet.PacketId > 86 {
+		return int(BanchoHeaderSize), packet, true
+	}
+
 	packet.PacketData = make([]byte, packet.PacketSize)
 
 	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketData)
 
-	return int(BanchoHeaderSize + packet.PacketSize), packet
+	return int(BanchoHeaderSize + packet.PacketSize), packet, false
 }
 
 func WriteBanchoString(value string) []byte {

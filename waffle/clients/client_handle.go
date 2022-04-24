@@ -29,9 +29,13 @@ func (client *Client) HandleIncoming() {
 		readIndex := 0
 
 		for readIndex < read {
-			read, packet := packets.ReadBanchoPacketHeader(packetBuffer)
+			read, packet, failedRead := packets.ReadBanchoPacketHeader(packetBuffer)
 
 			readIndex += read
+
+			if failedRead == true {
+				continue
+			}
 
 			//Unused packet
 			if packet.PacketId == 79 {

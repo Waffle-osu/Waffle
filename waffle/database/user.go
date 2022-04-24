@@ -146,10 +146,15 @@ func CreateNewUser(username string, rawPassword string) bool {
 			return false
 		}
 
-		_, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
-		_, statsInsertErr = database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
-		_, statsInsertErr = database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
-		_, statsInsertErr = database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
+		osuStatsInsert, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
+		taikoStatsInsert, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
+		catchStatsInsert, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
+		maniaStatsInsert, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
+
+		osuStatsInsert.Close()
+		taikoStatsInsert.Close()
+		catchStatsInsert.Close()
+		maniaStatsInsert.Close()
 
 		if statsInsertErr != nil {
 			fmt.Printf("Failed to create new user, user stats creation failed. MySQL query failed.\n")

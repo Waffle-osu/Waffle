@@ -84,7 +84,7 @@ CREATE TABLE `stats` (
 
 LOCK TABLES `stats` WRITE;
 /*!40000 ALTER TABLE `stats` DISABLE KEYS */;
-INSERT INTO `stats` VALUES (2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+INSERT INTO `stats` VALUES (1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
 /*!40000 ALTER TABLE `stats` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -102,13 +102,13 @@ CREATE TABLE `users` (
   `country` smallint unsigned NOT NULL DEFAULT '0',
   `banned` tinyint NOT NULL DEFAULT '0',
   `banned_reason` varchar(256) NOT NULL DEFAULT 'no reason',
-  `privileges` int NOT NULL DEFAULT '0',
+  `privileges` int NOT NULL DEFAULT '1',
   `joined_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`,`username`),
   UNIQUE KEY `id_UNIQUE` (`user_id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
   KEY `user_INDEX` (`username`,`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -117,7 +117,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'Furball','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',0,'2022-04-20 22:26:46'),(3,'Eevee','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',0,'2022-04-21 20:36:26'),(4,'marshall_racer','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',0,'2022-04-22 23:39:09');
+INSERT INTO `users` VALUES (1,'WaffleBot','No!',0,0,'no reason',31,'2022-04-24 16:40:27'),(2,'Furball','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',31,'2022-04-20 22:26:46'),(3,'Eevee','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',1,'2022-04-21 20:36:26'),(4,'ArNeN','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',1,'2022-04-24 18:33:15');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -130,4 +130,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-24 16:15:54
+-- Dump completed on 2022-04-24 20:50:39
