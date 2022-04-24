@@ -37,7 +37,7 @@ func HandleNewClient(connection net.Conn) {
 	password, readErr := textReader.ReadString('\n')
 	userData, readErr := textReader.ReadString('\n')
 
-	packetQueue := make(chan packets.BanchoPacket, 32)
+	packetQueue := make(chan packets.BanchoPacket, 128)
 
 	if readErr != nil {
 		fmt.Printf("Failed to read initial user data\n")

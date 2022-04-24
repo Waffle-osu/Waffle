@@ -350,7 +350,7 @@ func (client *Client) HandleIncoming() {
 				break
 			}
 
-			fmt.Printf("%s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
+			fmt.Printf("%s: %s: Got %s, of Size: %d\n", time.Now().String(), client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
 		}
 	}
 }
@@ -369,6 +369,7 @@ func (client *Client) MaintainClient() {
 	for client.continueRunning {
 		if client.lastReceive.Add(ReceiveTimeout).Before(time.Now()) {
 			fmt.Printf("%s Timed out!\n", client.UserData.Username)
+			fmt.Printf("time.Now(): %s, lastRecieve.Add(RecieveTimeout): %s; lastRecieve: %s", time.Now(), client.lastReceive.Add(ReceiveTimeout).String(), client.lastReceive.String())
 
 			client.CleanupClient()
 
