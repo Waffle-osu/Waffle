@@ -12,7 +12,6 @@ import (
 )
 
 func (client *Client) HandleIncoming() {
-
 	readBuffer := make([]byte, 4096)
 
 	for client.continueRunning {
@@ -33,6 +32,7 @@ func (client *Client) HandleIncoming() {
 
 			readIndex += read
 
+			//Unused packet
 			if packet.PacketId == 79 {
 				continue
 			}
@@ -96,8 +96,8 @@ func (client *Client) HandleIncoming() {
 				}
 				break
 			case packets.OsuExit:
-				CleanupClient(client)
-				break
+				client.CleanupClient()
+				return
 			case packets.OsuStartSpectating:
 				var spectatorId int32
 
@@ -312,7 +312,7 @@ func (client *Client) SendOutgoing() {
 func (client *Client) MaintainClient() {
 	for client.continueRunning {
 		if client.lastReceive.Add(ReceiveTimeout).Before(time.Now()) {
-			CleanupClient(client)
+			client.CleanupClient()
 
 			client.continueRunning = false
 		}
@@ -328,4 +328,5 @@ func (client *Client) MaintainClient() {
 
 	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
 	close(client.PacketQueue)
+	client.connection.Close()
 }

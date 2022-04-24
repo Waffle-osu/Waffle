@@ -53,7 +53,7 @@ type Client struct {
 	ManiaStats database.UserStats
 }
 
-func CleanupClient(client *Client) {
+func (client *Client) CleanupClient() {
 	fmt.Printf("Cleaning up %s\n", client.UserData.Username)
 
 	if client.spectatingClient != nil {
@@ -78,6 +78,9 @@ func CleanupClient(client *Client) {
 	for _, channel := range client.joinedChannels {
 		channel.Leave(client)
 	}
+}
 
+func (client *Client) Cut() {
+	client.continueRunning = false
 	client.connection.Close()
 }

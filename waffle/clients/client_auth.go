@@ -102,6 +102,19 @@ func HandleNewClient(connection net.Conn) {
 		return
 	}
 
+	//Check for duplicate clients
+	duplicateClient := client_manager.GetClientById(int32(user.UserID))
+
+	if duplicateClient != nil {
+		go func() {
+			packets.BanchoSendAnnounce(duplicateClient.GetPacketQueue(), "Disconnecting because of another client conneting to your Account.")
+			duplicateClient.CleanupClient()
+
+			time.Sleep(2000)
+			duplicateClient.Cut()
+		}()
+	}
+
 	packets.BanchoSendLoginReply(packetQueue, int32(user.UserID))
 
 	statGetResult, osuStats := database.UserStatsFromDatabase(user.UserID, 0)

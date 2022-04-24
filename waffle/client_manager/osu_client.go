@@ -15,4 +15,6 @@ type OsuClient interface {
 	InformSpectatorJoin(client OsuClient)
 	InformSpectatorLeft(client OsuClient)
 	InformSpectatorCantSpectate(client OsuClient)
+	CleanupClient()
+	Cut()
 }
