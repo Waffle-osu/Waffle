@@ -17,12 +17,13 @@ type Bancho struct {
 func CreateBancho() *Bancho {
 	bancho := new(Bancho)
 
-	chat.InitializeChannels()
-	database.Initialize()
-	client_manager.InitializeClientManager()
-	lobby.InitializeLobby()
-	clients.CreateWaffleBot()
+	chat.InitializeChannels()                //Initializes Chat channels
+	database.Initialize()                    //Initialized Database related endeavors
+	client_manager.InitializeClientManager() //Initializes the client manager
+	lobby.InitializeLobby()                  //Initializes the multi lobby
+	clients.CreateWaffleBot()                //Creates WaffleBot
 
+	//Creates the TCP server under which Waffle runs
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
 
 	if err != nil {
@@ -38,6 +39,7 @@ func (bancho *Bancho) RunBancho() {
 	fmt.Printf("Running Bancho on 127.0.0.1:13381\n")
 
 	for {
+		//Accept connections
 		conn, err := bancho.Server.Accept()
 		fmt.Printf("Connection Accepted!\n")
 
@@ -45,6 +47,7 @@ func (bancho *Bancho) RunBancho() {
 			continue
 		}
 
+		//Handle new connection
 		go clients.HandleNewClient(conn)
 	}
 }

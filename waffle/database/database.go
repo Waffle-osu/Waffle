@@ -8,6 +8,7 @@ import (
 
 var database *sql.DB
 
+// Initialize initializes the MySQL database things
 func Initialize() {
 	db, connErr := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/waffle")
 

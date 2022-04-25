@@ -5,6 +5,7 @@ import (
 	"Waffle/waffle/packets"
 )
 
+// LeaveCurrentMatch makes the client leave the current match
 func (client *Client) LeaveCurrentMatch() {
 	if client.currentMultiLobby != nil {
 		client.currentMultiLobby.Part(client)
@@ -12,6 +13,7 @@ func (client *Client) LeaveCurrentMatch() {
 	}
 }
 
+// JoinMatch makes the client join a particular match
 func (client *Client) JoinMatch(match *lobby.MultiplayerLobby, password string) {
 	client.LeaveCurrentMatch()
 
@@ -25,6 +27,7 @@ func (client *Client) JoinMatch(match *lobby.MultiplayerLobby, password string) 
 	}
 }
 
+// GetStatus gets the users current status
 func (client *Client) GetStatus() packets.StatusUpdate {
 	return client.Status
 }

@@ -29,33 +29,16 @@ func UnlockClientList() {
 	clientMutex.Unlock()
 }
 
-func GetClientById(id int32) LobbyClient {
-	value, exists := clientsById[id]
-
-	if exists == false {
-		return nil
-	}
-
-	return value
-}
-
-func GetClientByName(username string) LobbyClient {
-	value, exists := clientsByName[username]
-
-	if exists == false {
-		return nil
-	}
-
-	return value
-}
-
+// JoinLobby is called when `client` joins the lobby
 func JoinLobby(client LobbyClient) {
 	LockClientList()
 
+	//append to the client lists
 	clientList = append(clientList, client)
 	clientsById[client.GetUserId()] = client
 	clientsByName[client.GetUserData().Username] = client
 
+	//Inform everyone in the lobby that they joined
 	for _, lobbyUser := range clientsById {
 		packets.BanchoSendLobbyJoin(client.GetPacketQueue(), lobbyUser.GetUserId())
 		packets.BanchoSendLobbyJoin(lobbyUser.GetPacketQueue(), client.GetUserId())
@@ -65,6 +48,7 @@ func JoinLobby(client LobbyClient) {
 
 	multiMutex.Lock()
 
+	//Tell the new client of all the multiplayer matches that are going on
 	for _, multiLobby := range multiLobbiesById {
 		packets.BanchoSendMatchNew(client.GetPacketQueue(), multiLobby.MatchInformation)
 	}
@@ -72,6 +56,7 @@ func JoinLobby(client LobbyClient) {
 	multiMutex.Unlock()
 }
 
+// PartLobby is called when `client` leaves the lobby
 func PartLobby(client LobbyClient) {
 	LockClientList()
 
@@ -89,8 +74,13 @@ func PartLobby(client LobbyClient) {
 	}
 
 	UnlockClientList()
+
+	//TODO@(Furball): i don't know whether this bug exists but it might very well exist,
+	//              : what happens when a user leaves the lobby and a match disbands,
+	//              : does the client still remember the lobby or does it disappear?
 }
 
+// BroadcastToLobby broadcasts a packet to everyone in the lobby
 func BroadcastToLobby(packetFunction func(chan packets.BanchoPacket)) {
 	LockClientList()
 
@@ -101,6 +91,7 @@ func BroadcastToLobby(packetFunction func(chan packets.BanchoPacket)) {
 	UnlockClientList()
 }
 
+// CreateNewMultiMatch is responsible for creating a new Multiplayer Match
 func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
 	multiMutex.Lock()
 
@@ -115,6 +106,7 @@ func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
 
 	multiLobby := new(MultiplayerLobby)
 
+	//Set up the Chat channel #multiplayer
 	multiLobby.MultiChannel = new(chat.Channel)
 	multiLobby.MultiChannel.Name = "#multiplayer"
 	multiLobby.MultiChannel.Description = ""
@@ -124,15 +116,19 @@ func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
 	multiLobby.MultiChannel.Clients = []chat.ChatClient{}
 	multiLobby.MultiChannel.ClientMutex = sync.Mutex{}
 
+	//Set the match information, including host information
 	multiLobby.MatchInformation = match
 	multiLobby.MatchHost = host
 	multiLobby.MatchInformation.HostId = host.GetUserId()
 
+	//Make the host join the lobby
 	host.JoinMatch(multiLobby, multiLobby.MatchInformation.GamePassword)
 
+	//Append lobby to the list
 	multiLobbies = append(multiLobbies, multiLobby)
 	multiLobbiesById[match.MatchId] = multiLobby
 
+	//Tell everyone in the lobby that a new match has just been created
 	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
 		packets.BanchoSendMatchNew(packetQueue, multiLobby.MatchInformation)
 	})
@@ -140,9 +136,11 @@ func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
 	multiMutex.Unlock()
 }
 
+// RemoveMultiMatch gets called when a match gets disbanded
 func RemoveMultiMatch(matchId uint16) {
 	multiMutex.Lock()
 
+	//Remove multi lobby from the multi list
 	for index, value := range multiLobbies {
 		if value.MatchInformation.MatchId == matchId {
 			multiLobbies = append(multiLobbies[0:index], multiLobbies[index+1:]...)
@@ -151,6 +149,7 @@ func RemoveMultiMatch(matchId uint16) {
 
 	delete(multiLobbiesById, matchId)
 
+	//Tell everyone in the lobby that the match no longer exists
 	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
 		packets.BanchoSendMatchDisband(packetQueue, int32(matchId))
 	})
@@ -158,6 +157,7 @@ func RemoveMultiMatch(matchId uint16) {
 	multiMutex.Unlock()
 }
 
+// GetMultiMatchById returns a multiplayer match given a match ID
 func GetMultiMatchById(matchId uint16) *MultiplayerLobby {
 	match, exists := multiLobbiesById[matchId]
 

@@ -191,6 +191,7 @@ func (client *Client) HandleIncoming() {
 			//This is the response to a BanchoPing
 			case packets.OsuPong:
 				client.lastReceive = time.Now()
+				fmt.Printf("%s: Got Ping from %s\n", time.Now().Format(time.ANSIC), client.UserData.Username)
 				break
 			//The client has joined the lobby
 			case packets.OsuLobbyJoin:
@@ -271,7 +272,7 @@ func (client *Client) HandleIncoming() {
 					client.currentMultiLobby.ChangeTeam(client)
 				}
 				break
-			//The client wants to transfer it's host status onto someone else
+			//The client wants to transfer its host status onto someone else
 			case packets.OsuMatchTransferHost:
 				if client.currentMultiLobby != nil {
 					var newHost int32
@@ -420,9 +421,10 @@ func (client *Client) HandleIncoming() {
 					})
 				}
 				break
+			default:
+				fmt.Printf("%s: %s: Got %s, of Size: %d\n", time.Now().Format(time.ANSIC), client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
+				break
 			}
-
-			fmt.Printf("%s: %s: Got %s, of Size: %d\n", time.Now().String(), client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
 		}
 	}
 }

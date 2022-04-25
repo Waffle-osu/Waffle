@@ -5,6 +5,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// UserStatsFromDatabase retrieves a users stats given their user id and the mode that it should be retrieved for
 func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 	returnStats := UserStats{}
 

@@ -13,11 +13,13 @@ import (
 
 func (client *Client) WaffleBotMaintainClient() {
 	for client.continueRunning {
+		//Maybe i'll add some fancy stuff here like funny statuses but as it stands this will be empty
 
 		time.Sleep(time.Second)
 	}
 }
 
+// WaffleBotHandleOutgoing Handles stuff that's been sent to WaffleBot
 func (client *Client) WaffleBotHandleOutgoing() {
 	for packet := range client.PacketQueue {
 		packetDataReader := bytes.NewBuffer(packet.PacketData)
@@ -26,8 +28,10 @@ func (client *Client) WaffleBotHandleOutgoing() {
 		case packets.BanchoSendMessage:
 			message := packets.ReadMessage(packetDataReader)
 
+			//Handles commands
 			if message.Message[0] == '!' {
 				sender := client_manager.GetClientByName(message.Sender)
+				//This determines whether the response to the command will be sent publicly in chat or privately in DMs
 				publicCommand := message.Target[0] == '#'
 
 				splitCommand := strings.Split(message.Message, " ")
@@ -61,6 +65,7 @@ func (client *Client) WaffleBotHandleOutgoing() {
 
 			userById := client_manager.GetClientById(userId)
 
+			//Fun little easter egg, just thought i'd add it in initially for testing if it can recieve packets
 			if userById != nil {
 				packets.BanchoSendIrcMessage(userById.GetPacketQueue(), packets.Message{
 					Sender:  "WaffleBot",

@@ -44,6 +44,7 @@ type UserStats struct {
 	ReplaysWatched uint64
 }
 
+// UserFromDatabaseById retrieves a users information given a user id
 func UserFromDatabaseById(id uint64) (int8, User) {
 	returnUser := User{}
 
@@ -72,6 +73,7 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 	return -1, returnUser
 }
 
+// UserFromDatabaseByUsername retrieves a users information given a username
 func UserFromDatabaseByUsername(username string) (int8, User) {
 	returnUser := User{}
 
@@ -101,6 +103,7 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 	return -1, returnUser
 }
 
+// CreateNewUser creates a new user given a username and a password
 func CreateNewUser(username string, rawPassword string) bool {
 	duplicateUsernameQuery, duplicateUsernameQueryErr := database.Query("SELECT COUNT(*) FROM waffle.users WHERE username = ?", username)
 	defer duplicateUsernameQuery.Close()
