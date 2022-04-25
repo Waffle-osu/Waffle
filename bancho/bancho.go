@@ -10,12 +10,8 @@ import (
 	"net"
 )
 
-type Bancho struct {
-	Server net.Listener
-}
-
-func CreateBancho() *Bancho {
-	bancho := new(Bancho)
+func RunBancho() {
+	fmt.Printf("Running Bancho on 127.0.0.1:13381\n")
 
 	chat.InitializeChannels()                //Initializes Chat channels
 	database.Initialize()                    //Initialized Database related endeavors
@@ -30,17 +26,9 @@ func CreateBancho() *Bancho {
 		fmt.Printf("Failed to Create TCP Server on 127.0.0.1:13381")
 	}
 
-	bancho.Server = listener
-
-	return bancho
-}
-
-func (bancho *Bancho) RunBancho() {
-	fmt.Printf("Running Bancho on 127.0.0.1:13381\n")
-
 	for {
 		//Accept connections
-		conn, err := bancho.Server.Accept()
+		conn, err := listener.Accept()
 		fmt.Printf("Connection Accepted!\n")
 
 		if err != nil {

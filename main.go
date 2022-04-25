@@ -2,12 +2,13 @@ package main
 
 import (
 	"Waffle/bancho"
+	"Waffle/web"
 	"time"
 )
 
 func main() {
-	bancho := bancho.CreateBancho()
 	go bancho.RunBancho()
+	go web.RunOsuWeb()
 
 	for {
 		time.Sleep(2 * time.Second)
