@@ -1,10 +1,10 @@
 package clients
 
 import (
-	"Waffle/waffle/chat"
-	"Waffle/waffle/client_manager"
-	"Waffle/waffle/database"
-	"Waffle/waffle/packets"
+	"Waffle/bancho/chat"
+	"Waffle/bancho/client_manager"
+	"Waffle/bancho/database"
+	"Waffle/bancho/packets"
 	"fmt"
 	"sync"
 	"time"

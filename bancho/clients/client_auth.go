@@ -1,10 +1,10 @@
 package clients
 
 import (
-	"Waffle/waffle/chat"
-	"Waffle/waffle/client_manager"
-	"Waffle/waffle/database"
-	"Waffle/waffle/packets"
+	"Waffle/bancho/chat"
+	"Waffle/bancho/client_manager"
+	"Waffle/bancho/database"
+	"Waffle/bancho/packets"
 	"bufio"
 	"fmt"
 	"net"
@@ -247,7 +247,7 @@ func HandleNewClient(connection net.Conn) {
 	if recorded == false {
 		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s has not yet been tested and may not work as intended! Unforseen problems may occur, report them to Furball if you can, depending on version it could be fixed.", clientInfo.Version))
 	} else if working == false {
-		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s may not work as intended on waffle! Your experience may not be the best.", clientInfo.Version))
+		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s may not work as intended on bancho! Your experience may not be the best.", clientInfo.Version))
 	} else {
 		packets.BanchoSendAnnounce(client.PacketQueue, "Welcome to Waffle!")
 	}

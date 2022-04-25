@@ -1,8 +1,8 @@
 package clients
 
 import (
-	"Waffle/waffle/client_manager"
-	"Waffle/waffle/packets"
+	"Waffle/bancho/client_manager"
+	"Waffle/bancho/packets"
 )
 
 // BroadcastToSpectators broadcasts a packet to all the people spectating `client`

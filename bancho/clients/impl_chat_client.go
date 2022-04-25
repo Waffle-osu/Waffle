@@ -1,7 +1,7 @@
 package clients
 
 import (
-	"Waffle/waffle/packets"
+	"Waffle/bancho/packets"
 )
 
 // GetUserPrivileges returns the users privileges

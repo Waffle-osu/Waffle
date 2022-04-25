@@ -1,11 +1,11 @@
-package waffle
+package bancho
 
 import (
-	"Waffle/waffle/chat"
-	"Waffle/waffle/client_manager"
-	"Waffle/waffle/clients"
-	"Waffle/waffle/database"
-	"Waffle/waffle/lobby"
+	"Waffle/bancho/chat"
+	"Waffle/bancho/client_manager"
+	"Waffle/bancho/clients"
+	"Waffle/bancho/database"
+	"Waffle/bancho/lobby"
 	"fmt"
 	"net"
 )

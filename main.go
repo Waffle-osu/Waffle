@@ -1,12 +1,12 @@
 package main
 
 import (
-	"Waffle/waffle"
+	"Waffle/bancho"
 	"time"
 )
 
 func main() {
-	bancho := waffle.CreateBancho()
+	bancho := bancho.CreateBancho()
 	go bancho.RunBancho()
 
 	for {

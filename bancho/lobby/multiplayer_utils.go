@@ -1,6 +1,6 @@
 package lobby
 
-import "Waffle/waffle/packets"
+import "Waffle/bancho/packets"
 
 // GetSlotFromUserId is a utility function to get a slot from a players ID
 func (multiLobby *MultiplayerLobby) GetSlotFromUserId(userId int32) int {

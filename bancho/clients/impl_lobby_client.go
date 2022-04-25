@@ -1,8 +1,8 @@
 package clients
 
 import (
-	"Waffle/waffle/lobby"
-	"Waffle/waffle/packets"
+	"Waffle/bancho/lobby"
+	"Waffle/bancho/packets"
 )
 
 // LeaveCurrentMatch makes the client leave the current match

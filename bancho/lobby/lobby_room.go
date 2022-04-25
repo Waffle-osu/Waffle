@@ -1,8 +1,8 @@
 package lobby
 
 import (
-	"Waffle/waffle/chat"
-	"Waffle/waffle/packets"
+	"Waffle/bancho/chat"
+	"Waffle/bancho/packets"
 	"sync"
 )
 
