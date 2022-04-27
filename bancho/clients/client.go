@@ -34,7 +34,7 @@ type Client struct {
 	lastReceive time.Time
 	lastPing    time.Time
 
-	joinedChannels []*chat.Channel
+	joinedChannels map[string]*chat.Channel
 	awayMessage    string
 
 	spectators       map[int32]client_manager.OsuClient

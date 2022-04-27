@@ -99,11 +99,10 @@ func (client *Client) HandleIncoming() {
 				}
 
 				//Find channel
-				//TODO@(Furball): likely would be better to have a map of joined channels instead of a list
-				for _, channel := range client.joinedChannels {
-					if channel.Name == message.Target {
-						channel.SendMessage(client, message.Message, message.Target)
-					}
+				channel, exists := client.joinedChannels[message.Target]
+
+				if exists {
+					channel.SendMessage(client, message.Message, message.Target)
 				}
 				break
 				//The client is sending a private message to someone
@@ -213,7 +212,7 @@ func (client *Client) HandleIncoming() {
 				if exists {
 					if channel.Join(client) {
 						packets.BanchoSendChannelJoinSuccess(client.PacketQueue, channelName)
-						client.joinedChannels = append(client.joinedChannels, channel)
+						client.joinedChannels[channel.Name] = channel
 					} else {
 						packets.BanchoSendChannelRevoked(client.PacketQueue, channelName)
 					}
@@ -226,12 +225,11 @@ func (client *Client) HandleIncoming() {
 				channelName := string(packets.ReadBanchoString(packetDataReader))
 
 				//Search for the channel
-				//TODO@(Furball): again, a map would be better
-				for index, channel := range client.joinedChannels {
-					if channel.Name == channelName {
-						channel.Leave(client)
-						client.joinedChannels = append(client.joinedChannels[0:index], client.joinedChannels[index+1:]...)
-					}
+				channel, exists := client.joinedChannels[channelName]
+
+				if exists {
+					channel.Leave(client)
+					delete(client.joinedChannels, channelName)
 				}
 				break
 			//The client is creating a multiplayer match

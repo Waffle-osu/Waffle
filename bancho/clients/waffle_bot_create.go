@@ -62,7 +62,7 @@ func CreateWaffleBot() {
 		lastReceive: time.Now(),
 		lastPing:    time.Now(),
 
-		joinedChannels: []*chat.Channel{},
+		joinedChannels: make(map[string]*chat.Channel),
 		awayMessage:    "",
 
 		spectators:       make(map[int32]client_manager.OsuClient),

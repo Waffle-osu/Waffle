@@ -184,7 +184,9 @@ func HandleNewClient(connection net.Conn) {
 			StatusText:      user.Username + " has just logged in!",
 		},
 		FriendsList: friendsList,
-		awayMessage: "",
+
+		awayMessage:    "",
+		joinedChannels: make(map[string]*chat.Channel),
 	}
 
 	resetDeadlineErr := connection.SetReadDeadline(time.Time{})
@@ -232,7 +234,7 @@ func HandleNewClient(connection net.Conn) {
 		if channel.Autojoin {
 			if channel.Join(&client) {
 				packets.BanchoSendChannelJoinSuccess(client.PacketQueue, channel.Name)
-				client.joinedChannels = append(client.joinedChannels, channel)
+				client.joinedChannels[channel.Name] = channel
 			} else {
 				packets.BanchoSendChannelRevoked(client.PacketQueue, channel.Name)
 			}
@@ -247,7 +249,7 @@ func HandleNewClient(connection net.Conn) {
 	if recorded == false {
 		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s has not yet been tested and may not work as intended! Unforseen problems may occur, report them to Furball if you can, depending on version it could be fixed.", clientInfo.Version))
 	} else if working == false {
-		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s may not work as intended on bancho! Your experience may not be the best.", clientInfo.Version))
+		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s is tested and has been found to not work properly on Waffle! Your experience may not be the best.", clientInfo.Version))
 	} else {
 		packets.BanchoSendAnnounce(client.PacketQueue, "Welcome to Waffle!")
 	}

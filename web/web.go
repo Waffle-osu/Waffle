@@ -12,6 +12,6 @@ func RunOsuWeb() {
 	ginServer.GET("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Hello, World!")
 	})
-	
+
 	ginServer.Run("127.0.0.1:13380")
 }
