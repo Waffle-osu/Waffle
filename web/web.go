@@ -13,5 +13,7 @@ func RunOsuWeb() {
 		ctx.String(http.StatusOK, "Hello, World!")
 	})
 
-	ginServer.Run("127.0.0.1:13380")
+	ginServer.POST("/web/osu-screenshot.php", HandleOsuScreenshot)
+
+	ginServer.Run("127.0.0.1:80")
 }

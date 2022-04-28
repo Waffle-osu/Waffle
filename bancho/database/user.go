@@ -169,3 +169,30 @@ func CreateNewUser(username string, rawPassword string) bool {
 
 	return true
 }
+
+func AuthenticateUser(username string, password string) (userId int32, authSuccess bool) {
+	query, queryErr := database.Query("SELECT user_id, username, password FROM waffle.users WHERE username = ?", username)
+
+	var scanUsername, scanPassword string
+	var scanUserId int32
+
+	if queryErr != nil {
+		return -2, false
+	}
+
+	if query.Next() {
+		scanErr := query.Scan(&scanUserId, &scanUsername, &scanPassword)
+
+		if scanErr != nil {
+			return -2, false
+		}
+
+		if scanPassword == password {
+			return scanUserId, true
+		} else {
+			return scanUserId, false
+		}
+	} else {
+		return -1, false
+	}
+}
