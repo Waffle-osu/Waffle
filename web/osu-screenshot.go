@@ -42,9 +42,9 @@ func HandleOsuScreenshot(ctx *gin.Context) {
 	fileBuffer := make([]byte, screenshot.Size)
 	ssFile.Read(fileBuffer)
 
-	filename := fmt.Sprintf("screenshots/%x-%x", userId, time.Now().Unix())
+	filename := fmt.Sprintf("%x-%x", userId, time.Now().Unix())
 
-	os.WriteFile(filename, fileBuffer, 0644)
+	os.WriteFile("screenshots/"+filename, fileBuffer, 0644)
 
 	ctx.String(http.StatusOK, filename)
 }
