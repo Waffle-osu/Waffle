@@ -7,12 +7,19 @@ import (
 )
 
 func HandleOsuUpdate2(ctx *gin.Context) {
-	fileHash := database.GetOsuExecutableHash()
+	fileHashPublic := database.UpdaterHashFromFilename("osu!.exe")
+	fileHashTest := database.UpdaterHashFromFilename("osu!test.exe")
 
-	if fileHash == "" {
+	if fileHashPublic == "" {
 		ctx.String(http.StatusInternalServerError, "")
 		return
 	}
 
-	ctx.String(http.StatusOK, fileHash)
+	result := "osu!.exe " + fileHashPublic + "\n"
+
+	if fileHashTest != "" {
+		result += "osu!test.exe" + fileHashTest + "\n"
+	}
+	
+	ctx.String(http.StatusOK, result)
 }
