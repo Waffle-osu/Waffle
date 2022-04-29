@@ -4,7 +4,7 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/packets"
-	database2 "Waffle/database"
+	"Waffle/database"
 	"bufio"
 	"fmt"
 	"net"
@@ -87,7 +87,7 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Try fetching the user from the Database
-	fetchResult, user := database2.UserFromDatabaseByUsername(username)
+	fetchResult, user := database.UserFromDatabaseByUsername(username)
 
 	//No User Found
 	if fetchResult == -1 {
@@ -133,10 +133,10 @@ func HandleNewClient(connection net.Conn) {
 	packets.BanchoSendLoginReply(packetQueue, int32(user.UserID))
 
 	//Retrieve stats
-	statGetResult, osuStats := database2.UserStatsFromDatabase(user.UserID, 0)
-	statGetResult, taikoStats := database2.UserStatsFromDatabase(user.UserID, 1)
-	statGetResult, catchStats := database2.UserStatsFromDatabase(user.UserID, 2)
-	statGetResult, maniaStats := database2.UserStatsFromDatabase(user.UserID, 3)
+	statGetResult, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
+	statGetResult, taikoStats := database.UserStatsFromDatabase(user.UserID, 1)
+	statGetResult, catchStats := database.UserStatsFromDatabase(user.UserID, 2)
+	statGetResult, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
 
 	if statGetResult == -1 {
 		packets.BanchoSendAnnounce(packetQueue, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
@@ -149,7 +149,7 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Retrieve friends list
-	friendsResult, friendsList := database2.GetFriendsList(user.UserID)
+	friendsResult, friendsList := database.GetFriendsList(user.UserID)
 
 	if friendsResult != 0 {
 		packets.BanchoSendAnnounce(packetQueue, "Friend List failed to load!")

@@ -61,8 +61,27 @@ func (client *Client) HandleIncoming() {
 					packets.BanchoSendOsuUpdate(packetQueue, client.OsuStats, client.Status)
 				})
 				break
-			//The client is informing us, that it wants to know its own stats
+			//The client is informing us, that it wants to know its own updated stats
 			case packets.OsuRequestStatusUpdate:
+				//Retrieve stats
+				statGetResult, osuStats := database.UserStatsFromDatabase(client.UserData.UserID, 0)
+				statGetResult, taikoStats := database.UserStatsFromDatabase(client.UserData.UserID, 1)
+				statGetResult, catchStats := database.UserStatsFromDatabase(client.UserData.UserID, 2)
+				statGetResult, maniaStats := database.UserStatsFromDatabase(client.UserData.UserID, 3)
+
+				if statGetResult == -1 {
+					packets.BanchoSendAnnounce(client.PacketQueue, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
+					return
+				} else if statGetResult == -2 {
+					packets.BanchoSendAnnounce(client.PacketQueue, "A weird server-side fuckup occured, stats could not be loaded...")
+					return
+				}
+
+				client.OsuStats = osuStats
+				client.TaikoStats = taikoStats
+				client.CatchStats = catchStats
+				client.ManiaStats = maniaStats
+
 				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.OsuStats, client.GetClientTimezone())
 				packets.BanchoSendOsuUpdate(client.PacketQueue, client.GetRelevantUserStats(), client.Status)
 				break
