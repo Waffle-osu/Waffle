@@ -4,9 +4,17 @@ import (
 	"Waffle/database"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
 )
 
 func HandleUpdaterUpdate2(ctx *gin.Context) {
+	_, readErr := os.Stat(".env")
+
+	if readErr != nil {
+		ctx.String(http.StatusOK, "\n")
+		return
+	}
+
 	result, items := database.GetUpdaterItems()
 
 	if result == -1 {

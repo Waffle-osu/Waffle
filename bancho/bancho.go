@@ -1,23 +1,13 @@
 package bancho
 
 import (
-	"Waffle/bancho/chat"
-	"Waffle/bancho/client_manager"
 	"Waffle/bancho/clients"
-	"Waffle/bancho/lobby"
-	"Waffle/database"
 	"fmt"
 	"net"
 )
 
 func RunBancho() {
 	fmt.Printf("Running Bancho on 127.0.0.1:13381\n")
-
-	chat.InitializeChannels()                //Initializes Chat channels
-	database.Initialize()                    //Initialized Database related endeavors
-	client_manager.InitializeClientManager() //Initializes the client manager
-	lobby.InitializeLobby()                  //Initializes the multi lobby
-	clients.CreateWaffleBot()                //Creates WaffleBot
 
 	//Creates the TCP server under which Waffle runs
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")

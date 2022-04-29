@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <style>
+            body {
+                background-color: dimgray;
+                font-family: Arial, sans-serif;
+                color: white;
+            }
+        </style>
+    </head>
+
+    <h2 style="text-align: center"> Configure Waffle </h2> <br>
+
+    <form action="/admin/post_config" method="post" id="settingsForm">
+        <label for="mysql_username">MySQL Username: </label> <input type="text" id="mysql_username" name="mysql_username"> <br>
+        <label for="mysql_password">MySQL Password: </label> <input type="text" id="mysql_password" name="mysql_password"> <br>
+        <label for="mysql_location">MySQL Location: </label> <input type="text" id="mysql_location" name="mysql_location"> <br>
+        <label for="mysql_database">MySQL Database: </label> <input type="text" id="mysql_database" name="mysql_database"> <br>
+
+        <br>
+
+        <input type="submit" value="Save Settings">
+    </form>
+
+</html>

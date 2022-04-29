@@ -9,8 +9,8 @@ import (
 var database *sql.DB
 
 // Initialize initializes the MySQL database things
-func Initialize() {
-	db, connErr := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/waffle")
+func Initialize(username string, password string, location string, dbDatabase string) {
+	db, connErr := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, location, dbDatabase))
 
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
