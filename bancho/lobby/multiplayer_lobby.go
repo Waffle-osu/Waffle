@@ -34,12 +34,12 @@ func (multiLobby *MultiplayerLobby) Join(client LobbyClient, password string) bo
 	//Inform everyone of the client, just in case they don't know them yet
 	for n := 0; n != 8; n++ {
 		if multiLobby.MultiClients[n] != nil {
-			packets.BanchoSendOsuUpdate(multiLobby.MultiClients[n].GetPacketQueue(), client.GetRelevantUserStats(), client.GetStatus())
+			packets.BanchoSendOsuUpdate(multiLobby.MultiClients[n].GetPacketQueue(), client.GetRelevantUserStats(), client.GetUserStatus())
 		}
 	}
 
 	//Search for an Empty spot
-	for i := 0; i < 7; i++ {
+	for i := 0; i != 8; i++ {
 		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusOpen {
 			//Set the slot to them as well as join #multiplayer
 			multiLobby.SetSlot(int32(i), client)

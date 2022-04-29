@@ -4,7 +4,7 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/packets"
-	database2 "Waffle/database"
+	"Waffle/database"
 	"fmt"
 	"sync"
 	"time"
@@ -23,7 +23,7 @@ func CreateWaffleBot() {
 		MacAddressHash: "https://github.com/Eeveelution/Waffle",
 	}
 
-	fetchResult, user := database2.UserFromDatabaseById(1)
+	fetchResult, user := database.UserFromDatabaseById(1)
 
 	//If this happens, you either removed stuff from the DB or your MySQL stuff is wrong
 	if fetchResult != 0 {
@@ -34,10 +34,10 @@ func CreateWaffleBot() {
 		return
 	}
 
-	statGetResult, osuStats := database2.UserStatsFromDatabase(user.UserID, 0)
-	statGetResult, taikoStats := database2.UserStatsFromDatabase(user.UserID, 1)
-	statGetResult, catchStats := database2.UserStatsFromDatabase(user.UserID, 2)
-	statGetResult, maniaStats := database2.UserStatsFromDatabase(user.UserID, 3)
+	statGetResult, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
+	statGetResult, taikoStats := database.UserStatsFromDatabase(user.UserID, 1)
+	statGetResult, catchStats := database.UserStatsFromDatabase(user.UserID, 2)
+	statGetResult, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
 
 	//Makes the Rank not display in the client, good for distinguishing that this isn't a real player
 	osuStats.Rank = 0
@@ -88,7 +88,7 @@ func CreateWaffleBot() {
 		TaikoStats:  taikoStats,
 		CatchStats:  catchStats,
 		ManiaStats:  maniaStats,
-		FriendsList: []database2.FriendEntry{},
+		FriendsList: []database.FriendEntry{},
 	}
 
 	client_manager.LockClientList()

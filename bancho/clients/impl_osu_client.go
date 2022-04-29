@@ -38,7 +38,6 @@ func (client *Client) GetRelevantUserStats() database.UserStats {
 }
 
 // GetUserStatus gets the users current status
-//TODO@(Furball): Theres 2 functions that do the exact same thing...
 func (client *Client) GetUserStatus() packets.StatusUpdate {
 	return client.Status
 }

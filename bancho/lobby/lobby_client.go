@@ -13,7 +13,7 @@ type LobbyClient interface {
 	SendChatMessage(sender string, content string, channel string)
 	GetUsername() string
 	GetRelevantUserStats() database.UserStats
-	GetStatus() packets.StatusUpdate
+	GetUserStatus() packets.StatusUpdate
 
 	LeaveCurrentMatch()
 	JoinMatch(match *MultiplayerLobby, password string)

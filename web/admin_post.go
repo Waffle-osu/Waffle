@@ -1,6 +1,7 @@
 package web
 
 import (
+	"Waffle/database"
 	_ "embed"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -34,4 +35,6 @@ func HandleUpdaterAdminPostSettings(ctx *gin.Context) {
 	}
 
 	ctx.String(http.StatusOK, postSuccess)
+
+	database.Initialize(formUsername, formPassword, formLocation, formDatabase)
 }

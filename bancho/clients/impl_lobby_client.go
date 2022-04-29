@@ -26,8 +26,3 @@ func (client *Client) JoinMatch(match *lobby.MultiplayerLobby, password string) 
 		packets.BanchoSendMatchJoinFail(client.PacketQueue)
 	}
 }
-
-// GetStatus gets the users current status
-func (client *Client) GetStatus() packets.StatusUpdate {
-	return client.Status
-}
