@@ -1,7 +1,7 @@
 package web
 
 import (
-	"Waffle/bancho/database"
+	"Waffle/database"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"

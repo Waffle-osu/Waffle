@@ -3,9 +3,9 @@ package clients
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/database"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/packets"
+	database2 "Waffle/database"
 	"fmt"
 	"net"
 	"sync"
@@ -46,14 +46,14 @@ type Client struct {
 
 	PacketQueue chan packets.BanchoPacket
 
-	UserData    database.User
+	UserData    database2.User
 	ClientData  ClientInformation
 	Status      packets.StatusUpdate
-	OsuStats    database.UserStats
-	TaikoStats  database.UserStats
-	CatchStats  database.UserStats
-	ManiaStats  database.UserStats
-	FriendsList []database.FriendEntry
+	OsuStats    database2.UserStats
+	TaikoStats  database2.UserStats
+	CatchStats  database2.UserStats
+	ManiaStats  database2.UserStats
+	FriendsList []database2.FriendEntry
 }
 
 // CleanupClient cleans the client up, leaves spectator and the lobby and the multi match if applicable, also lets everyone know its departure

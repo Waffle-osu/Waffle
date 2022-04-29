@@ -1,8 +1,8 @@
 package lobby
 
 import (
-	"Waffle/bancho/database"
 	"Waffle/bancho/packets"
+	"Waffle/database"
 )
 
 type LobbyClient interface {

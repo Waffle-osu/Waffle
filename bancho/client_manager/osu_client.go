@@ -1,8 +1,8 @@
 package client_manager
 
 import (
-	"Waffle/bancho/database"
 	"Waffle/bancho/packets"
+	"Waffle/database"
 )
 
 // OsuClient defines an Interface of what we need from client.Client to be able to manage this client in the ClientLists

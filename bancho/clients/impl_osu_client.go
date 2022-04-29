@@ -1,8 +1,8 @@
 package clients
 
 import (
-	"Waffle/bancho/database"
 	"Waffle/bancho/packets"
+	"Waffle/database"
 )
 
 // GetUserId gets the user's user id

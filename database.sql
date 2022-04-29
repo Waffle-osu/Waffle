@@ -89,6 +89,34 @@ INSERT INTO `stats` VALUES (1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(1,1,0,
 UNLOCK TABLES;
 
 --
+-- Table structure for table `updater_items`
+--
+
+DROP TABLE IF EXISTS `updater_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `updater_items` (
+  `item_id` bigint NOT NULL AUTO_INCREMENT,
+  `server_filename` varchar(256) NOT NULL,
+  `client_filename` varchar(256) NOT NULL,
+  `file_hash` varchar(64) NOT NULL,
+  `item_name` varchar(256) NOT NULL DEFAULT '',
+  `item_action` varchar(8) DEFAULT 'none',
+  PRIMARY KEY (`item_id`,`server_filename`,`client_filename`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `updater_items`
+--
+
+LOCK TABLES `updater_items` WRITE;
+/*!40000 ALTER TABLE `updater_items` DISABLE KEYS */;
+INSERT INTO `updater_items` VALUES (1,'osu!.exe','osu!.exe','3623d9f7c693b786564e2d61b1c43af9','client_debug','none');
+/*!40000 ALTER TABLE `updater_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `users`
 --
 
@@ -108,7 +136,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `id_UNIQUE` (`user_id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
   KEY `user_INDEX` (`username`,`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -130,4 +158,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-24 20:50:39
+-- Dump completed on 2022-04-29 15:04:40

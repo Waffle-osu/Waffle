@@ -4,8 +4,8 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/clients"
-	"Waffle/bancho/database"
 	"Waffle/bancho/lobby"
+	"Waffle/database"
 	"fmt"
 	"net"
 )

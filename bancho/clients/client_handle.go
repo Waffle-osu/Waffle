@@ -3,9 +3,9 @@ package clients
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/database"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/packets"
+	"Waffle/database"
 	"bytes"
 	"encoding/binary"
 	"fmt"

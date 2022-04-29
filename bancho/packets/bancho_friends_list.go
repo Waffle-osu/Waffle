@@ -1,7 +1,7 @@
 package packets
 
 import (
-	"Waffle/bancho/database"
+	"Waffle/database"
 	"bytes"
 	"encoding/binary"
 )

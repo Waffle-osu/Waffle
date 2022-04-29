@@ -19,6 +19,7 @@ func EnsureDirectoryExists(name string) {
 
 func main() {
 	EnsureDirectoryExists("screenshots")
+	EnsureDirectoryExists("release")
 
 	go bancho.RunBancho()
 	go web.RunOsuWeb()
