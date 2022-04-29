@@ -8,6 +8,8 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/database"
 	"Waffle/web"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
@@ -98,6 +100,41 @@ func main() {
 		}
 
 		database.Initialize(mySqlUsername, mySqlPassword, mySqlLocation, mySqlDatabase)
+	}
+
+	//Ensure all the updater items exist
+	result, items := database.GetUpdaterItems()
+
+	if result == -1 {
+		fmt.Printf("Failed to retrieve updater information!!!!!")
+	}
+
+	for _, item := range items {
+		_, fileError := os.Stat("release/" + item.ServerFilename)
+
+		if fileError != nil {
+			fmt.Printf("Updater Item File %s does not exist or cannot be accessed!\n", item.ServerFilename)
+			fmt.Printf("You can download the Updater Bundle here: https://eevee-sylveon.s-ul.eu/XqLHU708\n")
+		}
+
+		if strings.HasSuffix(item.ServerFilename, ".zip") {
+			continue
+		}
+		fileData, readErr := os.ReadFile("release/" + item.ServerFilename)
+
+		if readErr != nil {
+			fmt.Printf("Updater Item File %s does not exist or cannot be accessed!\n", item.ServerFilename)
+			fmt.Printf("You can download the Updater Bundle here: https://eevee-sylveon.s-ul.eu/XqLHU708\n")
+		}
+
+		fileHash := md5.Sum(fileData)
+		fileHashString := hex.EncodeToString(fileHash[:])
+
+		if item.FileHash != fileHashString {
+			fmt.Printf("Updater Item File %s has mismatched MD5 Hashes!\n", item.ServerFilename)
+			fmt.Printf("Your hashes need to match in the database!\n")
+			fmt.Printf("You can download the Updater Bundle here: https://eevee-sylveon.s-ul.eu/XqLHU708\n")
+		}
 	}
 
 	clients.CreateWaffleBot() //Creates WaffleBot
