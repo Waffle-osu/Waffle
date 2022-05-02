@@ -210,7 +210,6 @@ func (client *Client) HandleIncoming() {
 			//This is the response to a BanchoPing
 			case packets.OsuPong:
 				client.lastReceive = time.Now()
-				logger.Logger.Printf("[Bancho@Handling] Got Ping from %s;;;;;;;;;lastRecieveUnix = %d\n", client.UserData.Username, client.lastReceive.Unix())
 				break
 			//The client has joined the lobby
 			case packets.OsuLobbyJoin:
