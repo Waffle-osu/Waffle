@@ -1,13 +1,11 @@
 package clients
 
 import (
-	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/packets"
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -27,35 +25,22 @@ func (client *Client) WaffleBotHandleOutgoing() {
 		switch packet.PacketId {
 		case packets.BanchoSendMessage:
 			message := packets.ReadMessage(packetDataReader)
-
 			//Handles commands
 			if message.Message[0] == '!' {
 				sender := client_manager.GetClientByName(message.Sender)
-				//This determines whether the response to the command will be sent publicly in chat or privately in DMs
-				publicCommand := message.Target[0] == '#'
 
-				splitCommand := strings.Split(message.Message, " ")
+				go client.WaffleBotHandleCommand(sender, message)
+			}
+			break
+		case packets.OsuSendIrcMessagePrivate:
+			message := packets.ReadMessage(packetDataReader)
+			//Assign a sender, as the client doesn't seem to send itself as the sender
+			message.Sender = client.UserData.Username
+			//Handles commands
+			if message.Message[0] == '!' {
+				sender := client_manager.GetClientByName(message.Sender)
 
-				if len(splitCommand) == 0 {
-					break
-				}
-
-				switch strings.ToLower(splitCommand[0]) {
-				case "!help":
-					if publicCommand {
-						channel, exists := chat.GetChannelByName(message.Target)
-
-						if exists {
-							channel.SendMessage(client, "Currently, there's not much to talk about as this is in very early stages... expect there to come more as this develops", message.Target)
-						}
-					} else {
-						packets.BanchoSendIrcMessage(sender.GetPacketQueue(), packets.Message{
-							Sender:  "WaffleBot",
-							Message: "Currently, there's not much to talk about as this is in very early stages... expect there to come more as this develops",
-							Target:  message.Target,
-						})
-					}
-				}
+				go client.WaffleBotHandleCommand(sender, message)
 			}
 			break
 		case packets.BanchoSpectatorJoined:

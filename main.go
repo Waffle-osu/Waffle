@@ -35,6 +35,7 @@ func main() {
 	chat.InitializeChannels()                //Initializes Chat channels
 	client_manager.InitializeClientManager() //Initializes the client manager
 	lobby.InitializeLobby()                  //Initializes the multi lobby
+	clients.WaffleBotInitializeCommands()    //Initialize Chat Commands
 
 	_, fileError := os.Stat(".env")
 
