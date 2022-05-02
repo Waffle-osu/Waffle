@@ -14,9 +14,9 @@ import (
 
 const (
 	// ReceiveTimeout 48 Seconds
-	ReceiveTimeout = 48000000000
+	ReceiveTimeout = 48
 	// PingTimeout 8 Seconds
-	PingTimeout = 8000000000
+	PingTimeout = 8
 )
 
 type ClientInformation struct {

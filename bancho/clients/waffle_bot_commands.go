@@ -96,6 +96,7 @@ func WaffleBotCommandAnnounce(sender client_manager.OsuClient, args []string) []
 	}
 }
 
+// WaffleBotCommandRoll !roll <~max>
 func WaffleBotCommandRoll(sender client_manager.OsuClient, args []string) []string {
 	max := 100.0
 

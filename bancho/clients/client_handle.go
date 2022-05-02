@@ -460,7 +460,11 @@ func (client *Client) SendOutgoing() {
 // MaintainClient is looping every second, sending out pings and handles timeouts
 func (client *Client) MaintainClient() {
 	for client.continueRunning {
-		if client.lastReceive.Add(ReceiveTimeout).Before(time.Now()) {
+		lastRecieveUnix := client.lastReceive.Unix()
+		lastPingUnix := client.lastPing.Unix()
+		unixNow := time.Now().Unix()
+
+		if lastRecieveUnix+ReceiveTimeout <= unixNow {
 			fmt.Printf("%s Timed out!\n", client.UserData.Username)
 			fmt.Printf("time.Now(): %s, lastRecieve.Add(RecieveTimeout): %s; lastRecieve: %s", time.Now(), client.lastReceive.Add(ReceiveTimeout).String(), client.lastReceive.String())
 
@@ -469,7 +473,7 @@ func (client *Client) MaintainClient() {
 			client.continueRunning = false
 		}
 
-		if client.lastPing.Add(PingTimeout).Before(time.Now()) {
+		if lastPingUnix+PingTimeout <= unixNow {
 			packets.BanchoSendPing(client.PacketQueue)
 
 			client.lastPing = time.Now()
