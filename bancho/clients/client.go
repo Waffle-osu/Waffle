@@ -14,7 +14,7 @@ import (
 
 const (
 	// ReceiveTimeout 48 Seconds
-	ReceiveTimeout = 48
+	ReceiveTimeout = 16
 	// PingTimeout 8 Seconds
 	PingTimeout = 8
 )
@@ -33,6 +33,9 @@ type Client struct {
 
 	lastReceive time.Time
 	lastPing    time.Time
+
+	clean      bool
+	cleanMutex sync.Mutex
 
 	joinedChannels map[string]*chat.Channel
 	awayMessage    string
@@ -58,6 +61,12 @@ type Client struct {
 
 // CleanupClient cleans the client up, leaves spectator and the lobby and the multi match if applicable, also lets everyone know its departure
 func (client *Client) CleanupClient() {
+	client.cleanMutex.Lock()
+
+	if client.clean {
+		return
+	}
+
 	logger.Logger.Printf("[Bancho@Client] Cleaning up %s\n", client.UserData.Username)
 
 	if client.spectatingClient != nil {
@@ -82,6 +91,12 @@ func (client *Client) CleanupClient() {
 	for _, channel := range client.joinedChannels {
 		channel.Leave(client)
 	}
+
+	client.connection.Close()
+
+	client.clean = true
+
+	client.cleanMutex.Unlock()
 }
 
 // Cut cuts the client's connection and forces a disconnect.

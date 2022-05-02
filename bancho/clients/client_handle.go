@@ -210,7 +210,7 @@ func (client *Client) HandleIncoming() {
 			//This is the response to a BanchoPing
 			case packets.OsuPong:
 				client.lastReceive = time.Now()
-				logger.Logger.Printf("[Bancho@Handling] Got Ping from %s\n", client.UserData.Username)
+				logger.Logger.Printf("[Bancho@Handling] Got Ping from %s;;;;;;;;;lastRecieveUnix = %d\n", client.UserData.Username, client.lastReceive.Unix())
 				break
 			//The client has joined the lobby
 			case packets.OsuLobbyJoin:
@@ -461,14 +461,11 @@ func (client *Client) SendOutgoing() {
 // MaintainClient is looping every second, sending out pings and handles timeouts
 func (client *Client) MaintainClient() {
 	for client.continueRunning {
-		lastRecieveUnix := client.lastReceive.Unix()
+		lastReceiveUnix := client.lastReceive.Unix()
 		lastPingUnix := client.lastPing.Unix()
 		unixNow := time.Now().Unix()
 
-		if lastRecieveUnix+ReceiveTimeout <= unixNow {
-			logger.Logger.Printf("[Bancho@Handling] %s Timed out!\n", client.UserData.Username)
-			logger.Logger.Printf("[Bancho@Handling] time.Now(): %s, lastRecieve.Add(RecieveTimeout): %s; lastRecieve: %s", time.Now(), client.lastReceive.Add(ReceiveTimeout).String(), client.lastReceive.String())
-
+		if lastReceiveUnix+ReceiveTimeout <= unixNow {
 			client.CleanupClient()
 
 			client.continueRunning = false
@@ -485,5 +482,4 @@ func (client *Client) MaintainClient() {
 
 	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
 	close(client.PacketQueue)
-	client.connection.Close()
 }
