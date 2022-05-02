@@ -145,7 +145,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'WaffleBot','No!',0,0,'no reason',31,'2022-04-24 16:40:27'),(2,'Furball','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',31,'2022-04-20 22:26:46'),(3,'Eevee','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',1,'2022-04-21 20:36:26'),(4,'ArNeN','1787d7646304c5d987cf4e64a3973dc7',0,0,'no reason',1,'2022-04-24 18:33:15');
+INSERT INTO `users` VALUES (1,'WaffleBot','No!',0,0,'no reason',31,'2022-04-24 16:40:27'),(2,'Furball','$2a$10$f3Q8GKPnKffV4K3n.9cf1.qpJYoWbKAzD17LHRbGe2x1Nal5EpYFa',0,0,'no reason',31,'2022-04-20 22:26:46'),(3,'Eevee','$2a$10$oTu9vvSE.xaEt2OPrkuIM.JiNGH.U60DBgYh4mIH4JYCRYnrfzLB.',0,0,'no reason',1,'2022-04-21 20:36:26'),(4,'ArNeN','$2a$10$YggUilDeQa7Tl.TwILijTuRLmdS6ndjSxAizqrFrocriL3V118Mem',0,0,'no reason',1,'2022-04-24 18:33:15');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -158,4 +158,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-29 17:36:47
+-- Dump completed on 2022-05-02 23:52:47
