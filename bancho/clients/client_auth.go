@@ -8,6 +8,7 @@ import (
 	"Waffle/logger"
 	"bufio"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net"
 	"strconv"
 	"strings"
@@ -103,7 +104,7 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Invalid Password
-	if user.Password != password {
+	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
 		packets.BanchoSendLoginReply(packetQueue, packets.InvalidLogin)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return

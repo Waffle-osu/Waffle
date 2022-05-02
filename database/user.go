@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -126,11 +127,16 @@ func CreateNewUser(username string, rawPassword string) bool {
 
 	passwordHashed := md5.Sum([]byte(rawPassword))
 	passwordHashedString := hex.EncodeToString(passwordHashed[:])
+	bcryptPassword, bcryptErr := bcrypt.GenerateFromPassword([]byte(passwordHashedString), bcrypt.DefaultCost)
+
+	if bcryptErr != nil {
+		return false
+	}
 
 	var newUserId uint64
 	var newUsername string
 
-	insertResult, queryErr := database.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, passwordHashedString)
+	insertResult, queryErr := database.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, bcryptPassword)
 	queryResult, queryErr := database.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
 
 	defer insertResult.Close()
@@ -187,7 +193,7 @@ func AuthenticateUser(username string, password string) (userId int32, authSucce
 			return -2, false
 		}
 
-		if scanPassword == password {
+		if bcrypt.CompareHashAndPassword([]byte(scanPassword), []byte(password)) == nil {
 			return scanUserId, true
 		} else {
 			return scanUserId, false

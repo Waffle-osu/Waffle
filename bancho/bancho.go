@@ -14,7 +14,7 @@ func RunBancho() {
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
 
 	if err != nil {
-		logger.Logger.Fatalf("Failed to Create TCP Server on 127.0.0.1:13381")
+		logger.Logger.Fatalf("[Bancho] Failed to Create TCP Server on 127.0.0.1:13381")
 	}
 
 	for {
