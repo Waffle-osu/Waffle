@@ -1,6 +1,7 @@
 package database
 
 import (
+	"Waffle/logger"
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
@@ -16,7 +17,7 @@ func Initialize(username string, password string, location string, dbDatabase st
 	db.SetMaxIdleConns(10)
 
 	if connErr != nil {
-		fmt.Printf("MySQL Connection could not be established...\n")
+		logger.Logger.Printf("[Database] MySQL Connection could not be established...\n")
 
 		return
 	}

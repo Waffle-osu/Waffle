@@ -6,6 +6,7 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/packets"
 	"Waffle/database"
+	"Waffle/logger"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -204,12 +205,12 @@ func (client *Client) HandleIncoming() {
 			case packets.OsuErrorReport:
 				errorString := string(packets.ReadBanchoString(packetDataReader))
 
-				fmt.Printf("%s Encountered an error!! Error Details:\n%s", client.UserData.Username, errorString)
+				logger.Logger.Printf("[Bancho@Handling] %s Encountered an error!! Error Details:\n%s", client.UserData.Username, errorString)
 				break
 			//This is the response to a BanchoPing
 			case packets.OsuPong:
 				client.lastReceive = time.Now()
-				fmt.Printf("%s: Got Ping from %s\n", time.Now().Format(time.ANSIC), client.UserData.Username)
+				logger.Logger.Printf("[Bancho@Handling] Got Ping from %s\n", client.UserData.Username)
 				break
 			//The client has joined the lobby
 			case packets.OsuLobbyJoin:
@@ -439,7 +440,7 @@ func (client *Client) HandleIncoming() {
 				}
 				break
 			default:
-				fmt.Printf("%s: %s: Got %s, of Size: %d\n", time.Now().Format(time.ANSIC), client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
+				logger.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
 				break
 			}
 		}
@@ -450,7 +451,7 @@ func (client *Client) HandleIncoming() {
 func (client *Client) SendOutgoing() {
 	for packet := range client.PacketQueue {
 		if packet.PacketId != 8 {
-			fmt.Printf("Sending %s to %s\n", packets.GetPacketName(packet.PacketId), client.UserData.Username)
+			logger.Logger.Printf("[Bancho@Handling] Sending %s to %s\n", packets.GetPacketName(packet.PacketId), client.UserData.Username)
 		}
 
 		client.connection.Write(packet.GetBytes())
@@ -465,8 +466,8 @@ func (client *Client) MaintainClient() {
 		unixNow := time.Now().Unix()
 
 		if lastRecieveUnix+ReceiveTimeout <= unixNow {
-			fmt.Printf("%s Timed out!\n", client.UserData.Username)
-			fmt.Printf("time.Now(): %s, lastRecieve.Add(RecieveTimeout): %s; lastRecieve: %s", time.Now(), client.lastReceive.Add(ReceiveTimeout).String(), client.lastReceive.String())
+			logger.Logger.Printf("[Bancho@Handling] %s Timed out!\n", client.UserData.Username)
+			logger.Logger.Printf("[Bancho@Handling] time.Now(): %s, lastRecieve.Add(RecieveTimeout): %s; lastRecieve: %s", time.Now(), client.lastReceive.Add(ReceiveTimeout).String(), client.lastReceive.String())
 
 			client.CleanupClient()
 

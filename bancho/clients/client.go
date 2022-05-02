@@ -6,7 +6,7 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/packets"
 	"Waffle/database"
-	"fmt"
+	"Waffle/logger"
 	"net"
 	"sync"
 	"time"
@@ -58,7 +58,7 @@ type Client struct {
 
 // CleanupClient cleans the client up, leaves spectator and the lobby and the multi match if applicable, also lets everyone know its departure
 func (client *Client) CleanupClient() {
-	fmt.Printf("Cleaning up %s\n", client.UserData.Username)
+	logger.Logger.Printf("[Bancho@Client] Cleaning up %s\n", client.UserData.Username)
 
 	if client.spectatingClient != nil {
 		client.spectatingClient.InformSpectatorLeft(client)

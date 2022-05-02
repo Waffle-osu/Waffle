@@ -2,6 +2,7 @@ package bancho
 
 import (
 	"Waffle/bancho/clients"
+	"Waffle/logger"
 	"fmt"
 	"net"
 )
@@ -13,13 +14,13 @@ func RunBancho() {
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
 
 	if err != nil {
-		fmt.Printf("Failed to Create TCP Server on 127.0.0.1:13381")
+		logger.Logger.Fatalf("Failed to Create TCP Server on 127.0.0.1:13381")
 	}
 
 	for {
 		//Accept connections
 		conn, err := listener.Accept()
-		fmt.Printf("Connection Accepted!\n")
+		logger.Logger.Printf("[Bancho] Connection Accepted!\n")
 
 		if err != nil {
 			continue

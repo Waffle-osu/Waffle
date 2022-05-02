@@ -5,6 +5,7 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/packets"
 	"Waffle/database"
+	"Waffle/logger"
 	"bufio"
 	"fmt"
 	"net"
@@ -29,7 +30,7 @@ func HandleNewClient(connection net.Conn) {
 	deadlineErr := connection.SetReadDeadline(time.Now().Add(5 * time.Second))
 
 	if deadlineErr != nil {
-		fmt.Printf("Failed to Configure 5 second read deadline.\n")
+		logger.Logger.Printf("[Bancho@Auth] Failed to Configure 5 second read deadline.\n")
 		connection.Close()
 		return
 	}
@@ -45,7 +46,7 @@ func HandleNewClient(connection net.Conn) {
 	packetQueue := make(chan packets.BanchoPacket, 128)
 
 	if readErr != nil {
-		fmt.Printf("Failed to read initial user data\n")
+		logger.Logger.Printf("[Bancho@Auth] Failed to read initial user data\n")
 		connection.Close()
 		return
 	}
@@ -192,7 +193,7 @@ func HandleNewClient(connection net.Conn) {
 	resetDeadlineErr := connection.SetReadDeadline(time.Time{})
 
 	if resetDeadlineErr != nil {
-		fmt.Printf("Failed to Configure 5 second read deadline.\n")
+		logger.Logger.Printf("[Bancho@Auth] Failed to Configure 5 second read deadline.\n")
 		go SendOffPacketsAndClose(connection, packetQueue)
 	}
 
@@ -255,8 +256,8 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Log some things
-	fmt.Printf("%s successfully logged into Waffle using osu!%s\n", username, clientInfo.Version)
-	fmt.Printf("Login took %.2fms\n", float64(time.Since(loginStartTime).Microseconds())/1000.0)
+	logger.Logger.Printf("[Bancho@Auth] %s successfully logged into Waffle using osu!%s\n", username, clientInfo.Version)
+	logger.Logger.Printf("[Bancho@Auth] Login took %.2fms\n", float64(time.Since(loginStartTime).Microseconds())/1000.0)
 
 	//Start handlers
 	go client.MaintainClient()

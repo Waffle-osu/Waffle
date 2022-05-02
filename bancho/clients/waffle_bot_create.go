@@ -5,7 +5,7 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/packets"
 	"Waffle/database"
-	"fmt"
+	"Waffle/logger"
 	"sync"
 	"time"
 )
@@ -27,9 +27,9 @@ func CreateWaffleBot() {
 
 	//If this happens, you either removed stuff from the DB or your MySQL stuff is wrong
 	if fetchResult != 0 {
-		fmt.Printf("///////////// IMPORTANT //////////////")
-		fmt.Printf("Failed to Find WaffleBot in Database!!")
-		fmt.Printf("//////////////////////////////////////")
+		logger.Logger.Printf("[Bancho@WaffleBotCreate] ///////////// IMPORTANT //////////////")
+		logger.Logger.Printf("[Bancho@WaffleBotCreate] Failed to Find WaffleBot in Database!!")
+		logger.Logger.Printf("[Bancho@WaffleBotCreate] //////////////////////////////////////")
 
 		return
 	}
@@ -47,9 +47,9 @@ func CreateWaffleBot() {
 
 	//If this happens, you either removed stuff from the DB or your MySQL stuff is wrong
 	if statGetResult != 0 {
-		fmt.Printf("//////////////// IMPORTANT /////////////////")
-		fmt.Printf("Failed to Find WaffleBot stats in Database!!")
-		fmt.Printf("////////////////////////////////////////////")
+		logger.Logger.Printf("[Bancho@WaffleBotCreate] //////////////// IMPORTANT /////////////////")
+		logger.Logger.Printf("[Bancho@WaffleBotCreate] Failed to Find WaffleBot stats in Database!!")
+		logger.Logger.Printf("[Bancho@WaffleBotCreate] ////////////////////////////////////////////")
 
 		return
 	}

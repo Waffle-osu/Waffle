@@ -1,9 +1,9 @@
 package database
 
 import (
+	"Waffle/logger"
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -52,7 +52,7 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 	defer queryResult.Close()
 
 	if queryErr != nil {
-		fmt.Printf("Failed to Fetch User from Database, MySQL query failed.\n")
+		logger.Logger.Printf("[Database] Failed to Fetch User from Database, MySQL query failed.\n")
 
 		return -2, returnUser
 	}
@@ -61,7 +61,7 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt)
 
 		if scanErr != nil {
-			fmt.Printf("Failed to Scan database results onto User object.\n")
+			logger.Logger.Printf("[Database] Failed to Scan database results onto User object.\n")
 
 			return -2, returnUser
 		}
@@ -81,7 +81,7 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 	defer queryResult.Close()
 
 	if queryErr != nil {
-		fmt.Printf("Failed to Fetch User from Database, MySQL query failed.\n")
+		logger.Logger.Printf("[Database] Failed to Fetch User from Database, MySQL query failed.\n")
 
 		return -2, returnUser
 	}
@@ -91,7 +91,7 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt)
 
 		if scanErr != nil {
-			fmt.Printf("Failed to Scan database results onto User object.\n")
+			logger.Logger.Printf("[Database] Failed to Scan database results onto User object.\n")
 
 			return -2, returnUser
 		}
@@ -109,7 +109,7 @@ func CreateNewUser(username string, rawPassword string) bool {
 	defer duplicateUsernameQuery.Close()
 
 	if duplicateUsernameQueryErr != nil {
-		fmt.Printf("Failed to create new user, MySQL query failed.\n")
+		logger.Logger.Printf("[Database] Failed to create new user, MySQL query failed.\n")
 
 		return false
 	}
@@ -137,7 +137,7 @@ func CreateNewUser(username string, rawPassword string) bool {
 	defer queryResult.Close()
 
 	if queryErr != nil {
-		fmt.Printf("Failed to create new user, MySQL query failed.\n")
+		logger.Logger.Printf("[Database] Failed to create new user, MySQL query failed.\n")
 
 		return false
 	}
@@ -160,7 +160,7 @@ func CreateNewUser(username string, rawPassword string) bool {
 		maniaStatsInsert.Close()
 
 		if statsInsertErr != nil {
-			fmt.Printf("Failed to create new user, user stats creation failed. MySQL query failed.\n")
+			logger.Logger.Printf("[Database] Failed to create new user, user stats creation failed. MySQL query failed.\n")
 			return false
 		}
 	} else {
