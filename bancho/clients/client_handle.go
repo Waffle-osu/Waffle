@@ -480,5 +480,6 @@ func (client *Client) MaintainClient() {
 	}
 
 	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
+	logger.Logger.Printf("[Bancho@Handling] Closed %s's Packet Queue", client.UserData.Username)
 	close(client.PacketQueue)
 }

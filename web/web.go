@@ -11,6 +11,8 @@ func RunOsuWeb() {
 	// /web
 	ginServer.POST("/web/osu-screenshot.php", HandleOsuScreenshot)
 	ginServer.GET("/web/osu-title-image.php", HandleTitleImage)
+	ginServer.POST("/web/osu-submit-modular.php", HandleOsuSubmit)
+	ginServer.GET("/web/osu-osz2-getscores.php", HandleOsuOsz2GetScores)
 
 	// updater
 	ginServer.GET("/p/changelog", HandleUpdaterChangelog)
