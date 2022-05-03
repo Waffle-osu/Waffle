@@ -152,7 +152,7 @@ func (client *Client) HandleIncoming() {
 				break
 			//The client nicely informs the server that its leaving
 			case packets.OsuExit:
-				client.CleanupClient()
+				client.CleanupClient("Player Exited")
 				return
 			//The client informs that it wants to start spectating someone
 			case packets.OsuStartSpectating:
@@ -465,7 +465,7 @@ func (client *Client) MaintainClient() {
 		unixNow := time.Now().Unix()
 
 		if lastReceiveUnix+ReceiveTimeout <= unixNow {
-			client.CleanupClient()
+			client.CleanupClient("Client Timed out.")
 
 			client.continueRunning = false
 		}

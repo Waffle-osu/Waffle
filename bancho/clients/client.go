@@ -60,14 +60,14 @@ type Client struct {
 }
 
 // CleanupClient cleans the client up, leaves spectator and the lobby and the multi match if applicable, also lets everyone know its departure
-func (client *Client) CleanupClient() {
+func (client *Client) CleanupClient(reason string) {
 	client.cleanMutex.Lock()
 
 	if client.clean {
 		return
 	}
 
-	logger.Logger.Printf("[Bancho@Client] Cleaning up %s\n", client.UserData.Username)
+	logger.Logger.Printf("[Bancho@Client] Cleaning up %s; Reason: %s\n", client.UserData.Username, reason)
 
 	if client.spectatingClient != nil {
 		client.spectatingClient.InformSpectatorLeft(client)

@@ -123,7 +123,7 @@ func HandleNewClient(connection net.Conn) {
 	if duplicateClient != nil {
 		go func() {
 			packets.BanchoSendAnnounce(duplicateClient.GetPacketQueue(), "Disconnecting because of another client conneting to your Account.")
-			duplicateClient.CleanupClient()
+			duplicateClient.CleanupClient("Duplicate Client")
 
 			//we wait for 2 seconds before cutting off the connection
 			time.Sleep(2000)
