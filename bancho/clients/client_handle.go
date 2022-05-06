@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -123,6 +124,7 @@ func (client *Client) HandleIncoming() {
 
 				if exists {
 					channel.SendMessage(client, message.Message, message.Target)
+					database.InsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
 				}
 				break
 				//The client is sending a private message to someone
@@ -148,6 +150,8 @@ func (client *Client) HandleIncoming() {
 							Target:  client.GetUserData().Username,
 						})
 					}
+
+					database.InsertNewMessage(uint64(client.GetUserId()), strconv.FormatInt(int64(targetClient.GetUserId()), 10), message.Message)
 				}
 				break
 			//The client nicely informs the server that its leaving

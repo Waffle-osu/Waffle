@@ -34,14 +34,36 @@ CREATE TABLE `friends` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `friends`
+-- Table structure for table `irc_log`
 --
 
-LOCK TABLES `friends` WRITE;
-/*!40000 ALTER TABLE `friends` DISABLE KEYS */;
-INSERT INTO `friends` VALUES (3,2),(2,3);
-/*!40000 ALTER TABLE `friends` ENABLE KEYS */;
-UNLOCK TABLES;
+DROP TABLE IF EXISTS `irc_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `irc_log` (
+  `message_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `sender` bigint unsigned NOT NULL,
+  `target` varchar(64) NOT NULL,
+  `message` text NOT NULL,
+  `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`message_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `screenshots`
+--
+
+DROP TABLE IF EXISTS `screenshots`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `screenshots` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `filename` varchar(256) NOT NULL,
+  `creation_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `stats`
@@ -79,16 +101,6 @@ CREATE TABLE `stats` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `stats`
---
-
-LOCK TABLES `stats` WRITE;
-/*!40000 ALTER TABLE `stats` DISABLE KEYS */;
-INSERT INTO `stats` VALUES (1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),(4,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
-/*!40000 ALTER TABLE `stats` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `updater_items`
 --
 
@@ -105,16 +117,6 @@ CREATE TABLE `updater_items` (
   PRIMARY KEY (`item_id`,`server_filename`,`client_filename`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `updater_items`
---
-
-LOCK TABLES `updater_items` WRITE;
-/*!40000 ALTER TABLE `updater_items` DISABLE KEYS */;
-INSERT INTO `updater_items` VALUES (1,'osu!.exe','osu!.exe','3623d9f7c693b786564e2d61b1c43af9','client_debug','none'),(2,'avcodec-51.dll','avcodec-51.dll','b22bf1e4ecd4be3d909dc68ccab74eec','client_ddls','none'),(3,'avformat-52.dll','avformat-52.dll','2e7a800133625f827cf46aa0bb1af800','client_ddls','none'),(4,'avutil-49.dll','avutil-49.dll','c870147dff89c95c81f8fbdfbc6344ac','client_ddls','none'),(5,'bass.dll','bass.dll','bbfc7d855252b0211875769bbf667bcd','client_ddls','none'),(6,'bass_fx.dll','bass_fx.dll','f9ffe0a23a32b79653e31330764c4231','client_ddls','none'),(7,'d3dx9_31.dll','d3dx9_31.dll','797e24743937d67d69f28f2cf5052ee8','client_ddls','none'),(8,'Microsoft.Ink.dll','Microsoft.Ink.dll','a02ee61542caae25f8a44c9428d30247','client_ddls','none'),(9,'Microsoft.Xna.Framework.dll','Microsoft.Xna.Framework.dll','45a786658d3f69717652fed471d03ee0','client_ddls','none'),(10,'osu!common.dll','osu!common.dll','820817b776374a0adcbb7fa2a7ca74f2','client_ddls','none'),(11,'osu.dll.zip','osu.dll','599c14bcfc9c43b88d70d1a9388b33b7','client_ddls','zip'),(12,'OsuP2P.dll','OsuP2P.dll','2342bfd835e2e487d040d8ba62eb1a72','client_ddls','none'),(13,'pthreadGC2.dll','pthreadGC2.dll','ce931021e18f385f519e945a8a10548e','client_ddls','none'),(14,'x3daudio1_1.dll','x3daudio1_1.dll','121b131eaa369d8f58dacc5c39a77d80','client_ddls','none');
-/*!40000 ALTER TABLE `updater_items` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `users`
@@ -138,16 +140,6 @@ CREATE TABLE `users` (
   KEY `user_INDEX` (`username`,`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'WaffleBot','No!',0,0,'no reason',31,'2022-04-24 16:40:27'),(2,'Furball','$2a$10$f3Q8GKPnKffV4K3n.9cf1.qpJYoWbKAzD17LHRbGe2x1Nal5EpYFa',0,0,'no reason',31,'2022-04-20 22:26:46'),(3,'Eevee','$2a$10$oTu9vvSE.xaEt2OPrkuIM.JiNGH.U60DBgYh4mIH4JYCRYnrfzLB.',0,0,'no reason',1,'2022-04-21 20:36:26'),(4,'ArNeN','$2a$10$YggUilDeQa7Tl.TwILijTuRLmdS6ndjSxAizqrFrocriL3V118Mem',0,0,'no reason',1,'2022-04-24 18:33:15');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -158,4 +150,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-02 23:52:47
+-- Dump completed on 2022-05-06 23:27:07
