@@ -10,6 +10,8 @@ import (
 )
 
 func HandleOsuScreenshot(ctx *gin.Context) {
+	//The osu! client sends along its credentials, and as a Form File parameter, a JPEG image containing the screenshot
+	//For whatever reason, no matter what option you pick in settings, it'll always upload JPEGs, never PNGs
 	userId, authResult := database.AuthenticateUser(ctx.Query("u"), ctx.Query("p"))
 
 	if userId == -2 {

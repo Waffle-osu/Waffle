@@ -16,6 +16,7 @@ func HandleTitleImage(ctx *gin.Context) {
 
 	if clicked == "1" {
 		//TODO: some sort of redirection to what this is supposed to lead to
+		//maybe if you're advertising some waffle shop here you could do a redirect to their website or smth
 	}
 
 	//Tester Build

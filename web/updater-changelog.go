@@ -14,5 +14,8 @@ func HandleUpdaterChangelog(ctx *gin.Context) {
 		return
 	}
 
+	//The Updater here expects just a webpage with the changelog, go nuts here i guess,
+	//Keep in mind the Updater is using Internet Explorer,
+
 	ctx.String(http.StatusOK, "Insert Changelog here...")
 }

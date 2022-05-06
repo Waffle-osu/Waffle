@@ -96,6 +96,51 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	clientHash := ctx.PostForm("s")
 	processList := ctx.PostForm("pl")
 
+	//validate that parameters have indeed been sent
+	if score == "" || password == "" || clientHash == "" {
+		ctx.String(http.StatusBadRequest, "error: bad score submission")
+		return
+	}
+
+	//peppy's score submission returns a key value pair with information about the beatmap and ranking and score changes
+	//formatted like this: "key:value|key:value|key:value"
+	//chartName:Overall Ranking|chartId:overall|toNextRank:123
+
+	//peppy's score submission back then has these keys:
+	//chartId              :: ID of a Chart, if it's just a normal score submission that goes to the main ranking, write "Overall Ranking"
+	//chartName            :: Name of the Chart, if it's just a normal score submission that goes to the main ranking, write "overall"
+	//chartEndDate         :: End Date of the Chart, leave empty if it's just a normal score submission
+	//beatmapRankingBefore :: User's old rank on the beatmap
+	//beatmapRankingAfter  :: User's rank on the beatmap now
+	//rankedScoreBefore    :: User's old ranked score
+	//rankedScoreAfter     :: User's ranked score now
+	//totalScoreBefore     :: User's old total score
+	//totalScoreAfter      :: User's total score now
+	//playCountBefore      :: User's old playcount score
+	//accuracyAfter        :: User's accuracy now
+	//accuracyBefore       :: User's old accuracy
+	//rankScoreAfter       :: User's old rank
+	//rankScoreAfter       :: User's rank now
+	//toNextRank           :: How much score until next leaderboard spot on the beatmap
+	//toNextRankUser       :: How much more ranked score until the next ranked leaderboard spot
+	//achievements         :: all achieved achievements in that play
+
+	//alternatively, if an error were to occur, you return "error: what kind of error happened" the space after the : is important
+	//there are some errors that the client itself will display an error for, these are:
+	//"error: nouser" :: For when the User doesn't exist
+	//"error: pass" :: For when the User's password is incorrect
+	//"error: inactive" :: For when the User's account isn't activated
+	//"error: ban" :: For when the User is banned
+	//"error: beatmap" :: For when the beatmap is not available for ranking
+	//"error: disabled" :: For when the Mode/Mod is currently disabled for ranking
+	//"error: oldver" :: For when the User's client is too old to submit scores
+
+	chartInfo := make(map[string]string)
+
+	chartInfo["chartName"] = "Overall Ranking"
+	chartInfo["chartId"] = "overall"
+	chartInfo["chartEndDate"] = ""
+
 	scoreSubmission := parseScoreString(score)
 
 	if scoreSubmission.ParsedSuccessfully != true {
@@ -105,10 +150,48 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	userId, authSuccess := database.AuthenticateUser(scoreSubmission.Username, password)
 
+	//server failure
+	if userId == -2 {
+		ctx.String(http.StatusOK, "error: fetch fail")
+		return
+	}
+
+	//user not found
+	if userId == -1 {
+		ctx.String(http.StatusOK, "error: nouser")
+		return
+	}
+
+	//wrong password
 	if authSuccess == false {
 		ctx.String(http.StatusOK, "error: pass")
 		return
 	}
 
+	fetchResult, userStats := database.UserStatsFromDatabase(uint64(userId), int8(scoreSubmission.Playmode))
+
+	if fetchResult != 0 {
+		ctx.String(http.StatusOK, "error: nouser")
+		return
+	}
+
 	logger.Logger.Printf("[Web@ScoreSubmit] Got Score Submission from ID: %d; wasExit: %s; failTime: %s; clientHash: %s, processList: %s", userId, wasExit, failTime, clientHash, processList)
+
+	chartInfo["rankedScoreBefore"] = strconv.FormatUint(userStats.RankedScore, 10)
+	chartInfo["totalScoreBefore"] = strconv.FormatUint(userStats.TotalScore, 10)
+	chartInfo["playCountBefore"] = strconv.FormatUint(userStats.Playcount, 10)
+	chartInfo["accuracyBefore"] = strconv.FormatFloat(float64(userStats.Accuracy), 'f', 2, 64)
+	chartInfo["rankBefore"] = strconv.FormatUint(userStats.Rank, 10)
+
+	returnString := ""
+
+	//Write out submission in the format the client expects
+	for key, value := range chartInfo {
+		returnString += key + ":" + value + "|"
+	}
+
+	//make sure there's no trailing |
+	returnString = strings.TrimSuffix(returnString, "|")
+
+	ctx.String(http.StatusOK, returnString+"\n")
 }
