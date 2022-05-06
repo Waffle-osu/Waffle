@@ -5,8 +5,8 @@ type FriendEntry struct {
 	User2 uint64
 }
 
-// GetFriendsList retrieves all friends from the user with ID `userId`
-func GetFriendsList(userId uint64) (result int, friendsList []FriendEntry) {
+// FriendsGetFriendsList retrieves all friends from the user with ID `userId`
+func FriendsGetFriendsList(userId uint64) (result int, friendsList []FriendEntry) {
 	var friends = []FriendEntry{}
 
 	queryResult, queryErr := database.Query("SELECT user_1, user_2 FROM waffle.friends WHERE user_1 = ?", userId)
@@ -27,8 +27,8 @@ func GetFriendsList(userId uint64) (result int, friendsList []FriendEntry) {
 	return 0, friends
 }
 
-// AddFriend stores a new friendship in the database
-func AddFriend(userId uint64, friendId uint64) bool {
+// FriendsAddFriend stores a new friendship in the database
+func FriendsAddFriend(userId uint64, friendId uint64) bool {
 	query, queryErr := database.Query("INSERT INTO waffle.friends (user_1, user_2) VALUES (?, ?)", userId, friendId)
 	defer query.Close()
 
@@ -39,8 +39,8 @@ func AddFriend(userId uint64, friendId uint64) bool {
 	return true
 }
 
-// RemoveFriend removes a friendship from the database
-func RemoveFriend(userId uint64, friendId uint64) bool {
+// FriendsRemoveFriend removes a friendship from the database
+func FriendsRemoveFriend(userId uint64, friendId uint64) bool {
 	query, queryErr := database.Query("DELETE FROM waffle.friends WHERE user_1 = ? AND user_2 = ?", userId, friendId)
 	defer query.Close()
 

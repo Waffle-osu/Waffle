@@ -106,7 +106,7 @@ func main() {
 	}
 
 	//Ensure all the updater items exist
-	result, items := database.GetUpdaterItems()
+	result, items := database.UpdaterGetUpdaterItems()
 
 	if result == -1 {
 		helpers.Logger.Printf("[Updater Checks] Failed to retrieve updater information!!!!!")

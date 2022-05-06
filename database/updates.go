@@ -27,7 +27,7 @@ func (item *UpdaterItem) FormatUpdaterItem() string {
 	return item.ServerFilename + " " + item.FileHash + " " + item.ItemName + " " + item.ItemAction + " " + item.ClientFilename + "\n"
 }
 
-func GetUpdaterItems() (result int8, items []UpdaterItem) {
+func UpdaterGetUpdaterItems() (result int8, items []UpdaterItem) {
 	queryResult, queryErr := database.Query("SELECT item_id, server_filename, client_filename, file_hash, item_name, item_action FROM waffle.updater_items")
 	defer queryResult.Close()
 

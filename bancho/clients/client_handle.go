@@ -124,7 +124,7 @@ func (client *Client) HandleIncoming() {
 
 				if exists {
 					channel.SendMessage(client, message.Message, message.Target)
-					database.InsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
+					database.ChatInsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
 				}
 				break
 				//The client is sending a private message to someone
@@ -151,7 +151,7 @@ func (client *Client) HandleIncoming() {
 						})
 					}
 
-					database.InsertNewMessage(uint64(client.GetUserId()), strconv.FormatInt(int64(targetClient.GetUserId()), 10), message.Message)
+					database.ChatInsertNewMessage(uint64(client.GetUserId()), strconv.FormatInt(int64(targetClient.GetUserId()), 10), message.Message)
 				}
 				break
 			//The client nicely informs the server that its leaving
@@ -405,7 +405,7 @@ func (client *Client) HandleIncoming() {
 				})
 
 				//Save in database
-				go database.AddFriend(client.UserData.UserID, uint64(friendId))
+				go database.FriendsAddFriend(client.UserData.UserID, uint64(friendId))
 				break
 			//The client is looking to remove a friend from their friends list
 			case packets.OsuFriendsRemove:
@@ -419,7 +419,7 @@ func (client *Client) HandleIncoming() {
 					}
 				}
 
-				go database.RemoveFriend(client.UserData.UserID, uint64(friendId))
+				go database.FriendsRemoveFriend(client.UserData.UserID, uint64(friendId))
 				break
 			//The client is setting their away message
 			case packets.OsuSetIrcAwayMessage:

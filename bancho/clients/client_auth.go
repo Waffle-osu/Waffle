@@ -151,7 +151,7 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Retrieve friends list
-	friendsResult, friendsList := database.GetFriendsList(user.UserID)
+	friendsResult, friendsList := database.FriendsGetFriendsList(user.UserID)
 
 	if friendsResult != 0 {
 		packets.BanchoSendAnnounce(packetQueue, "Friend List failed to load!")

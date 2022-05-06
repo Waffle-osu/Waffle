@@ -1,6 +1,6 @@
 package database
 
-func HasReachedMaxScreenshotQuota(id uint64) bool {
+func ScreenshotsHitScreenshotLimit(id uint64) bool {
 	query, queryErr := database.Query("SELECT COUNT(*) AS 'count' FROM waffle.screenshots WHERE id = ?", id)
 	defer query.Close()
 
@@ -23,7 +23,7 @@ func HasReachedMaxScreenshotQuota(id uint64) bool {
 	return true
 }
 
-func InsertNewScreenshot(userId uint64, filename string) bool {
+func ScreenshotsInsertNewScreenshot(userId uint64, filename string) bool {
 	query, queryErr := database.Query("INSERT INTO waffle.screenshots (id, filename) VALUES (?, ?)", userId, filename)
 	defer query.Close()
 

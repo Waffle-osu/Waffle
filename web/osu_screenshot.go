@@ -24,14 +24,14 @@ func HandleOsuScreenshot(ctx *gin.Context) {
 		return
 	}
 
-	if database.HasReachedMaxScreenshotQuota(uint64(userId)) {
+	if database.ScreenshotsHitScreenshotLimit(uint64(userId)) {
 		ctx.String(http.StatusOK, "chill_out_man")
 		return
 	}
 
 	filename := fmt.Sprintf("%x-%x", userId, time.Now().Unix())
 
-	if database.InsertNewScreenshot(uint64(userId), filename) == false {
+	if database.ScreenshotsInsertNewScreenshot(uint64(userId), filename) == false {
 		ctx.String(http.StatusOK, "an_error_occured")
 		return
 	}

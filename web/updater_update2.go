@@ -19,7 +19,7 @@ func HandleUpdaterUpdate2(ctx *gin.Context) {
 	//You have to return all available Updater Things formatted accordingly
 	//Format specification is in item.FormatUpdaterItem() they are all seperated by a new line
 
-	result, items := database.GetUpdaterItems()
+	result, items := database.UpdaterGetUpdaterItems()
 
 	if result == -1 {
 		ctx.String(http.StatusInternalServerError, "")
