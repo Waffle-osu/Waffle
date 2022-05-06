@@ -29,6 +29,7 @@ func (item *UpdaterItem) FormatUpdaterItem() string {
 
 func GetUpdaterItems() (result int8, items []UpdaterItem) {
 	queryResult, queryErr := database.Query("SELECT item_id, server_filename, client_filename, file_hash, item_name, item_action FROM waffle.updater_items")
+	defer queryResult.Close()
 
 	if queryErr != nil {
 		return -1, nil
@@ -53,6 +54,7 @@ func GetUpdaterItems() (result int8, items []UpdaterItem) {
 
 func UpdaterHashFromFilename(filename string) string {
 	queryResult, queryErr := database.Query("SELECT server_filename, file_hash FROM updater_items WHERE server_filename = ?", filename)
+	defer queryResult.Close()
 
 	if queryErr != nil {
 		return ""

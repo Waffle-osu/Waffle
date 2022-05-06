@@ -24,6 +24,18 @@ func HandleOsuScreenshot(ctx *gin.Context) {
 		return
 	}
 
+	if database.HasReachedMaxScreenshotQuota(uint64(userId)) {
+		ctx.String(http.StatusOK, "chill_out_man")
+		return
+	}
+
+	filename := fmt.Sprintf("%x-%x", userId, time.Now().Unix())
+
+	if database.InsertNewScreenshot(uint64(userId), filename) == false {
+		ctx.String(http.StatusOK, "an_error_occured")
+		return
+	}
+
 	//peppy sends a screenshot using multipart forms, he calls the label for the screenshot 'ss'
 	screenshot, formErr := ctx.FormFile("ss")
 
@@ -43,8 +55,6 @@ func HandleOsuScreenshot(ctx *gin.Context) {
 	//Make a buffer large enough to fit and read in
 	fileBuffer := make([]byte, screenshot.Size)
 	ssFile.Read(fileBuffer)
-
-	filename := fmt.Sprintf("%x-%x", userId, time.Now().Unix())
 
 	os.WriteFile("screenshots/"+filename, fileBuffer, 0644)
 

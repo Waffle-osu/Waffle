@@ -10,6 +10,7 @@ func GetFriendsList(userId uint64) (result int, friendsList []FriendEntry) {
 	var friends = []FriendEntry{}
 
 	queryResult, queryErr := database.Query("SELECT user_1, user_2 FROM waffle.friends WHERE user_1 = ?", userId)
+	defer queryResult.Close()
 
 	if queryErr != nil {
 		return -1, friends
@@ -28,7 +29,8 @@ func GetFriendsList(userId uint64) (result int, friendsList []FriendEntry) {
 
 // AddFriend stores a new friendship in the database
 func AddFriend(userId uint64, friendId uint64) bool {
-	_, queryErr := database.Query("INSERT INTO waffle.friends (user_1, user_2) VALUES (?, ?)", userId, friendId)
+	query, queryErr := database.Query("INSERT INTO waffle.friends (user_1, user_2) VALUES (?, ?)", userId, friendId)
+	defer query.Close()
 
 	if queryErr != nil {
 		return false
@@ -39,7 +41,8 @@ func AddFriend(userId uint64, friendId uint64) bool {
 
 // RemoveFriend removes a friendship from the database
 func RemoveFriend(userId uint64, friendId uint64) bool {
-	_, queryErr := database.Query("DELETE FROM waffle.friends WHERE user_1 = ? AND user_2 = ?", userId, friendId)
+	query, queryErr := database.Query("DELETE FROM waffle.friends WHERE user_1 = ? AND user_2 = ?", userId, friendId)
+	defer query.Close()
 
 	if queryErr != nil {
 		return false

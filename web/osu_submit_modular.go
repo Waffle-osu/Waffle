@@ -107,6 +107,11 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	//chartName:Overall Ranking|chartId:overall|toNextRank:123
 
 	//peppy's score submission back then has these keys:
+	//beatmapId            :: Beatmap ID
+	//beatmapSetId         :: Beatmap Set ID
+	//beatmapPlaycount     :: Beatmap Playcount
+	//beatmapPasscount     :: Beatmap Passcount
+	//approvedDate         :: When the Map was Approved
 	//chartId              :: ID of a Chart, if it's just a normal score submission that goes to the main ranking, write "Overall Ranking"
 	//chartName            :: Name of the Chart, if it's just a normal score submission that goes to the main ranking, write "overall"
 	//chartEndDate         :: End Date of the Chart, leave empty if it's just a normal score submission
