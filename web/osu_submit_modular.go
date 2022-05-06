@@ -2,7 +2,7 @@ package web
 
 import (
 	"Waffle/database"
-	"Waffle/logger"
+	"Waffle/helpers"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -175,7 +175,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		return
 	}
 
-	logger.Logger.Printf("[Web@ScoreSubmit] Got Score Submission from ID: %d; wasExit: %s; failTime: %s; clientHash: %s, processList: %s", userId, wasExit, failTime, clientHash, processList)
+	helpers.Logger.Printf("[Web@ScoreSubmit] Got Score Submission from ID: %d; wasExit: %s; failTime: %s; clientHash: %s, processList: %s", userId, wasExit, failTime, clientHash, processList)
 
 	chartInfo["rankedScoreBefore"] = strconv.FormatUint(userStats.RankedScore, 10)
 	chartInfo["totalScoreBefore"] = strconv.FormatUint(userStats.TotalScore, 10)

@@ -6,7 +6,7 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/packets"
 	"Waffle/database"
-	"Waffle/logger"
+	"Waffle/helpers"
 	"net"
 	"sync"
 	"time"
@@ -67,7 +67,7 @@ func (client *Client) CleanupClient(reason string) {
 		return
 	}
 
-	logger.Logger.Printf("[Bancho@Client] Cleaning up %s; Reason: %s\n", client.UserData.Username, reason)
+	helpers.Logger.Printf("[Bancho@Client] Cleaning up %s; Reason: %s\n", client.UserData.Username, reason)
 
 	if client.spectatingClient != nil {
 		client.spectatingClient.InformSpectatorLeft(client)

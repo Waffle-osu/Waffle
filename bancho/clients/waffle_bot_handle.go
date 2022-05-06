@@ -3,7 +3,7 @@ package clients
 import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/packets"
-	"Waffle/logger"
+	"Waffle/helpers"
 	"bytes"
 	"encoding/binary"
 	"time"
@@ -60,7 +60,7 @@ func (client *Client) WaffleBotHandleOutgoing() {
 			}
 			break
 		default:
-			logger.Logger.Printf("[Bancho@WaffleBotHandle] WaffleBot got %s\n", packets.GetPacketName(packet.PacketId))
+			helpers.Logger.Printf("[Bancho@WaffleBotHandle] WaffleBot got %s\n", packets.GetPacketName(packet.PacketId))
 			break
 		}
 	}

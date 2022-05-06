@@ -6,7 +6,7 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/packets"
 	"Waffle/database"
-	"Waffle/logger"
+	"Waffle/helpers"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -205,7 +205,7 @@ func (client *Client) HandleIncoming() {
 			case packets.OsuErrorReport:
 				errorString := string(packets.ReadBanchoString(packetDataReader))
 
-				logger.Logger.Printf("[Bancho@Handling] %s Encountered an error!! Error Details:\n%s", client.UserData.Username, errorString)
+				helpers.Logger.Printf("[Bancho@Handling] %s Encountered an error!! Error Details:\n%s", client.UserData.Username, errorString)
 				break
 			//This is the response to a BanchoPing
 			case packets.OsuPong:
@@ -439,7 +439,7 @@ func (client *Client) HandleIncoming() {
 				}
 				break
 			default:
-				logger.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
+				helpers.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
 				break
 			}
 		}
@@ -450,7 +450,7 @@ func (client *Client) HandleIncoming() {
 func (client *Client) SendOutgoing() {
 	for packet := range client.PacketQueue {
 		if packet.PacketId != 8 {
-			logger.Logger.Printf("[Bancho@Handling] Sending %s to %s\n", packets.GetPacketName(packet.PacketId), client.UserData.Username)
+			helpers.Logger.Printf("[Bancho@Handling] Sending %s to %s\n", packets.GetPacketName(packet.PacketId), client.UserData.Username)
 		}
 
 		client.connection.Write(packet.GetBytes())
@@ -480,6 +480,6 @@ func (client *Client) MaintainClient() {
 	}
 
 	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
-	logger.Logger.Printf("[Bancho@Handling] Closed %s's Packet Queue", client.UserData.Username)
+	helpers.Logger.Printf("[Bancho@Handling] Closed %s's Packet Queue", client.UserData.Username)
 	close(client.PacketQueue)
 }

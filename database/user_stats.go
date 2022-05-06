@@ -1,7 +1,7 @@
 package database
 
 import (
-	"Waffle/logger"
+	"Waffle/helpers"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -13,7 +13,7 @@ func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 	defer queryResult.Close()
 
 	if queryErr != nil {
-		logger.Logger.Printf("[Database] Failed to Fetch User Stats from Database, MySQL query failed.\n")
+		helpers.Logger.Printf("[Database] Failed to Fetch User Stats from Database, MySQL query failed.\n")
 
 		return -2, returnStats
 	}
@@ -22,7 +22,7 @@ func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 		scanErr := queryResult.Scan(&returnStats.UserID, &returnStats.Mode, &returnStats.Rank, &returnStats.RankedScore, &returnStats.TotalScore, &returnStats.Level, &returnStats.Accuracy, &returnStats.Playcount, &returnStats.CountSSH, &returnStats.CountSS, &returnStats.CountSH, &returnStats.CountS, &returnStats.CountA, &returnStats.CountB, &returnStats.CountC, &returnStats.CountD, &returnStats.Hit300, &returnStats.Hit100, &returnStats.Hit50, &returnStats.HitMiss, &returnStats.HitGeki, &returnStats.HitKatu, &returnStats.ReplaysWatched)
 
 		if scanErr != nil {
-			logger.Logger.Printf("[Database] Failed to Scan database results onto UserStats object.\n")
+			helpers.Logger.Printf("[Database] Failed to Scan database results onto UserStats object.\n")
 
 			return -2, returnStats
 		}
