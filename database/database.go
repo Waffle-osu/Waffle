@@ -7,10 +7,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var database *sql.DB
+var Database *sql.DB
 
-// Initialize initializes the MySQL database things
+// Initialize initializes the MySQL Database things
 func Initialize(username string, password string, location string, dbDatabase string) {
+	if Database != nil {
+		return
+	}
+
 	db, connErr := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, location, dbDatabase))
 
 	db.SetMaxOpenConns(10)
@@ -22,9 +26,9 @@ func Initialize(username string, password string, location string, dbDatabase st
 		return
 	}
 
-	database = db
+	Database = db
 }
 
 func Deinitialize() {
-	database.Close()
+	Database.Close()
 }

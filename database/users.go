@@ -49,7 +49,7 @@ type UserStats struct {
 func UserFromDatabaseById(id uint64) (int8, User) {
 	returnUser := User{}
 
-	queryResult, queryErr := database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE user_id = ?", id)
+	queryResult, queryErr := Database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE user_id = ?", id)
 	defer queryResult.Close()
 
 	if queryErr != nil {
@@ -62,7 +62,7 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt)
 
 		if scanErr != nil {
-			helpers.Logger.Printf("[Database] Failed to Scan database results onto User object.\n")
+			helpers.Logger.Printf("[Database] Failed to Scan Database results onto User object.\n")
 
 			return -2, returnUser
 		}
@@ -78,7 +78,7 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 func UserFromDatabaseByUsername(username string) (int8, User) {
 	returnUser := User{}
 
-	queryResult, queryErr := database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE username = ?", username)
+	queryResult, queryErr := Database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE username = ?", username)
 	defer queryResult.Close()
 
 	if queryErr != nil {
@@ -92,7 +92,7 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt)
 
 		if scanErr != nil {
-			helpers.Logger.Printf("[Database] Failed to Scan database results onto User object.\n")
+			helpers.Logger.Printf("[Database] Failed to Scan Database results onto User object.\n")
 
 			return -2, returnUser
 		}
@@ -106,7 +106,7 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 
 // CreateNewUser creates a new user given a username and a password
 func CreateNewUser(username string, rawPassword string) bool {
-	duplicateUsernameQuery, duplicateUsernameQueryErr := database.Query("SELECT COUNT(*) FROM waffle.users WHERE username = ?", username)
+	duplicateUsernameQuery, duplicateUsernameQueryErr := Database.Query("SELECT COUNT(*) FROM waffle.users WHERE username = ?", username)
 	defer duplicateUsernameQuery.Close()
 
 	if duplicateUsernameQueryErr != nil {
@@ -136,8 +136,8 @@ func CreateNewUser(username string, rawPassword string) bool {
 	var newUserId uint64
 	var newUsername string
 
-	insertResult, queryErr := database.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, bcryptPassword)
-	queryResult, queryErr := database.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
+	insertResult, queryErr := Database.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, bcryptPassword)
+	queryResult, queryErr := Database.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
 
 	defer insertResult.Close()
 	defer queryResult.Close()
@@ -155,10 +155,10 @@ func CreateNewUser(username string, rawPassword string) bool {
 			return false
 		}
 
-		osuStatsInsert, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
-		taikoStatsInsert, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
-		catchStatsInsert, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
-		maniaStatsInsert, statsInsertErr := database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
+		osuStatsInsert, statsInsertErr := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
+		taikoStatsInsert, statsInsertErr := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
+		catchStatsInsert, statsInsertErr := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
+		maniaStatsInsert, statsInsertErr := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
 
 		osuStatsInsert.Close()
 		taikoStatsInsert.Close()
@@ -177,7 +177,7 @@ func CreateNewUser(username string, rawPassword string) bool {
 }
 
 func AuthenticateUser(username string, password string) (userId int32, authSuccess bool) {
-	query, queryErr := database.Query("SELECT user_id, username, password FROM waffle.users WHERE username = ?", username)
+	query, queryErr := Database.Query("SELECT user_id, username, password FROM waffle.users WHERE username = ?", username)
 	defer query.Close()
 
 	var scanUsername, scanPassword string
