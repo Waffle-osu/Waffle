@@ -50,10 +50,13 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 	returnUser := User{}
 
 	queryResult, queryErr := Database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE user_id = ?", id)
-	defer queryResult.Close()
 
 	if queryErr != nil {
 		helpers.Logger.Printf("[Database] Failed to Fetch User from Database, MySQL query failed.\n")
+
+		if queryResult != nil {
+			queryResult.Close()
+		}
 
 		return -2, returnUser
 	}
@@ -64,12 +67,16 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 		if scanErr != nil {
 			helpers.Logger.Printf("[Database] Failed to Scan Database results onto User object.\n")
 
+			queryResult.Close()
+
 			return -2, returnUser
 		}
 
+		queryResult.Close()
 		return 0, returnUser
 	}
 
+	queryResult.Close()
 	//User not found
 	return -1, returnUser
 }
@@ -84,6 +91,10 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 	if queryErr != nil {
 		helpers.Logger.Printf("[Database] Failed to Fetch User from Database, MySQL query failed.\n")
 
+		if queryResult != nil {
+			queryResult.Close()
+		}
+
 		return -2, returnUser
 	}
 
@@ -94,12 +105,15 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 		if scanErr != nil {
 			helpers.Logger.Printf("[Database] Failed to Scan Database results onto User object.\n")
 
+			queryResult.Close()
 			return -2, returnUser
 		}
 
+		queryResult.Close()
 		return 0, returnUser
 	}
 
+	queryResult.Close()
 	//User not found
 	return -1, returnUser
 }

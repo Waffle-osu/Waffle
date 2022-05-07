@@ -24,3 +24,33 @@ type Beatmap struct {
 	ApproveDate   string
 	BeatmapSource int8
 }
+
+func BeatmapsGetByMd5(checksum string) (queryResult int8, beatmap Beatmap) {
+	beatmapQuery, beatmapQueryErr := Database.Query("SELECT beatmap_id, beatmapset_id, creator_id, filename, beatmap_md5, version, total_length, drain_time, count_objects, count_normal, count_slider, count_spinner, diff_hp, diff_cs, diff_od, diff_stars, playmode, ranking_status, last_update, submit_date, approve_date, beatmap_source FROM waffle.beatmaps WHERE beatmap_md5 = ?", checksum)
+
+	if beatmapQueryErr != nil {
+		if beatmapQuery != nil {
+			beatmapQuery.Close()
+		}
+
+		return -2, Beatmap{}
+	}
+
+	if beatmapQuery.Next() {
+		returnBeatmap := Beatmap{}
+
+		scanErr := beatmapQuery.Scan(&returnBeatmap.BeatmapId, &returnBeatmap.BeatmapsetId, &returnBeatmap.CreatorId, &returnBeatmap.Filename, &returnBeatmap.BeatmapMd5, &returnBeatmap.Version, &returnBeatmap.TotalLength, &returnBeatmap.DrainTime, &returnBeatmap.CountObjects, &returnBeatmap.CountNormal, &returnBeatmap.CountSlider, &returnBeatmap.CountSpinner, &returnBeatmap.DiffHp, &returnBeatmap.DiffCs, &returnBeatmap.DiffOd, &returnBeatmap.DiffStars, &returnBeatmap.Playmode, &returnBeatmap.RankingStatus, &returnBeatmap.LastUpdate, &returnBeatmap.SubmitDate, &returnBeatmap.ApproveDate, &returnBeatmap.BeatmapSource)
+
+		if scanErr != nil {
+			beatmapQuery.Close()
+			return -2, Beatmap{}
+		}
+
+		beatmapQuery.Close()
+
+		return 0, returnBeatmap
+	} else {
+		beatmapQuery.Close()
+		return -1, Beatmap{}
+	}
+}

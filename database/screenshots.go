@@ -2,9 +2,11 @@ package database
 
 func ScreenshotsHitScreenshotLimit(id uint64) bool {
 	query, queryErr := Database.Query("SELECT COUNT(*) AS 'count' FROM waffle.screenshots WHERE id = ?", id)
-	defer query.Close()
 
 	if queryErr != nil {
+		if query != nil {
+			query.Close()
+		}
 		return true
 	}
 
@@ -14,11 +16,16 @@ func ScreenshotsHitScreenshotLimit(id uint64) bool {
 		scanErr := query.Scan(&count)
 
 		if scanErr != nil {
+			query.Close()
 			return true
 		}
 
+		query.Close()
+
 		return count >= 128
 	}
+
+	query.Close()
 
 	return true
 }
