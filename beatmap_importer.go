@@ -84,11 +84,32 @@ func BeatmapImporter(songsDir string) {
 
 	if apiKeyFileErr != nil {
 		logger.Printf("Failed to read API Key file, make sure you have a .api_key file with just your API key inside")
+		return
 	}
 
 	apiKey := string(apiKeyFile)
 
+	var onlyReprocess map[string]bool = nil
+
+	_, reprocessFileErr := os.Stat(".reprocess")
+
+	//Reprocess file exists
+	if reprocessFileErr == nil {
+		reprocessFile, readFileErr := ioutil.ReadFile(".reprocess")
+
+		if readFileErr != nil {
+			logger.Fatalf("Failed to read .reprocess")
+		}
+
+		onlyReprocess = make(map[string]bool)
+
+		for _, setId := range strings.Split(string(reprocessFile), "\n") {
+			onlyReprocess[strings.ReplaceAll(setId, "\r", "")] = true
+		}
+	}
+
 	for _, directory := range beatmapSetDirectories {
+		errors := 0
 		startTime := time.Now()
 
 		if directory.IsDir() == false {
@@ -98,13 +119,21 @@ func BeatmapImporter(songsDir string) {
 		splitName := strings.Split(directory.Name(), " ")
 		setId := splitName[0]
 
+		if onlyReprocess != nil {
+			process, exists := onlyReprocess[setId]
+
+			if exists == false || process == false {
+				continue
+			}
+		}
+
 		checksumToFilename := make(map[string]string)
-		checksumToFilename["hi"] = "hi"
 
 		folderFiles, folderFilesErr := ioutil.ReadDir(songsDir + "/" + directory.Name())
 
 		if folderFilesErr != nil {
 			logger.Printf("Failed to read files off Set ID %s", setId)
+			errors++
 			continue
 		}
 
@@ -117,6 +146,7 @@ func BeatmapImporter(songsDir string) {
 
 			if osuReadErr != nil {
 				logger.Printf("Failed to read osu file off Set ID %s", setId)
+				errors++
 				continue
 			}
 
@@ -131,6 +161,7 @@ func BeatmapImporter(songsDir string) {
 
 		if getErr != nil {
 			logger.Printf("Failed to ping API on Set ID %s", setId)
+			errors++
 			continue
 		}
 
@@ -138,6 +169,7 @@ func BeatmapImporter(songsDir string) {
 
 		if readErr != nil {
 			logger.Printf("Failed to read API response on Set ID %s", setId)
+			errors++
 			continue
 		}
 
@@ -147,6 +179,7 @@ func BeatmapImporter(songsDir string) {
 
 		if jsonParseErr != nil {
 			logger.Printf("Failed to Parse JSON response on Set ID %s", setId)
+			errors++
 			continue
 		}
 
@@ -165,6 +198,7 @@ func BeatmapImporter(songsDir string) {
 
 				if parseErr != nil {
 					logger.Printf("Failed to parse JSON values to their types. Set ID %s", setId)
+					errors++
 					continue
 				}
 
@@ -195,6 +229,7 @@ func BeatmapImporter(songsDir string) {
 
 			if parseErr != nil {
 				logger.Printf("Failed to parse JSON values to their types. Set ID %s", setId)
+				errors++
 				continue
 			}
 
@@ -204,6 +239,7 @@ func BeatmapImporter(songsDir string) {
 
 			if filenameExists == false {
 				logger.Printf("Failed to find matching Filename for .osu file. Set ID %s", setId)
+				errors++
 				continue
 			}
 
@@ -239,27 +275,40 @@ func BeatmapImporter(songsDir string) {
 			mapsetVersions += strconv.FormatInt(int64(beatmapsetBeatmap.BeatmapId), 10) + ","
 
 			beatmapInsert, beatmapInsertErr := database.Database.Query("INSERT INTO waffle.beatmaps (beatmap_id, beatmapset_id, creator_id, filename, beatmap_md5, version, total_length, drain_time, count_objects, count_normal, count_slider, count_spinner, diff_hp, diff_cs, diff_od, diff_stars, playmode, ranking_status, last_update, submit_date, approve_date, beatmap_source) VALUEs (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", beatmapsetBeatmap.BeatmapId, beatmapsetBeatmap.BeatmapsetId, beatmapsetBeatmap.CreatorId, beatmapsetBeatmap.Filename, beatmapsetBeatmap.BeatmapMd5, beatmapsetBeatmap.Version, beatmapsetBeatmap.TotalLength, beatmapsetBeatmap.DrainTime, beatmapsetBeatmap.CountObjects, beatmapsetBeatmap.CountNormal, beatmapsetBeatmap.CountSlider, beatmapsetBeatmap.CountSpinner, beatmapsetBeatmap.DiffHp, beatmapsetBeatmap.DiffCs, beatmapsetBeatmap.DiffOd, beatmapsetBeatmap.DiffStars, beatmapsetBeatmap.Playmode, beatmapsetBeatmap.RankingStatus, beatmapsetBeatmap.LastUpdate, beatmapsetBeatmap.SubmitDate, beatmapsetBeatmap.ApproveDate, beatmapsetBeatmap.BeatmapSource)
-			beatmapInsert.Close()
+
+			if beatmapInsert != nil {
+				beatmapInsert.Close()
+			}
 
 			if beatmapInsertErr != nil {
-				logger.Printf("Failed to insert Beatmap ID %s into the database", beatmapsetBeatmap.BeatmapId)
+				errors++
+				logger.Printf("Failed to insert Beatmap ID %d into the database", beatmapsetBeatmap.BeatmapId)
+			} else {
+				logger.Printf("Inserted Beatmap of Beatmap ID %d into the database", beatmapsetBeatmap.BeatmapId)
 			}
 		}
 
-		mapsetVersions = strings.TrimSuffix(mapsetVersions, ",")
+		beatmapsetInsert, beatmapsetInsertErr := database.Database.Query("INSERT INTO waffle.beatmapsets (beatmapset_id, creator_id, artist, title, creator, source, tags, has_video, has_storyboard, bpm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", currentBeatmapset.BeatmapsetId, currentBeatmapset.CreatorId, currentBeatmapset.Artist, currentBeatmapset.Title, currentBeatmapset.Creator, currentBeatmapset.Source, currentBeatmapset.Tags, currentBeatmapset.HasVideo, currentBeatmapset.HasStoryboard, currentBeatmapset.Bpm)
 
-		currentBeatmapset.Versions = mapsetVersions
-
-		beatmapsetInsert, beatmapsetInsertErr := database.Database.Query("INSERT INTO waffle.beatmapsets (beatmapset_id, creator_id, artist, title, creator, source, tags, has_video, has_storyboard, bpm, versions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", currentBeatmapset.BeatmapsetId, currentBeatmapset.CreatorId, currentBeatmapset.Artist, currentBeatmapset.Title, currentBeatmapset.Creator, currentBeatmapset.Source, currentBeatmapset.Tags, currentBeatmapset.HasVideo, currentBeatmapset.HasStoryboard, currentBeatmapset.Bpm, currentBeatmapset.Versions)
-		beatmapsetInsert.Close()
+		if beatmapsetInsert != nil {
+			beatmapsetInsert.Close()
+		}
 
 		if beatmapsetInsertErr != nil {
+			errors++
 			logger.Printf("Failed to insert Set ID %s into the database", setId)
 		}
 
 		timeTaken := time.Since(startTime)
 		timeTaken = timeTaken
 
+		if errors == 0 {
+			logger.Printf("Successfully Processed Set ID %s! Took %dms", setId, timeTaken.Milliseconds())
+		} else {
+			logger.Printf("Processed Set ID %s with %d errors... Took %dms", setId, errors, timeTaken.Milliseconds())
+		}
+
+		//To make sure there's only 5 requests a second, yes peppy allows you to do 60 but stillill
 		time.Sleep(200)
 	}
 }

@@ -11,5 +11,4 @@ type Beatmapset struct {
 	HasVideo      int8
 	HasStoryboard int8
 	Bpm           float32
-	Versions      string
 }

@@ -107,6 +107,7 @@ func main() {
 
 	if len(os.Args) == 3 && os.Args[1] == "beatmap_importer" {
 		BeatmapImporter(os.Args[2])
+		return
 	}
 
 	//Ensure all the updater items exist
