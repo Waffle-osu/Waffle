@@ -115,6 +115,46 @@ CREATE TABLE `irc_log` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `scores`
+--
+
+DROP TABLE IF EXISTS `scores`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `scores` (
+  `score_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `beatmap_id` int NOT NULL,
+  `beatmapset_id` int NOT NULL,
+  `user_id` bigint unsigned NOT NULL,
+  `playmode` tinyint NOT NULL,
+  `score` int NOT NULL DEFAULT '0',
+  `max_combo` int NOT NULL DEFAULT '0',
+  `ranking` varchar(2) NOT NULL,
+  `hit300` int NOT NULL DEFAULT '0',
+  `hit100` int NOT NULL DEFAULT '0',
+  `hit50` int NOT NULL DEFAULT '0',
+  `hitMiss` int NOT NULL DEFAULT '0',
+  `hitGeki` int NOT NULL DEFAULT '0',
+  `hitKatu` int NOT NULL DEFAULT '0',
+  `enabled_mods` int NOT NULL DEFAULT '0',
+  `perfect` tinyint NOT NULL DEFAULT '0',
+  `passed` tinyint NOT NULL DEFAULT '0',
+  `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `leaderboard_best` tinyint NOT NULL DEFAULT '0',
+  `mapset_best` tinyint NOT NULL DEFAULT '0',
+  `score_hash` varchar(64) NOT NULL,
+  PRIMARY KEY (`score_id`),
+  KEY `userid_index` (`score_id`) /*!80000 INVISIBLE */,
+  KEY `leaderboardbest_index` (`leaderboard_best`) /*!80000 INVISIBLE */,
+  KEY `mapsetbest_index` (`mapset_best`) /*!80000 INVISIBLE */,
+  KEY `scorehash_index` (`score_hash`) /*!80000 INVISIBLE */,
+  KEY `beatmapid_index` (`beatmap_id`),
+  KEY `userid_fk_idx` (`user_id`),
+  CONSTRAINT `userid_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `screenshots`
 --
 
@@ -214,4 +254,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-07 19:40:58
+-- Dump completed on 2022-05-07 23:40:09
