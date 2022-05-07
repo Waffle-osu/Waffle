@@ -16,6 +16,70 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `beatmaps`
+--
+
+DROP TABLE IF EXISTS `beatmaps`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `beatmaps` (
+  `beatmap_id` int NOT NULL AUTO_INCREMENT,
+  `beatmapset_id` int NOT NULL,
+  `creator_id` bigint NOT NULL,
+  `filename` varchar(256) NOT NULL,
+  `beatmap_md5` varchar(32) NOT NULL,
+  `version` varchar(128) NOT NULL,
+  `total_length` int NOT NULL,
+  `drain_time` int NOT NULL,
+  `count_objects` int NOT NULL,
+  `count_normal` int NOT NULL,
+  `count_slider` int NOT NULL,
+  `count_spinner` int NOT NULL,
+  `diff_hp` tinyint NOT NULL,
+  `diff_cs` tinyint NOT NULL,
+  `diff_od` tinyint NOT NULL,
+  `diff_stars` float NOT NULL,
+  `playmode` tinyint NOT NULL,
+  `ranking_status` tinyint NOT NULL,
+  `last_update` datetime NOT NULL,
+  `submit_date` datetime NOT NULL,
+  `approve_date` datetime NOT NULL,
+  `beatmap_source` tinyint NOT NULL COMMENT 'Where the beatmap is from, used for when i may or may not add BSS and might be used for oldsu maps',
+  PRIMARY KEY (`beatmap_id`),
+  KEY `checksum_index` (`beatmap_md5`),
+  KEY `filename_index` (`filename`),
+  KEY `setid_index` (`beatmap_id`) /*!80000 INVISIBLE */,
+  KEY `source_index` (`beatmap_source`)
+) ENGINE=InnoDB AUTO_INCREMENT=3483833 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `beatmapsets`
+--
+
+DROP TABLE IF EXISTS `beatmapsets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `beatmapsets` (
+  `beatmapset_id` int NOT NULL AUTO_INCREMENT,
+  `creator_id` bigint NOT NULL,
+  `artist` varchar(256) NOT NULL,
+  `title` varchar(256) NOT NULL,
+  `creator` varchar(256) NOT NULL,
+  `source` varchar(256) NOT NULL,
+  `tags` varchar(1024) NOT NULL,
+  `has_video` tinyint NOT NULL,
+  `has_storyboard` tinyint NOT NULL,
+  `bpm` float NOT NULL,
+  PRIMARY KEY (`beatmapset_id`),
+  KEY `title_index` (`title`) /*!80000 INVISIBLE */,
+  KEY `artist_index` (`title`) /*!80000 INVISIBLE */,
+  KEY `creator_index` (`creator`),
+  FULLTEXT KEY `fulltext_search` (`artist`,`title`,`creator`,`source`,`tags`)
+) ENGINE=InnoDB AUTO_INCREMENT=41895 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `friends`
 --
 
@@ -47,7 +111,7 @@ CREATE TABLE `irc_log` (
   `message` text NOT NULL,
   `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`message_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -150,4 +214,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-06 23:27:07
+-- Dump completed on 2022-05-07 19:40:58
