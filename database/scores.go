@@ -1,5 +1,10 @@
 package database
 
+import (
+	"fmt"
+	"strconv"
+)
+
 type Score struct {
 	ScoreId         uint64
 	BeatmapId       int
@@ -21,6 +26,22 @@ type Score struct {
 	LeaderboardBest int8
 	MapsetBest      int8
 	ScoreHash       string
+}
+
+func ScoresFormatLeaderboardScore(score Score, username string, onlineRank int32) string {
+	perfectString := "0"
+
+	if score.Perfect == 1 {
+		perfectString = "1"
+	}
+
+	scoreIdstring := ""
+
+	if onlineRank != 0 {
+		scoreIdstring = strconv.FormatInt(int64(onlineRank), 10)
+	}
+
+	return fmt.Sprintf("%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d|%d|%s|%s", score.ScoreId, username, score.Score, score.MaxCombo, score.Hit50, score.Hit100, score.Hit300, score.HitMiss, score.HitKatu, score.HitKatu, perfectString, score.EnabledMods, score.UserId, scoreIdstring, score.Date)
 }
 
 func ScoresGetUserLeaderboardBest(beatmapId int32, userId uint64) (queryResult int8, score Score) {

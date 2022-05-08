@@ -1,8 +1,6 @@
 package web
 
 import (
-	"Waffle/bancho/client_manager"
-	"Waffle/bancho/packets"
 	"Waffle/database"
 	"Waffle/helpers"
 	"crypto/md5"
@@ -459,7 +457,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		queryPerfect = 1
 	}
 
-	insertScoreQuery, insertScoreQueryErr := database.Database.Query("INSERT INTO waffle.scores (beatmap_id, beatmapset_id, user_id, playmode, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, leaderboard_best, mapset_best, score_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", scoreBeatmap.BeatmapId, scoreBeatmap.BeatmapsetId, userId, int8(scoreSubmission.Playmode), scoreSubmission.TotalScore, scoreSubmission.MaxCombo, scoreSubmission.Ranking, scoreSubmission.Count300, scoreSubmission.Count100, scoreSubmission.Count50, scoreSubmission.CountMiss, scoreSubmission.CountGeki, scoreSubmission.CountKatu, scoreSubmission.EnabledMods, queryPassed, queryPerfect, queryLeaderboardBest, queryMapsetBest, scoreSubmission.OnlineScoreChecksum)
+	insertScoreQuery, insertScoreQueryErr := database.Database.Query("INSERT INTO waffle.scores (beatmap_id, beatmapset_id, user_id, playmode, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, leaderboard_best, mapset_best, score_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", scoreBeatmap.BeatmapId, scoreBeatmap.BeatmapsetId, userId, int8(scoreSubmission.Playmode), scoreSubmission.TotalScore, scoreSubmission.MaxCombo, scoreSubmission.Ranking, scoreSubmission.Count300, scoreSubmission.Count100, scoreSubmission.Count50, scoreSubmission.CountMiss, scoreSubmission.CountGeki, scoreSubmission.CountKatu, scoreSubmission.EnabledMods, queryPerfect, queryPassed, queryLeaderboardBest, queryMapsetBest, scoreSubmission.OnlineScoreChecksum)
 
 	if insertScoreQueryErr != nil {
 		ctx.String(http.StatusInternalServerError, "error: server error")
@@ -475,7 +473,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	scoreSubmissionResponse["playCountAfter"] = strconv.FormatUint(userStats.Playcount, 10)
 	scoreSubmissionResponse["accuracyAfter"] = strconv.FormatFloat(float64(userStats.Accuracy), 'f', 2, 64)
 
-	updateUserStatsQuery, updateUserStatsQueryErr := database.Database.Query("UPDATE waffle.stats SET ranked_score = ?, total_score = ?, hit300 = ?, hit100 = ?, hit50 = ?, hitMiss = ?, hitGeki = ?, hitKatu = ?, user_level = ?, playcount = ?, accuracy = ? WHERE user_id = ? AND mode = ?", userStats.RankedScore, userStats.TotalScore, userStats.Hit300, userStats.Hit100, userStats.Hit50, userStats.HitMiss, userStats.HitGeki, userStats.HitKatu, userStats.Level, userStats.Playcount, userId, int8(scoreSubmission.Playmode), userStats.Accuracy)
+	updateUserStatsQuery, updateUserStatsQueryErr := database.Database.Query("UPDATE waffle.stats SET ranked_score = ?, total_score = ?, hit300 = ?, hit100 = ?, hit50 = ?, hitMiss = ?, hitGeki = ?, hitKatu = ?, user_level = ?, playcount = ?, accuracy = ? WHERE user_id = ? AND mode = ?", userStats.RankedScore, userStats.TotalScore, userStats.Hit300, userStats.Hit100, userStats.Hit50, userStats.HitMiss, userStats.HitGeki, userStats.HitKatu, userStats.Level, userStats.Playcount, userStats.Accuracy, userId, int8(scoreSubmission.Playmode))
 
 	if updateUserStatsQueryErr != nil {
 		ctx.String(http.StatusInternalServerError, "error: server error")
@@ -667,37 +665,5 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	if replayGetErr == nil {
 		ctx.SaveUploadedFile(replay, fmt.Sprintf("replays/%d", newScoreId))
-	}
-
-	osuClient := client_manager.GetClientById(userId)
-
-	if osuClient != nil {
-		newStats := database.UserStats{
-			UserID:         userStats.UserID,
-			Mode:           userStats.Mode,
-			Rank:           uint64(newRank),
-			RankedScore:    userStats.RankedScore,
-			TotalScore:     userStats.TotalScore,
-			Level:          userStats.Level,
-			Accuracy:       userStats.Accuracy,
-			Playcount:      userStats.Playcount,
-			CountSSH:       userStats.CountSSH,
-			CountSS:        userStats.CountSS,
-			CountSH:        userStats.CountSH,
-			CountS:         userStats.CountS,
-			CountA:         userStats.CountA,
-			CountB:         userStats.CountB,
-			CountC:         userStats.CountC,
-			CountD:         userStats.CountD,
-			Hit300:         userStats.Hit300,
-			Hit100:         userStats.Hit100,
-			Hit50:          userStats.Hit50,
-			HitMiss:        userStats.HitMiss,
-			HitGeki:        userStats.HitGeki,
-			HitKatu:        userStats.HitKatu,
-			ReplaysWatched: userStats.ReplaysWatched,
-		}
-
-		packets.BanchoSendOsuUpdate(osuClient.GetPacketQueue(), newStats, osuClient.GetUserStatus())
 	}
 }

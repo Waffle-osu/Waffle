@@ -12,3 +12,33 @@ type Beatmapset struct {
 	HasStoryboard int8
 	Bpm           float32
 }
+
+func BeatmapsetsGetBeatmapsetById(beatmapsetId int32) (queryResult int8, beatmapset Beatmapset) {
+	beatmapsetQuery, beatmapsetQueryErr := Database.Query("SELECT beatmapset_id, creator_id, artist, title, creator, source, tags, has_video, has_storyboard, bpm FROM beatmapsets WHERE beatmapset_id = ?", beatmapsetId)
+
+	if beatmapsetQueryErr != nil {
+		if beatmapsetQuery != nil {
+			beatmapsetQuery.Close()
+		}
+
+		return -2, Beatmapset{}
+	}
+
+	if beatmapsetQuery.Next() {
+		returnBeatmapset := Beatmapset{}
+
+		scanErr := beatmapsetQuery.Scan(&returnBeatmapset.BeatmapsetId, &returnBeatmapset.CreatorId, &returnBeatmapset.Artist, &returnBeatmapset.Title, &returnBeatmapset.Creator, &returnBeatmapset.Source, &returnBeatmapset.Tags, &returnBeatmapset.HasVideo, &returnBeatmapset.HasStoryboard, &returnBeatmapset.Bpm)
+
+		if scanErr != nil {
+			beatmapsetQuery.Close()
+			return -2, Beatmapset{}
+		}
+
+		beatmapsetQuery.Close()
+
+		return 0, returnBeatmapset
+	} else {
+		beatmapsetQuery.Close()
+		return -1, Beatmapset{}
+	}
+}
