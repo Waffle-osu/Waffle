@@ -300,7 +300,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	//Increase playcount by 1
 	userStats.Playcount++
 
-	if bestLeaderboardScoreExists == 1 && bestLeaderboardScore.Score < scoreSubmission.TotalScore {
+	if (bestLeaderboardScoreExists == 1 && bestLeaderboardScore.Score < scoreSubmission.TotalScore) || (bestLeaderboardScore.Passed == 0 && scoreSubmission.Passed == true) {
 		queryResult, oldLeaderboardPlace := database.ScoresGetBeatmapLeaderboardPlace(bestLeaderboardScore.ScoreId, int32(bestLeaderboardScore.BeatmapId))
 
 		if queryResult != 0 {
