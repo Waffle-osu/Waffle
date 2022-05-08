@@ -309,7 +309,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	//if we ever error, just send back 0
 	if passPlayCountsQueryErr != nil {
-		scoreSubmissionResponse["beatmapPlaycount"] = "0"
+		scoreSubmissionResponse["beatmapPlaycount"] = "1"
 		scoreSubmissionResponse["beatmapPasscount"] = "0"
 	} else {
 		var playcount, passcount int64
@@ -317,10 +317,10 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		if passPlayCountsQuery.Next() {
 			passPlayCountsQuery.Scan(&playcount, &passcount)
 
-			scoreSubmissionResponse["beatmapPlaycount"] = strconv.FormatInt(playcount, 10)
+			scoreSubmissionResponse["beatmapPlaycount"] = strconv.FormatInt(playcount+1, 10)
 			scoreSubmissionResponse["beatmapPasscount"] = strconv.FormatInt(passcount, 10)
 		} else {
-			scoreSubmissionResponse["beatmapPlaycount"] = "0"
+			scoreSubmissionResponse["beatmapPlaycount"] = "1"
 			scoreSubmissionResponse["beatmapPasscount"] = "0"
 		}
 	}
@@ -341,14 +341,16 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	//Increase playcount by 1
 	userStats.Playcount++
 
+	oldLeaderboardPlace := int64(0)
+
 	if (bestLeaderboardScoreExists == 1 && bestLeaderboardScore.Score < scoreSubmission.TotalScore) || ((bestLeaderboardScore.Passed == 0 && scoreQueryResult == 0) && scoreSubmission.Passed == true) {
-		queryResult, oldLeaderboardPlace := database.ScoresGetBeatmapLeaderboardPlace(bestLeaderboardScore.ScoreId, int32(bestLeaderboardScore.BeatmapId))
+		queryResult, oldLeaderboardPlaceResult := database.ScoresGetBeatmapLeaderboardPlace(bestLeaderboardScore.ScoreId, int32(bestLeaderboardScore.BeatmapId))
 
 		if queryResult != 0 {
 			oldLeaderboardPlace = 0
+		} else {
+			oldLeaderboardPlace = oldLeaderboardPlaceResult
 		}
-
-		scoreSubmissionResponse["beatmapRankingBefore"] = strconv.FormatInt(oldLeaderboardPlace, 10)
 
 		userStats.TotalScore -= uint64(bestLeaderboardScore.Score)
 		userStats.Hit300 -= uint64(bestLeaderboardScore.Hit300)
@@ -373,6 +375,8 @@ func HandleOsuSubmit(ctx *gin.Context) {
 			overwriteBestLeaderboardScoreQuery.Close()
 		}
 	}
+
+	scoreSubmissionResponse["beatmapRankingBefore"] = strconv.FormatInt(oldLeaderboardPlace, 10)
 
 	if bestLeaderboardScoreExists == 0 {
 		userStats.TotalScore += uint64(scoreSubmission.TotalScore)
@@ -568,7 +572,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	//If the user isn't rank 1, get how much score they need for the next rank
 	if newRank != 1 {
-		nextRankScoreQuery, nextRankScoreQueryErr := database.Database.Query("SELECT * FROM (SELECT user_id, ranked_score, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE mode = ?) t WHERE `rank` = ?", int8(scoreSubmission.Playmode), userStats.Rank-1)
+		nextRankScoreQuery, nextRankScoreQueryErr := database.Database.Query("SELECT * FROM (SELECT users.username, stats.user_id, stats.ranked_score, stats.mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats LEFT JOIN users ON stats.user_id = users.user_id WHERE mode = ?) t WHERE `rank` = ?", int8(scoreSubmission.Playmode), userStats.Rank-1)
 
 		if nextRankScoreQueryErr != nil {
 			ctx.String(http.StatusOK, "error: server error")
@@ -576,9 +580,10 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		}
 
 		if nextRankScoreQuery.Next() {
+			var username string
 			partUserStats := database.UserStats{}
 
-			scanErr := nextRankScoreQuery.Scan(&partUserStats.UserID, &partUserStats.RankedScore, &partUserStats.Mode, &partUserStats.Rank)
+			scanErr := nextRankScoreQuery.Scan(&username, &partUserStats.UserID, &partUserStats.RankedScore, &partUserStats.Mode, &partUserStats.Rank)
 
 			if scanErr != nil {
 				ctx.String(http.StatusOK, "error: server error")
@@ -587,7 +592,8 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 			nextRankScoreQuery.Close()
 
-			scoreSubmissionResponse["toNextRankUser"] = strconv.FormatInt(int64(partUserStats.RankedScore-userStats.RankedScore), 10)
+			scoreSubmissionResponse["toNextRank"] = strconv.FormatInt(int64(partUserStats.RankedScore-userStats.RankedScore), 10)
+			scoreSubmissionResponse["toNextRankUser"] = username
 		} else {
 			//how tf would we get that far if the user wasnt there
 			ctx.String(http.StatusOK, "error: nouser")
@@ -602,39 +608,9 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		if nextRankScoreQuery != nil {
 			nextRankScoreQuery.Close()
 		}
-	}
-
-	if newLeaderboardRank != 1 {
-		nextRankScoreQuery, nextRankScoreQueryErr := database.Database.Query("SELECT score, `rank` FROM (SELECT beatmap_id, score, playmode, ROW_NUMBER() OVER (ORDER BY score DESC) AS 'rank' FROM waffle.scores WHERE beatmap_id = ? AND playmode = ? AND leaderboard_best = 1) t WHERE `rank` = ?", scoreBeatmap.BeatmapId, int8(scoreSubmission.Playmode), newLeaderboardRank-1)
-
-		if nextRankScoreQueryErr != nil {
-			ctx.String(http.StatusOK, "error: server error")
-			return
-		}
-
-		if nextRankScoreQuery != nil {
-			nextRankScoreQuery.Close()
-		}
-
-		if nextRankScoreQuery.Next() {
-			var score int
-			var rank int64
-
-			scanErr := nextRankScoreQuery.Scan(&score, &rank)
-
-			if scanErr != nil {
-				ctx.String(http.StatusOK, "error: server error")
-				return
-			}
-
-			nextRankScoreQuery.Close()
-
-			scoreSubmissionResponse["toNextRank"] = strconv.FormatInt(int64(score-scoreSubmission.TotalScore), 10)
-		} else {
-			//how tf would we get that far if the user wasnt there
-			ctx.String(http.StatusOK, "error: nouser")
-			return
-		}
+	} else {
+		scoreSubmissionResponse["toNextRank"] = "0"
+		scoreSubmissionResponse["toNextRankUser"] = ""
 	}
 
 	//save failtime
@@ -656,10 +632,31 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	returnString := ""
 
-	//Write out submission in the format the client expects
-	for key, value := range scoreSubmissionResponse {
-		returnString += key + ":" + value + "|"
-	}
+	returnString += "beatmapId:" + scoreSubmissionResponse["beatmapId"] + "|"
+	returnString += "beatmapSetId:" + scoreSubmissionResponse["beatmapSetId"] + "|"
+	returnString += "beatmapPlaycount:" + scoreSubmissionResponse["beatmapPlaycount"] + "|"
+	returnString += "beatmapPasscount:" + scoreSubmissionResponse["beatmapPasscount"] + "|"
+	returnString += "approvedDate:" + scoreSubmissionResponse["approvedDate"]
+
+	returnString += "\n"
+
+	returnString += "chartId:" + scoreSubmissionResponse["chartId"] + "|"
+	returnString += "chartName:" + scoreSubmissionResponse["chartName"] + "|"
+	returnString += "chartEndDate:" + scoreSubmissionResponse["chartEndDate"] + "|"
+	returnString += "beatmapRankingBefore:" + scoreSubmissionResponse["beatmapRankingBefore"] + "|"
+	returnString += "beatmapRankingAfter:" + scoreSubmissionResponse["beatmapRankingAfter"] + "|"
+	returnString += "rankedScoreBefore:" + scoreSubmissionResponse["rankedScoreBefore"] + "|"
+	returnString += "rankedScoreAfter:" + scoreSubmissionResponse["rankedScoreAfter"] + "|"
+	returnString += "totalScoreBefore:" + scoreSubmissionResponse["totalScoreBefore"] + "|"
+	returnString += "totalScoreAfter:" + scoreSubmissionResponse["totalScoreAfter"] + "|"
+	returnString += "playCountBefore:" + scoreSubmissionResponse["playCountBefore"] + "|"
+	returnString += "accuracyBefore:" + scoreSubmissionResponse["accuracyBefore"] + "|"
+	returnString += "accuracyAfter:" + scoreSubmissionResponse["accuracyAfter"] + "|"
+	returnString += "rankBefore:" + scoreSubmissionResponse["rankBefore"] + "|"
+	returnString += "rankAfter:" + scoreSubmissionResponse["rankAfter"] + "|"
+	returnString += "toNextRank:" + scoreSubmissionResponse["toNextRank"] + "|"
+	returnString += "toNextRankUser:" + scoreSubmissionResponse["toNextRankUser"] + "|"
+	returnString += "achievements:" + scoreSubmissionResponse["achievements"]
 
 	//make sure there's no trailing |
 	returnString = strings.TrimSuffix(returnString, "|")
