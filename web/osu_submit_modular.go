@@ -93,10 +93,8 @@ func parseScoreString(score string) ScoreSubmission {
 }
 
 func HandleOsuSubmit(ctx *gin.Context) {
-	//replay, replayGetErr := ctx.FormFile("score")
 	score := ctx.PostForm("score")
 	password := ctx.PostForm("pass")
-	//TODO: store failtimes
 	wasExit := ctx.PostForm("x")
 	failTime := ctx.PostForm("ft")
 	clientHash := ctx.PostForm("s")
@@ -639,6 +637,23 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		}
 	}
 
+	//save failtime
+	failTimeParsed, failTimeParseErr := strconv.ParseInt(failTime, 10, 64)
+
+	if failTimeParseErr == nil {
+		wasExitParsed := int8(0)
+
+		if wasExit == "1" {
+			wasExitParsed = 1
+		}
+
+		insertFailTimeQuery, _ := database.Database.Query("INSERT INTO waffle.failtimes (failtime, beatmap_id, score_id, was_exit) VALUES (?, ?, ?, ?)", failTimeParsed, scoreBeatmap.BeatmapId, newScoreId, wasExitParsed)
+
+		if insertFailTimeQuery != nil {
+			insertFailTimeQuery.Close()
+		}
+	}
+
 	returnString := ""
 
 	//Write out submission in the format the client expects
@@ -650,6 +665,12 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	returnString = strings.TrimSuffix(returnString, "|")
 
 	ctx.String(http.StatusOK, returnString+"\n")
+
+	replay, replayGetErr := ctx.FormFile("score")
+
+	if replayGetErr == nil {
+		ctx.SaveUploadedFile(replay, fmt.Sprintf("replays/%d", newScoreId))
+	}
 
 	osuClient := client_manager.GetClientById(userId)
 
