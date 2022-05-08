@@ -93,9 +93,11 @@ func ScoresGetBeatmapLeaderboardPlace(scoreId uint64, beatmapId int32) (queryRes
 	}
 
 	if scoreQuery.Next() {
+		var scoreId uint64
+		var beatmapId int32
 		var leaderboardPlace int64
 
-		scanErr := scoreQuery.Scan(&leaderboardPlace)
+		scanErr := scoreQuery.Scan(&scoreId, &beatmapId, &leaderboardPlace)
 
 		if scanErr != nil {
 			scoreQuery.Close()

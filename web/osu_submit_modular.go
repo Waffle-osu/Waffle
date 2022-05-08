@@ -1,6 +1,8 @@
 package web
 
 import (
+	"Waffle/bancho/client_manager"
+	"Waffle/bancho/packets"
 	"Waffle/database"
 	"Waffle/helpers"
 	"github.com/gin-gonic/gin"
@@ -91,6 +93,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	//replay, replayGetErr := ctx.FormFile("score")
 	score := ctx.PostForm("score")
 	password := ctx.PostForm("pass")
+	//TODO: store failtimes
 	wasExit := ctx.PostForm("x")
 	failTime := ctx.PostForm("ft")
 	clientHash := ctx.PostForm("s")
@@ -132,13 +135,13 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	//alternatively, if an error were to occur, you return "error: what kind of error happened" the space after the : is important
 	//there are some errors that the client itself will display an error for, these are:
-	//"error: nouser" :: For when the User doesn't exist
-	//"error: pass" :: For when the User's password is incorrect
+	//"error: nouser"   :: For when the User doesn't exist
+	//"error: pass"     :: For when the User's password is incorrect
 	//"error: inactive" :: For when the User's account isn't activated
-	//"error: ban" :: For when the User is banned
-	//"error: beatmap" :: For when the beatmap is not available for ranking
+	//"error: ban"      :: For when the User is banned
+	//"error: beatmap"  :: For when the beatmap is not available for ranking
 	//"error: disabled" :: For when the Mode/Mod is currently disabled for ranking
-	//"error: oldver" :: For when the User's client is too old to submit scores
+	//"error: oldver"   :: For when the User's client is too old to submit scores
 
 	scoreSubmissionResponse := make(map[string]string)
 
@@ -206,13 +209,62 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		return
 	}
 
+	//Check for duplicate score
+	duplicateScoreCheckQuery, duplicateScoreCheckQueryErr := database.Database.Query("SELECT COUNT(*) AS 'count' FROM waffle.scores WHERE score_hash = ?", scoreSubmission.OnlineScoreChecksum)
+
+	if duplicateScoreCheckQueryErr != nil {
+		ctx.String(http.StatusOK, "error: server error")
+
+		if duplicateScoreCheckQuery != nil {
+			duplicateScoreCheckQuery.Close()
+		}
+
+		return
+	}
+
+	if duplicateScoreCheckQuery.Next() {
+		var count int64
+
+		scanErr := duplicateScoreCheckQuery.Scan(&count)
+
+		if scanErr != nil {
+			ctx.String(http.StatusOK, "error: server error")
+
+			if duplicateScoreCheckQuery != nil {
+				duplicateScoreCheckQuery.Close()
+			}
+		}
+
+		if count != 0 {
+			ctx.String(http.StatusOK, "error: no duplicate scores!")
+
+			if duplicateScoreCheckQuery != nil {
+				duplicateScoreCheckQuery.Close()
+			}
+
+			return
+		}
+	} else {
+		ctx.String(http.StatusOK, "error: server error")
+
+		if duplicateScoreCheckQuery != nil {
+			duplicateScoreCheckQuery.Close()
+		}
+
+		return
+	}
+
+	if duplicateScoreCheckQuery != nil {
+		duplicateScoreCheckQuery.Close()
+	}
+
 	//save beatmap information
 	scoreSubmissionResponse["beatmapId"] = strconv.FormatInt(int64(scoreBeatmap.BeatmapId), 10)
 	scoreSubmissionResponse["beatmapsetId"] = strconv.FormatInt(int64(scoreBeatmap.BeatmapsetId), 10)
 	scoreSubmissionResponse["approvedDate"] = scoreBeatmap.ApproveDate
 
 	//query for play and passcount
-	passPlayCountsQuery, passPlayCountsQueryErr := database.Database.Query("SELECT x.playcount, y.passcount FROM (SELECT COUNT(*) AS 'playcount' FROM waffle.scores WHERE beatmap_id = ? AND playmode = ?) AS x, (SELECT COUNT(*) AS 'passcount' FROM waffle.scores WHERE beatmap_id = ? AND playmode = ? AND passed = 1) AS y", scoreBeatmap.BeatmapId, int8(scoreSubmission.Playmode))
+	passPlayCountsQuery, passPlayCountsQueryErr := database.Database.Query("SELECT x.playcount, y.passcount FROM (SELECT COUNT(*) AS 'playcount' FROM waffle.scores WHERE beatmap_id = ? AND playmode = ?) AS x, (SELECT COUNT(*) AS 'passcount' FROM waffle.scores WHERE beatmap_id = ? AND playmode = ? AND passed = 1) AS y", scoreBeatmap.BeatmapId, int8(scoreSubmission.Playmode), scoreBeatmap.BeatmapId, int8(scoreSubmission.Playmode))
 
 	//if we ever error, just send back 0
 	if passPlayCountsQueryErr != nil {
@@ -222,15 +274,10 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		var playcount, passcount int64
 
 		if passPlayCountsQuery.Next() {
-			scanErr := passPlayCountsQuery.Scan(&playcount, &passcount)
+			passPlayCountsQuery.Scan(&playcount, &passcount)
 
-			if scanErr != nil {
-				scoreSubmissionResponse["beatmapPlaycount"] = strconv.FormatInt(playcount, 10)
-				scoreSubmissionResponse["beatmapPasscount"] = strconv.FormatInt(passcount, 10)
-			}
-
-			scoreSubmissionResponse["beatmapPlaycount"] = "0"
-			scoreSubmissionResponse["beatmapPasscount"] = "0"
+			scoreSubmissionResponse["beatmapPlaycount"] = strconv.FormatInt(playcount, 10)
+			scoreSubmissionResponse["beatmapPasscount"] = strconv.FormatInt(passcount, 10)
 		} else {
 			scoreSubmissionResponse["beatmapPlaycount"] = "0"
 			scoreSubmissionResponse["beatmapPasscount"] = "0"
@@ -269,22 +316,12 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		userStats.HitMiss -= uint64(bestLeaderboardScore.HitMiss)
 		userStats.HitGeki -= uint64(bestLeaderboardScore.HitGeki)
 		userStats.HitKatu -= uint64(bestLeaderboardScore.HitKatu)
-		//I like to do this in 2 steps, makes me feel better
-		userStats.TotalScore += uint64(scoreSubmission.TotalScore)
-		userStats.Hit300 += uint64(scoreSubmission.Count300)
-		userStats.Hit100 += uint64(scoreSubmission.Count100)
-		userStats.Hit50 += uint64(scoreSubmission.Count50)
-		userStats.HitMiss += uint64(scoreSubmission.CountMiss)
-		userStats.HitGeki += uint64(scoreSubmission.CountGeki)
-		userStats.HitKatu += uint64(scoreSubmission.CountKatu)
-
-		userStats.Level = float64(helpers.GetLevelFromScore(userStats.TotalScore))
 
 		//Set that there is no best score anymore
 		bestLeaderboardScoreExists = 0
 
 		//Overwrite in database
-		overwriteBestLeaderboardScoreQuery, overwriteBestLeaderboardScoreQueryErr := database.Database.Query("UPDATE waffle.scores SET mapset_best = ? WHERE score_id = ?", int8(0), bestLeaderboardScore.ScoreId)
+		overwriteBestLeaderboardScoreQuery, overwriteBestLeaderboardScoreQueryErr := database.Database.Query("UPDATE waffle.scores SET leaderboard_best = 0 WHERE score_id = ?", bestLeaderboardScore.ScoreId)
 
 		if overwriteBestLeaderboardScoreQueryErr != nil {
 			ctx.String(http.StatusInternalServerError, "error: server error")
@@ -294,6 +331,18 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		if overwriteBestLeaderboardScoreQuery != nil {
 			overwriteBestLeaderboardScoreQuery.Close()
 		}
+	}
+
+	if bestLeaderboardScoreExists == 0 {
+		userStats.TotalScore += uint64(scoreSubmission.TotalScore)
+		userStats.Hit300 += uint64(scoreSubmission.Count300)
+		userStats.Hit100 += uint64(scoreSubmission.Count100)
+		userStats.Hit50 += uint64(scoreSubmission.Count50)
+		userStats.HitMiss += uint64(scoreSubmission.CountMiss)
+		userStats.HitGeki += uint64(scoreSubmission.CountGeki)
+		userStats.HitKatu += uint64(scoreSubmission.CountKatu)
+
+		userStats.Level = float64(helpers.GetLevelFromScore(userStats.TotalScore))
 	}
 
 	queryPerfect := int8(0)
@@ -311,12 +360,11 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	if bestMapsetScoreExists == 1 && mapsetBestScore.Score < scoreSubmission.TotalScore && scoreSubmission.Passed {
 		//I like to do this in 2 steps, makes me feel better
 		userStats.RankedScore -= uint64(mapsetBestScore.Score)
-		userStats.RankedScore += uint64(scoreSubmission.TotalScore)
 
 		bestMapsetScoreExists = 0
 
 		//Overwrite in database
-		overwriteBestMapsetScoreQuery, overwriteBestMapsetScoreQueryErr := database.Database.Query("UPDATE waffle.scores SET mapset_best = ? WHERE score_id = ?", int8(0), mapsetBestScore.ScoreId)
+		overwriteBestMapsetScoreQuery, overwriteBestMapsetScoreQueryErr := database.Database.Query("UPDATE waffle.scores SET mapset_best = 0 WHERE score_id = ?", mapsetBestScore.ScoreId)
 
 		if overwriteBestMapsetScoreQueryErr != nil {
 			ctx.String(http.StatusInternalServerError, "error: server error")
@@ -328,6 +376,10 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		}
 	}
 
+	if bestMapsetScoreExists == 0 && scoreSubmission.Passed {
+		userStats.RankedScore += uint64(scoreSubmission.TotalScore)
+	}
+
 	if bestLeaderboardScoreExists == 1 {
 		queryLeaderboardBest = 0
 	} else {
@@ -337,7 +389,9 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	if bestMapsetScoreExists == 1 {
 		queryMapsetBest = 0
 	} else {
-		queryMapsetBest = 1
+		if scoreSubmission.Passed {
+			queryMapsetBest = 1
+		}
 	}
 
 	if scoreSubmission.Passed {
@@ -376,21 +430,18 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		insertScoreQuery.Close()
 	}
 
-	newRankQuery, newRankQueryErr := database.Database.Query("SELECT `rank` FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE user_id = ? AND mode = ?) t", userId, int8(scoreSubmission.Playmode))
+	newRankQuery, newRankQueryErr := database.Database.Query("SELECT `rank` FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE mode = ?) t WHERE user_id = ?", userId, int8(scoreSubmission.Playmode))
 
 	if newRankQueryErr != nil {
 		ctx.String(http.StatusOK, "error: server error")
 		return
 	}
 
-	if newRankQuery != nil {
-		newRankQuery.Close()
-	}
+	var newRank int64
 
 	if newRankQuery.Next() {
-		var rank int64
 
-		scanErr := newRankQuery.Scan(&rank)
+		scanErr := newRankQuery.Scan(&newRank)
 
 		if scanErr != nil {
 			ctx.String(http.StatusOK, "error: server error")
@@ -399,11 +450,20 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 		newRankQuery.Close()
 
-		scoreSubmissionResponse["rankAfter"] = strconv.FormatInt(rank, 10)
+		scoreSubmissionResponse["rankAfter"] = strconv.FormatInt(newRank, 10)
 	} else {
 		//how tf would we get that far if the user wasnt there
 		ctx.String(http.StatusOK, "error: nouser")
+
+		if newRankQuery != nil {
+			newRankQuery.Close()
+		}
+
 		return
+	}
+
+	if newRankQuery != nil {
+		newRankQuery.Close()
 	}
 
 	newScoreIdGetQuery, newScoreIdGetQueryErr := database.Database.Query("SELECT score_id FROM (SELECT score_id, score_hash FROM waffle.scores WHERE score_hash = ?) t", scoreSubmission.OnlineScoreChecksum)
@@ -411,11 +471,12 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	if newScoreIdGetQueryErr != nil {
 		ctx.String(http.StatusOK, "error: server error")
-		return
-	}
 
-	if newScoreIdGetQuery != nil {
-		newScoreIdGetQuery.Close()
+		if newScoreIdGetQuery != nil {
+			newScoreIdGetQuery.Close()
+		}
+
+		return
 	}
 
 	if newScoreIdGetQuery.Next() {
@@ -434,7 +495,16 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	} else {
 		//how tf would we get that far if the user wasnt there
 		ctx.String(http.StatusOK, "error: nouser")
+
+		if newScoreIdGetQuery != nil {
+			newScoreIdGetQuery.Close()
+		}
+
 		return
+	}
+
+	if newScoreIdGetQuery != nil {
+		newScoreIdGetQuery.Close()
 	}
 
 	newLeaderboardRankQueryResult, newLeaderboardRank := database.ScoresGetBeatmapLeaderboardPlace(uint64(newScoreId), scoreBeatmap.BeatmapId)
@@ -445,17 +515,13 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	scoreSubmissionResponse["beatmapRankingAfter"] = strconv.FormatInt(newLeaderboardRank, 10)
 
-	//
-	if userStats.Rank != 1 {
+	//If the user isn't rank 1, get how much score they need for the next rank
+	if newRank != 1 {
 		nextRankScoreQuery, nextRankScoreQueryErr := database.Database.Query("SELECT * FROM (SELECT user_id, ranked_score, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE mode = ?) t WHERE `rank` = ?", int8(scoreSubmission.Playmode), userStats.Rank-1)
 
 		if nextRankScoreQueryErr != nil {
 			ctx.String(http.StatusOK, "error: server error")
 			return
-		}
-
-		if nextRankScoreQuery != nil {
-			nextRankScoreQuery.Close()
 		}
 
 		if nextRankScoreQuery.Next() {
@@ -474,7 +540,16 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		} else {
 			//how tf would we get that far if the user wasnt there
 			ctx.String(http.StatusOK, "error: nouser")
+
+			if nextRankScoreQuery != nil {
+				nextRankScoreQuery.Close()
+			}
+
 			return
+		}
+
+		if nextRankScoreQuery != nil {
+			nextRankScoreQuery.Close()
 		}
 	}
 
@@ -522,4 +597,36 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	returnString = strings.TrimSuffix(returnString, "|")
 
 	ctx.String(http.StatusOK, returnString+"\n")
+
+	osuClient := client_manager.GetClientById(userId)
+
+	if osuClient != nil {
+		newStats := database.UserStats{
+			UserID:         userStats.UserID,
+			Mode:           userStats.Mode,
+			Rank:           uint64(newRank),
+			RankedScore:    userStats.RankedScore,
+			TotalScore:     userStats.TotalScore,
+			Level:          userStats.Level,
+			Accuracy:       userStats.Accuracy,
+			Playcount:      userStats.Playcount,
+			CountSSH:       userStats.CountSSH,
+			CountSS:        userStats.CountSS,
+			CountSH:        userStats.CountSH,
+			CountS:         userStats.CountS,
+			CountA:         userStats.CountA,
+			CountB:         userStats.CountB,
+			CountC:         userStats.CountC,
+			CountD:         userStats.CountD,
+			Hit300:         userStats.Hit300,
+			Hit100:         userStats.Hit100,
+			Hit50:          userStats.Hit50,
+			HitMiss:        userStats.HitMiss,
+			HitGeki:        userStats.HitGeki,
+			HitKatu:        userStats.HitKatu,
+			ReplaysWatched: userStats.ReplaysWatched,
+		}
+
+		packets.BanchoSendOsuUpdate(osuClient.GetPacketQueue(), newStats, osuClient.GetUserStatus())
+	}
 }
