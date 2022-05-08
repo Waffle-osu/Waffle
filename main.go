@@ -32,6 +32,7 @@ func main() {
 	EnsureDirectoryExists("logs")
 	EnsureDirectoryExists("screenshots")
 	EnsureDirectoryExists("release")
+	EnsureDirectoryExists("replays")
 
 	helpers.InitializeLogger()               //Initializes Logging, logs to both console and to a file
 	chat.InitializeChannels()                //Initializes Chat channels

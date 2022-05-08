@@ -5,6 +5,9 @@ import (
 	"Waffle/bancho/packets"
 	"Waffle/database"
 	"Waffle/helpers"
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -178,6 +181,46 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		return
 	}
 
+	//validate onlinescorechecksum
+	stringPerfect := "False"
+
+	if scoreSubmission.Perfect == true {
+		stringPerfect = "True"
+	}
+
+	stringPassed := "False"
+
+	if scoreSubmission.Passed == true {
+		stringPassed = "True"
+	}
+
+	onlineScoreChecksumInput := fmt.Sprintf("%do14%d%ds%d%duu%s%d%s%s%d%s%dQ%s%d%s%s%s",
+		scoreSubmission.Count100+scoreSubmission.Count300,
+		scoreSubmission.Count50,
+		scoreSubmission.CountGeki,
+		scoreSubmission.CountKatu,
+		scoreSubmission.CountMiss,
+		scoreSubmission.FileHash,
+		scoreSubmission.MaxCombo,
+		stringPerfect,
+		scoreSubmission.Username,
+		scoreSubmission.TotalScore,
+		scoreSubmission.Ranking,
+		scoreSubmission.EnabledMods,
+		stringPassed,
+		scoreSubmission.Playmode,
+		scoreSubmission.ClientVersion,
+		scoreSubmission.Date,
+		clientHash)
+
+	onlineScoreChecksumHashed := md5.Sum([]byte(onlineScoreChecksumInput))
+	onlineScoreChecksumHashedString := hex.EncodeToString(onlineScoreChecksumHashed[:])
+
+	if scoreSubmission.OnlineScoreChecksum != onlineScoreChecksumHashedString {
+		ctx.String(http.StatusOK, "error: invalid score")
+		return
+	}
+
 	//get users stats
 	userFetchResult, userStats := database.UserStatsFromDatabase(uint64(userId), int8(scoreSubmission.Playmode))
 
@@ -345,6 +388,18 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		userStats.Level = float64(helpers.GetLevelFromScore(userStats.TotalScore))
 	}
 
+	switch scoreSubmission.Playmode {
+	case 0:
+		userStats.Accuracy = helpers.CalculateGlobalAccuracyOsu(userStats.Hit50, userStats.Hit100, userStats.Hit300, userStats.HitGeki, userStats.HitKatu, userStats.HitMiss)
+		break
+	case 1:
+		userStats.Accuracy = helpers.CalculateGlobalAccuracyTaiko(userStats.Hit50, userStats.Hit100, userStats.Hit300, userStats.HitGeki, userStats.HitKatu, userStats.HitMiss)
+		break
+	case 2:
+		userStats.Accuracy = helpers.CalculateGlobalAccuracyCatch(userStats.Hit50, userStats.Hit100, userStats.Hit300, userStats.HitGeki, userStats.HitKatu, userStats.HitMiss)
+		break
+	}
+
 	queryPerfect := int8(0)
 	queryPassed := int8(0)
 	queryLeaderboardBest := int8(0)
@@ -402,7 +457,6 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		queryPerfect = 1
 	}
 
-	//TODO: validate onlinescoreschecksum
 	insertScoreQuery, insertScoreQueryErr := database.Database.Query("INSERT INTO waffle.scores (beatmap_id, beatmapset_id, user_id, playmode, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, leaderboard_best, mapset_best, score_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", scoreBeatmap.BeatmapId, scoreBeatmap.BeatmapsetId, userId, int8(scoreSubmission.Playmode), scoreSubmission.TotalScore, scoreSubmission.MaxCombo, scoreSubmission.Ranking, scoreSubmission.Count300, scoreSubmission.Count100, scoreSubmission.Count50, scoreSubmission.CountMiss, scoreSubmission.CountGeki, scoreSubmission.CountKatu, scoreSubmission.EnabledMods, queryPassed, queryPerfect, queryLeaderboardBest, queryMapsetBest, scoreSubmission.OnlineScoreChecksum)
 
 	if insertScoreQueryErr != nil {
