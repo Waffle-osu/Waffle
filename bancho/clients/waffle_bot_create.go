@@ -34,10 +34,10 @@ func CreateWaffleBot() {
 		return
 	}
 
-	statGetResult, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
-	statGetResult, taikoStats := database.UserStatsFromDatabase(user.UserID, 1)
-	statGetResult, catchStats := database.UserStatsFromDatabase(user.UserID, 2)
-	statGetResult, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
+	statGetResult, osuStats := database.UserStatsGetWaffleBot(0)
+	statGetResult, taikoStats := database.UserStatsGetWaffleBot(1)
+	statGetResult, catchStats := database.UserStatsGetWaffleBot(2)
+	statGetResult, maniaStats := database.UserStatsGetWaffleBot(3)
 
 	//Makes the Rank not display in the client, good for distinguishing that this isn't a real player
 	osuStats.Rank = 0

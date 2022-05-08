@@ -430,7 +430,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		insertScoreQuery.Close()
 	}
 
-	newRankQuery, newRankQueryErr := database.Database.Query("SELECT `rank` FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE mode = ?) t WHERE user_id = ?", int8(scoreSubmission.Playmode), userId)
+	newRankQuery, newRankQueryErr := database.Database.Query("SELECT `rank` FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE mode = ? AND user_id != 1) t WHERE user_id = ?", int8(scoreSubmission.Playmode), userId)
 
 	if newRankQueryErr != nil {
 		ctx.String(http.StatusOK, "error: server error")
