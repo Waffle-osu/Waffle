@@ -56,11 +56,11 @@ func parseScoreString(score string) ScoreSubmission {
 	perfect := false
 	passed := false
 
-	if splitScore[11] == "1" {
+	if splitScore[11] == "True" {
 		perfect = true
 	}
 
-	if splitScore[14] == "1" {
+	if splitScore[14] == "True" {
 		passed = true
 	}
 
@@ -97,7 +97,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	wasExit := ctx.PostForm("x")
 	failTime := ctx.PostForm("ft")
 	clientHash := ctx.PostForm("s")
-	processList := ctx.PostForm("pl")
+	//processList := ctx.PostForm("pl")
 
 	//validate that parameters have indeed been sent
 	if score == "" || password == "" || clientHash == "" {
@@ -186,7 +186,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		return
 	}
 
-	helpers.Logger.Printf("[Web@ScoreSubmit] Got Score Submission from ID: %d; wasExit: %s; failTime: %s; clientHash: %s, processList: %s", userId, wasExit, failTime, clientHash, processList)
+	helpers.Logger.Printf("[Web@ScoreSubmit] Got Score Submission from ID: %d; wasExit: %s; failTime: %s; clientHash: %s", userId, wasExit, failTime, clientHash)
 
 	//save old values
 	scoreSubmissionResponse["rankedScoreBefore"] = strconv.FormatUint(userStats.RankedScore, 10)
@@ -430,7 +430,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		insertScoreQuery.Close()
 	}
 
-	newRankQuery, newRankQueryErr := database.Database.Query("SELECT `rank` FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE mode = ?) t WHERE user_id = ?", userId, int8(scoreSubmission.Playmode))
+	newRankQuery, newRankQueryErr := database.Database.Query("SELECT `rank` FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE mode = ?) t WHERE user_id = ?", int8(scoreSubmission.Playmode), userId)
 
 	if newRankQueryErr != nil {
 		ctx.String(http.StatusOK, "error: server error")
@@ -440,7 +440,6 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	var newRank int64
 
 	if newRankQuery.Next() {
-
 		scanErr := newRankQuery.Scan(&newRank)
 
 		if scanErr != nil {
