@@ -412,7 +412,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		bestMapsetScoreExists = 1
 	}
 
-	if bestMapsetScoreExists == 1 && mapsetBestScore.Score < scoreSubmission.TotalScore && scoreSubmission.Passed {
+	if bestMapsetScoreExists == 1 && mapsetBestScore.Score < scoreSubmission.TotalScore && scoreSubmission.Passed && scoreBeatmap.RankingStatus != 2 {
 		//I like to do this in 2 steps, makes me feel better
 		userStats.RankedScore -= uint64(mapsetBestScore.Score)
 
@@ -431,7 +431,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		}
 	}
 
-	if bestMapsetScoreExists == 0 && scoreSubmission.Passed {
+	if bestMapsetScoreExists == 0 && scoreSubmission.Passed && scoreBeatmap.RankingStatus != 2 {
 		userStats.RankedScore += uint64(scoreSubmission.TotalScore)
 	}
 
@@ -444,7 +444,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	if bestMapsetScoreExists == 1 {
 		queryMapsetBest = 0
 	} else {
-		if scoreSubmission.Passed {
+		if scoreSubmission.Passed && scoreBeatmap.RankingStatus != 2 {
 			queryMapsetBest = 1
 		}
 	}
