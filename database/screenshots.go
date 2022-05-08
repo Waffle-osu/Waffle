@@ -31,7 +31,7 @@ func ScreenshotsHitScreenshotLimit(id uint64) bool {
 }
 
 func ScreenshotsInsertNewScreenshot(userId uint64, filename string) bool {
-	query, queryErr := Database.Query("INSERT INTO waffle.screenshots (id, filename) VALUES (?, ?)", userId, filename)
+	query, queryErr := Database.Query("INSERT INTO waffle.screenshots (user_id, filename) VALUES (?, ?)", userId, filename)
 	defer query.Close()
 
 	return queryErr == nil
