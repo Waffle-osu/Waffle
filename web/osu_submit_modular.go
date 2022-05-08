@@ -475,7 +475,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	scoreSubmissionResponse["playCountAfter"] = strconv.FormatUint(userStats.Playcount, 10)
 	scoreSubmissionResponse["accuracyAfter"] = strconv.FormatFloat(float64(userStats.Accuracy), 'f', 2, 64)
 
-	updateUserStatsQuery, updateUserStatsQueryErr := database.Database.Query("UPDATE waffle.stats SET ranked_score = ?, total_score = ?, hit300 = ?, hit100 = ?, hit50 = ?, hitMiss = ?, hitGeki = ?, hitKatu = ?, user_level = ?, playcount = ? WHERE user_id = ? AND mode = ?", userStats.RankedScore, userStats.TotalScore, userStats.Hit300, userStats.Hit100, userStats.Hit50, userStats.HitMiss, userStats.HitGeki, userStats.HitKatu, userStats.Level, userStats.Playcount, userId, int8(scoreSubmission.Playmode))
+	updateUserStatsQuery, updateUserStatsQueryErr := database.Database.Query("UPDATE waffle.stats SET ranked_score = ?, total_score = ?, hit300 = ?, hit100 = ?, hit50 = ?, hitMiss = ?, hitGeki = ?, hitKatu = ?, user_level = ?, playcount = ?, accuracy = ? WHERE user_id = ? AND mode = ?", userStats.RankedScore, userStats.TotalScore, userStats.Hit300, userStats.Hit100, userStats.Hit50, userStats.HitMiss, userStats.HitGeki, userStats.HitKatu, userStats.Level, userStats.Playcount, userId, int8(scoreSubmission.Playmode), userStats.Accuracy)
 
 	if updateUserStatsQueryErr != nil {
 		ctx.String(http.StatusInternalServerError, "error: server error")
