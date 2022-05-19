@@ -84,7 +84,7 @@ func (client *Client) HandleIncoming() {
 				client.CatchStats = catchStats
 				client.ManiaStats = maniaStats
 
-				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.OsuStats, client.GetClientTimezone())
+				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.GetRelevantUserStats(), client.GetClientTimezone())
 				packets.BanchoSendOsuUpdate(client.PacketQueue, client.GetRelevantUserStats(), client.Status)
 				break
 			//The Client is requesting more information about certain clients
