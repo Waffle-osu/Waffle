@@ -309,6 +309,10 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	if passPlayCountsQueryErr != nil {
 		scoreSubmissionResponse["beatmapPlaycount"] = "1"
 		scoreSubmissionResponse["beatmapPasscount"] = "0"
+
+		if passPlayCountsQuery != nil {
+			passPlayCountsQuery.Close()
+		}
 	} else {
 		var playcount, passcount int64
 
@@ -321,6 +325,8 @@ func HandleOsuSubmit(ctx *gin.Context) {
 			scoreSubmissionResponse["beatmapPlaycount"] = "1"
 			scoreSubmissionResponse["beatmapPasscount"] = "0"
 		}
+
+		passPlayCountsQuery.Close()
 	}
 
 	//get users best score
@@ -416,6 +422,33 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		//I like to do this in 2 steps, makes me feel better
 		userStats.RankedScore -= uint64(mapsetBestScore.Score)
 
+		switch scoreSubmission.Ranking {
+		case "XH":
+			userStats.CountSSH--
+			break
+		case "SH":
+			userStats.CountSS--
+			break
+		case "X":
+			userStats.CountSH--
+			break
+		case "S":
+			userStats.CountS--
+			break
+		case "A":
+			userStats.CountA--
+			break
+		case "B":
+			userStats.CountB--
+			break
+		case "C":
+			userStats.CountC--
+			break
+		case "D":
+			userStats.CountD--
+			break
+		}
+
 		bestMapsetScoreExists = 0
 
 		//Overwrite in database
@@ -433,6 +466,33 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	if bestMapsetScoreExists == 0 && scoreSubmission.Passed && scoreBeatmap.RankingStatus != 2 {
 		userStats.RankedScore += uint64(scoreSubmission.TotalScore)
+
+		switch scoreSubmission.Ranking {
+		case "XH":
+			userStats.CountSSH++
+			break
+		case "SH":
+			userStats.CountSS++
+			break
+		case "X":
+			userStats.CountSH++
+			break
+		case "S":
+			userStats.CountS++
+			break
+		case "A":
+			userStats.CountA++
+			break
+		case "B":
+			userStats.CountB++
+			break
+		case "C":
+			userStats.CountC++
+			break
+		case "D":
+			userStats.CountD++
+			break
+		}
 	}
 
 	if bestLeaderboardScoreExists == 1 {
@@ -481,7 +541,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	}
 
 	if updateUserStatsQuery != nil {
-		insertScoreQuery.Close()
+		updateUserStatsQuery.Close()
 	}
 
 	newRankQuery, newRankQueryErr := database.Database.Query("SELECT `rank` FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats WHERE mode = ? AND user_id != 1) t WHERE user_id = ?", int8(scoreSubmission.Playmode), userId)
@@ -573,6 +633,10 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		nextRankScoreQuery, nextRankScoreQueryErr := database.Database.Query("SELECT * FROM (SELECT users.username, stats.user_id, stats.ranked_score, stats.mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank' FROM waffle.stats LEFT JOIN users ON stats.user_id = users.user_id WHERE mode = ?) t WHERE `rank` = ?", int8(scoreSubmission.Playmode), userStats.Rank-1)
 
 		if nextRankScoreQueryErr != nil {
+			if nextRankScoreQuery != nil {
+				nextRankScoreQuery.Close()
+			}
+
 			ctx.String(http.StatusOK, "error: server error")
 			return
 		}
