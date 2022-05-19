@@ -177,7 +177,6 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		return
 	}
 
-	//validate onlinescorechecksum
 	stringPerfect := "False"
 
 	if scoreSubmission.Perfect == true {
@@ -190,6 +189,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		stringPassed = "True"
 	}
 
+	//validate onlinescorechecksum
 	onlineScoreChecksumInput := fmt.Sprintf("%do14%d%ds%d%duu%s%d%s%s%d%s%dQ%s%d%s%s%s",
 		scoreSubmission.Count100+scoreSubmission.Count300,
 		scoreSubmission.Count50,

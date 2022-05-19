@@ -60,7 +60,7 @@ func (client *Client) HandleIncoming() {
 				client.Status = statusUpdate
 
 				client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
-					packets.BanchoSendOsuUpdate(packetQueue, client.OsuStats, client.Status)
+					packets.BanchoSendOsuUpdate(packetQueue, client.GetRelevantUserStats(), client.Status)
 				})
 				break
 			//The client is informing us, that it wants to know its own updated stats
