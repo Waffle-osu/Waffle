@@ -324,7 +324,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	}
 
 	//get users best score
-	scoreQueryResult, bestLeaderboardScore := database.ScoresGetUserLeaderboardBest(scoreBeatmap.BeatmapId, uint64(userId))
+	scoreQueryResult, bestLeaderboardScore, _, _ := database.ScoresGetUserLeaderboardBest(scoreBeatmap.BeatmapId, uint64(userId), int8(scoreSubmission.Playmode))
 	bestLeaderboardScoreExists := 0
 
 	if scoreQueryResult == -2 {
@@ -405,7 +405,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	queryLeaderboardBest := int8(0)
 	queryMapsetBest := int8(0)
 
-	mapsetBestScoreQueryResult, mapsetBestScore := database.ScoresGetBeatmapsetUserScore(scoreBeatmap.BeatmapsetId, uint64(userId))
+	mapsetBestScoreQueryResult, mapsetBestScore := database.ScoresGetBeatmapsetBestUserScore(scoreBeatmap.BeatmapsetId, uint64(userId), int8(scoreSubmission.Playmode))
 	bestMapsetScoreExists := 0
 
 	if mapsetBestScoreQueryResult == 0 {

@@ -10,6 +10,7 @@ type Score struct {
 	BeatmapId       int
 	BeatmapsetId    int
 	UserId          uint64
+	Playmode        int8
 	Score           int
 	MaxCombo        int
 	Ranking         string
@@ -28,7 +29,7 @@ type Score struct {
 	ScoreHash       string
 }
 
-func ScoresFormatLeaderboardScore(score Score, username string, onlineRank int32) string {
+func (score Score) ScoresFormatLeaderboardScore(username string, onlineRank int32) string {
 	perfectString := "0"
 
 	if score.Perfect == 1 {
@@ -41,40 +42,43 @@ func ScoresFormatLeaderboardScore(score Score, username string, onlineRank int32
 		scoreIdstring = strconv.FormatInt(int64(onlineRank), 10)
 	}
 
-	return fmt.Sprintf("%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d|%d|%s|%s", score.ScoreId, username, score.Score, score.MaxCombo, score.Hit50, score.Hit100, score.Hit300, score.HitMiss, score.HitKatu, score.HitKatu, perfectString, score.EnabledMods, score.UserId, scoreIdstring, score.Date)
+	return fmt.Sprintf("%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d|%d|%s|%s\n", score.ScoreId, username, score.Score, score.MaxCombo, score.Hit50, score.Hit100, score.Hit300, score.HitMiss, score.HitKatu, score.HitKatu, perfectString, score.EnabledMods, score.UserId, scoreIdstring, score.Date)
 }
 
-func ScoresGetUserLeaderboardBest(beatmapId int32, userId uint64) (queryResult int8, score Score) {
-	scoreQuery, scoreQueryErr := Database.Query("SELECT score_id, beatmap_id, beatmapset_id, user_id, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, date, leaderboard_best, mapset_best, score_hash FROM waffle.scores WHERE beatmap_id = ? AND user_id = ? AND leaderboard_best = 1", beatmapId, userId)
+func ScoresGetUserLeaderboardBest(beatmapId int32, userId uint64, mode int8) (queryResult int8, score Score, username string, onlineRank int64) {
+	scoreQuery, scoreQueryErr := Database.Query("SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY score DESC) AS 'online_rank',  users.username, scores.* FROM waffle.scores LEFT JOIN waffle.users ON scores.user_id = users.user_id WHERE beatmap_id = ? AND leaderboard_best = 1 AND passed = 1 AND playmode = ? ORDER BY score DESC) t WHERE user_id = ?", beatmapId, mode, userId)
 
 	if scoreQueryErr != nil {
 		if scoreQuery != nil {
 			scoreQuery.Close()
 		}
 
-		return -2, Score{}
+		return -2, Score{}, "", -1
 	}
 
 	if scoreQuery.Next() {
 		returnScore := Score{}
 
-		scanErr := scoreQuery.Scan(&returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash)
+		var username string
+		var onlineRank int64
+
+		scanErr := scoreQuery.Scan(&onlineRank, &username, &returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Playmode, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash)
 
 		if scanErr != nil {
 			scoreQuery.Close()
-			return -2, Score{}
+			return -2, Score{}, "", -1
 		}
 
 		scoreQuery.Close()
-		return 0, returnScore
+		return 0, returnScore, username, onlineRank
 	} else {
 		scoreQuery.Close()
-		return -1, Score{}
+		return -1, Score{}, "", -1
 	}
 }
 
-func ScoresGetBeatmapsetUserScore(beatmapsetId int32, userId uint64) (queryResult int8, score Score) {
-	scoreQuery, scoreQueryErr := Database.Query("SELECT score_id, beatmap_id, beatmapset_id, user_id, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, date, leaderboard_best, mapset_best, score_hash FROM waffle.scores WHERE beatmapset_id = ? AND user_id = ? AND mapset_best = 1", beatmapsetId, userId)
+func ScoresGetBeatmapsetBestUserScore(beatmapsetId int32, userId uint64, mode int8) (queryResult int8, score Score) {
+	scoreQuery, scoreQueryErr := Database.Query("SELECT score_id, beatmap_id, beatmapset_id, user_id, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, date, leaderboard_best, mapset_best, score_hash, playmode FROM waffle.scores WHERE beatmapset_id = ? AND user_id = ? AND mapset_best = 1", beatmapsetId, userId, mode)
 
 	if scoreQueryErr != nil {
 		if scoreQuery != nil {
@@ -87,7 +91,7 @@ func ScoresGetBeatmapsetUserScore(beatmapsetId int32, userId uint64) (queryResul
 	if scoreQuery.Next() {
 		returnScore := Score{}
 
-		scanErr := scoreQuery.Scan(&returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash)
+		scanErr := scoreQuery.Scan(&returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash, &returnScore.Playmode)
 
 		if scanErr != nil {
 			scoreQuery.Close()
