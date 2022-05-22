@@ -126,7 +126,7 @@ func (client *Client) HandleIncoming() {
 						client.currentMultiLobby.MultiChannel.SendMessage(client, message.Message, message.Target)
 
 						if message.Message[0] == '!' {
-							client.WaffleBotHandleCommand(client, message)
+							go client.WaffleBotHandleCommand(client, message)
 						}
 					}
 					break

@@ -8,11 +8,12 @@ import (
 	"Waffle/helpers"
 	"bufio"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // All the currently tested versions and whether they work well or not
@@ -21,6 +22,7 @@ var guaranteedWorkingVersion = map[string]bool{
 	"b1816.peppy": true,
 	"b1816":       true,
 	"b1815":       true,
+	"b1807":       true,
 }
 
 // HandleNewClient handles a new connection

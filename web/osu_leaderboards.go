@@ -3,19 +3,26 @@ package web
 import (
 	"Waffle/database"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
-func HandleOsuOsz2GetScores(ctx *gin.Context) {
+func HandleOsuGetLeaderboards(ctx *gin.Context) {
 	skipScores := ctx.Query("s")
 	beatmapChecksum := ctx.Query("c")
 	osuFilename := ctx.Query("f")
 	queryUserId := ctx.Query("u")
 	queryPlaymode := ctx.Query("m")
-	//beatmapsetId := ctx.Query("i")
+	beatmapsetId := ctx.Query("i")
 	//osz2hash := ctx.Query("h")
+
+	osz2client := false
+
+	if beatmapsetId != "" {
+		osz2client = true
+	}
 
 	userId, parseErr := strconv.ParseInt(queryUserId, 10, 64)
 	//playmode, parseErr := strconv.ParseInt(queryPlaymode, 10, 64)
@@ -33,12 +40,24 @@ func HandleOsuOsz2GetScores(ctx *gin.Context) {
 	}
 
 	if leaderboardBeatmapQueryResult == -1 {
-		ctx.String(http.StatusOK, "-1|false")
+		response := "-1"
+
+		if osz2client {
+			response += "|false"
+		}
+
+		ctx.String(http.StatusOK, response)
 		return
 	}
 
 	if beatmapChecksum != leaderboardBeatmap.BeatmapMd5 {
-		ctx.String(http.StatusOK, "1|false")
+		response := "1"
+
+		if osz2client {
+			response += "|false"
+		}
+
+		ctx.String(http.StatusOK, response)
 		return
 	}
 
@@ -55,7 +74,11 @@ func HandleOsuOsz2GetScores(ctx *gin.Context) {
 
 	switch leaderboardBeatmap.RankingStatus {
 	case 0:
-		ctx.String(http.StatusOK, "0|false")
+		if osz2client {
+			ctx.String(http.StatusOK, "0|false")
+		} else {
+			ctx.String(http.StatusOK, "0")
+		}
 		return
 	case 1:
 		returnRankedStatus = "2"
@@ -65,7 +88,14 @@ func HandleOsuOsz2GetScores(ctx *gin.Context) {
 		break
 	}
 	//Ranked Status|Server has osz2 of map
-	returnString += returnRankedStatus + "|false\n"
+	returnString += returnRankedStatus
+
+	if osz2client {
+		returnString += "|false\n"
+	} else {
+		returnString += "\n"
+	}
+
 	//Online Offset, currently we don't store any so eh, TODO
 	returnString += "0\n"
 	//Display Title
