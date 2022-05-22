@@ -23,6 +23,8 @@ var guaranteedWorkingVersion = map[string]bool{
 	"b1816":       true,
 	"b1815":       true,
 	"b1807":       true,
+	"b1814":       true,
+	"b1844.test":  true,
 }
 
 // HandleNewClient handles a new connection

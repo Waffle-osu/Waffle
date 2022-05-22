@@ -17,10 +17,10 @@ func RunOsuWeb() {
 	ginServer.GET("/web/osu-getreplay.php", HandleGetReplay)
 
 	// updater
-	ginServer.GET("/p/changelog", HandleUpdaterChangelog)
-	ginServer.GET("/release/update2.txt", HandleUpdaterUpdate2)
-	ginServer.GET("/release/update2.php", HandleOsuUpdate2)
-	ginServer.GET("/release/:filename", HandleUpdaterGetFile)
+	//ginServer.GET("/p/changelog", HandleUpdaterChangelog)
+	//ginServer.GET("/release/update2.txt", HandleUpdaterUpdate2)
+	//ginServer.GET("/release/update2.php", HandleOsuUpdate2)
+	//ginServer.GET("/release/:filename", HandleUpdaterGetFile)
 
 	// screenshots
 	ginServer.GET("/ss/:filename", HandleOsuGetScreenshot)
