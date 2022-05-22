@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var WaffleBot *Client
+
 // CreateWaffleBot creates and brings WaffleBot to life
 func CreateWaffleBot() {
 	packetQueue := make(chan packets.BanchoPacket, 32)
@@ -90,6 +92,8 @@ func CreateWaffleBot() {
 		ManiaStats:  maniaStats,
 		FriendsList: []database.FriendEntry{},
 	}
+
+	WaffleBot = &botClient
 
 	client_manager.LockClientList()
 

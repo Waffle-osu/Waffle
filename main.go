@@ -6,6 +6,7 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/clients"
 	"Waffle/bancho/lobby"
+	"Waffle/bancho/misc"
 	"Waffle/database"
 	"Waffle/helpers"
 	"Waffle/web"
@@ -38,7 +39,8 @@ func main() {
 	chat.InitializeChannels()                //Initializes Chat channels
 	client_manager.InitializeClientManager() //Initializes the client manager
 	lobby.InitializeLobby()                  //Initializes the multi lobby
-	clients.WaffleBotInitializeCommands()    //Initialize Chat Commands
+	clients.WaffleBotInitializeCommands()    //Initializes Chat Commands
+	misc.InitializeStatistics()              //Initializes Statistics
 
 	_, fileError := os.Stat(".env")
 

@@ -19,6 +19,7 @@ func WaffleBotInitializeCommands() {
 	commandHandlers["!help"] = WaffleBotCommandHelp
 	commandHandlers["!announce"] = WaffleBotCommandAnnounce
 	commandHandlers["!roll"] = WaffleBotCommandRoll
+	commandHandlers["!stats"] = WaffleBotCommandBanchoStatistics
 }
 
 func (client *Client) WaffleBotHandleCommand(sender client_manager.OsuClient, message packets.Message) {
@@ -38,7 +39,7 @@ func (client *Client) WaffleBotHandleCommand(sender client_manager.OsuClient, me
 
 	handler, exists := commandHandlers[command]
 
-	if exists == false {
+	if !exists {
 		return
 	}
 
@@ -46,10 +47,16 @@ func (client *Client) WaffleBotHandleCommand(sender client_manager.OsuClient, me
 
 	for _, messageString := range result {
 		if publicCommand {
-			channel, exists := chat.GetChannelByName(message.Target)
+			if message.Target == "#multiplayer" {
+				if client.currentMultiLobby != nil {
+					client.currentMultiLobby.MultiChannel.SendMessage(WaffleBot, messageString, message.Target)
+				}
+			} else {
+				channel, exists := chat.GetChannelByName(message.Target)
 
-			if exists {
-				channel.SendMessage(client, messageString, message.Target)
+				if exists {
+					channel.SendMessage(WaffleBot, messageString, message.Target)
+				}
 			}
 		} else {
 			packets.BanchoSendIrcMessage(sender.GetPacketQueue(), packets.Message{

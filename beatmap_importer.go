@@ -300,7 +300,6 @@ func BeatmapImporter(songsDir string) {
 		}
 
 		timeTaken := time.Since(startTime)
-		timeTaken = timeTaken
 
 		if errors == 0 {
 			logger.Printf("Successfully Processed Set ID %s! Took %dms", setId, timeTaken.Milliseconds())

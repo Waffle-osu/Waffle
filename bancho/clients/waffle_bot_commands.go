@@ -3,17 +3,21 @@ package clients
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
+	"Waffle/bancho/lobby"
+	"Waffle/bancho/misc"
 	"Waffle/bancho/packets"
 	"fmt"
 	"math"
 	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var helpStrings = []string{
-	"!help :: You're reading this right now",
-	"!roll :: Rolls a random number between 0 and 100",
+	"!help  :: You're reading this right now",
+	"!roll  :: Rolls a random number between 0 and 100",
+	"!stats :: Shows Waffle Statistics",
 }
 
 var adminHelpStrings = []string{
@@ -55,7 +59,7 @@ func WaffleBotCommandAnnounce(sender client_manager.OsuClient, args []string) []
 		toAll = false
 	}
 
-	if toAll == false {
+	if !toAll {
 		target := ""
 		index := 0
 
@@ -112,5 +116,134 @@ func WaffleBotCommandRoll(sender client_manager.OsuClient, args []string) []stri
 
 	return []string{
 		fmt.Sprintf("%s rolled %d!", sender.GetUserData().Username, int(rolled)),
+	}
+}
+
+func WaffleBotCommandBanchoStatistics(sender client_manager.OsuClient, args []string) []string {
+	//Calculating Uptime
+	var uptimeString string
+
+	duration := time.Since(misc.StatsBanchoLaunch)
+
+	hours := duration.Hours()
+
+	//Crazy math go get normal 60 seconds, 60 minutes and stuff
+	hours, minuteFraction := math.Modf(hours)
+	minutes := minuteFraction * 60
+
+	minutes, secondFraction := math.Modf(minutes)
+	seconds := secondFraction * 60
+
+	if int(duration.Hours()) == 0 {
+		//Less than an hour has passed
+		if int(duration.Minutes()) == 0 {
+			//Less than a minute has passed
+			pluralSeconds := "seconds"
+
+			if int(seconds) == 1 {
+				pluralSeconds = "second"
+			}
+
+			uptimeString = fmt.Sprintf("%.0f %s", seconds, pluralSeconds)
+		} else {
+			pluralSeconds := "seconds"
+
+			if int(seconds) == 1 {
+				pluralSeconds = "second"
+			}
+
+			pluralMinutes := "minutes"
+
+			if int(minutes) == 1 {
+				pluralMinutes = "minute"
+			}
+
+			//More than a minute but less than an hour has passed
+			uptimeString = fmt.Sprintf("%.0f %s and %.0f %s", minutes, pluralMinutes, seconds, pluralSeconds)
+		}
+	} else {
+		pluralSeconds := "seconds"
+
+		if int(seconds) == 1 {
+			pluralSeconds = "second"
+		}
+
+		pluralMinutes := "minutes"
+
+		if int(minutes) == 1 {
+			pluralMinutes = "minute"
+		}
+
+		pluralHours := "hours"
+
+		if int(hours) == 1 {
+			pluralHours = "hour"
+		}
+		//At least an hour has passed
+		uptimeString = fmt.Sprintf("%.0f %s %.0f %s and %.0f %s", hours, pluralHours, minutes, pluralMinutes, seconds, pluralSeconds)
+	}
+
+	//Calculating data sent/recieved
+	var dataSentString string
+	var dataRecvString string
+
+	//Recieved
+	if misc.StatsBytesRecieved < 1024*1024*1024 {
+		//Less than a Gigabyte has been recieved
+		if misc.StatsBytesRecieved < 1024*1024 {
+			//Less than a Megabyte has been recieved
+			if misc.StatsBytesRecieved < 1024 {
+				//Less than a Kilobyte has been recieved
+				dataRecvString = fmt.Sprintf("%d bytes", misc.StatsBytesRecieved)
+			} else {
+				//More than a Kilobyte has been recieved
+				dataRecvString = fmt.Sprintf("%.2fkb", float64(misc.StatsBytesRecieved)/1024.0)
+			}
+		} else {
+			//More than a Megabyte has been recieved
+			dataRecvString = fmt.Sprintf("%.2fmb", (float64(misc.StatsBytesRecieved)/1024.0)/1024.0)
+		}
+	} else {
+		//More than a Gigabyte has been recieved
+		dataRecvString = fmt.Sprintf("%.2fgb", ((float64(misc.StatsBytesRecieved)/1024.0)/1024.0)/1024.0)
+	}
+
+	//Sent
+	if misc.StatsBytesSent < 1024*1024*1024 {
+		//Less than a Gigabyte has been sent
+		if misc.StatsBytesSent < 1024*1024 {
+			//Less than a Megabyte has been sent
+			if misc.StatsBytesSent < 1024 {
+				//Less than a Kilobyte has been sent
+				dataSentString = fmt.Sprintf("%d bytes", misc.StatsBytesSent)
+			} else {
+				//More than a Kilobyte has been sent
+				dataSentString = fmt.Sprintf("%.2fkb", float64(misc.StatsBytesSent)/1024.0)
+			}
+		} else {
+			//More than a Megabyte has been sent
+			dataSentString = fmt.Sprintf("%.2fmb", (float64(misc.StatsBytesSent)/1024.0)/1024.0)
+		}
+	} else {
+		//More than a Gigabyte has been sent
+		dataSentString = fmt.Sprintf("%.2fgb", ((float64(misc.StatsBytesSent)/1024.0)/1024.0)/1024.0)
+	}
+
+	pluralUsers := "users"
+	pluralMatches := "matches"
+
+	if client_manager.GetClientCount() == 1 {
+		pluralUsers = "user"
+	}
+
+	if lobby.GetMatchCount() == 1 {
+		pluralMatches = "match"
+	}
+
+	return []string{
+		fmt.Sprintf("[WAFFLE-STATS] Waffle has been up for %s", uptimeString),
+		fmt.Sprintf("[WAFFLE-STATS] Serving %d %s, playing %d %s", client_manager.GetClientCount(), pluralUsers, lobby.GetMatchCount(), pluralMatches),
+		fmt.Sprintf("[WAFFLE-STATS] %s have been sent", dataSentString),
+		fmt.Sprintf("[WAFFLE-STATS] %s have been recieved", dataRecvString),
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/lobby"
+	"Waffle/bancho/misc"
 	"Waffle/bancho/packets"
 	"Waffle/database"
 	"Waffle/helpers"
@@ -26,6 +27,12 @@ func (client *Client) HandleIncoming() {
 			//We don't clean up as we may not need to
 			return
 		}
+
+		go func() {
+			misc.StatsRecvLock.Lock()
+			misc.StatsBytesRecieved += uint64(read)
+			misc.StatsRecvLock.Unlock()
+		}()
 
 		//Update last receive time, this is used to check for timeouts
 		client.lastReceive = time.Now()
@@ -115,7 +122,13 @@ func (client *Client) HandleIncoming() {
 
 				//Reroute if it's for #multiplayer
 				if message.Target == "#multiplayer" {
-					client.currentMultiLobby.MultiChannel.SendMessage(client, message.Message, message.Target)
+					if client.currentMultiLobby != nil {
+						client.currentMultiLobby.MultiChannel.SendMessage(client, message.Message, message.Target)
+
+						if message.Message[0] == '!' {
+							client.WaffleBotHandleCommand(client, message)
+						}
+					}
 					break
 				}
 
@@ -456,6 +469,14 @@ func (client *Client) SendOutgoing() {
 		if packet.PacketId != 8 {
 			helpers.Logger.Printf("[Bancho@Handling] Sending %s to %s\n", packets.GetPacketName(packet.PacketId), client.UserData.Username)
 		}
+
+		sendBytes := packet.GetBytes()
+
+		go func() {
+			misc.StatsSendLock.Lock()
+			misc.StatsBytesSent += uint64(len(sendBytes))
+			misc.StatsSendLock.Unlock()
+		}()
 
 		client.connection.Write(packet.GetBytes())
 	}

@@ -6,10 +6,11 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ScoreSubmission struct {
@@ -152,7 +153,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	scoreSubmission := parseScoreString(score)
 
 	//fail the submission if the score wasnt parsed right
-	if scoreSubmission.ParsedSuccessfully != true {
+	if scoreSubmission.ParsedSuccessfully {
 		ctx.String(http.StatusBadRequest, "error: bad score submission")
 		return
 	}
@@ -172,20 +173,20 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	}
 
 	//wrong password
-	if authSuccess == false {
+	if !authSuccess {
 		ctx.String(http.StatusOK, "error: pass")
 		return
 	}
 
 	stringPerfect := "False"
 
-	if scoreSubmission.Perfect == true {
+	if scoreSubmission.Perfect {
 		stringPerfect = "True"
 	}
 
 	stringPassed := "False"
 
-	if scoreSubmission.Passed == true {
+	if scoreSubmission.Passed {
 		stringPassed = "True"
 	}
 
@@ -347,7 +348,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	oldLeaderboardPlace := int64(0)
 
-	if (bestLeaderboardScoreExists == 1 && bestLeaderboardScore.Score < scoreSubmission.TotalScore) || ((bestLeaderboardScore.Passed == 0 && scoreQueryResult == 0) && scoreSubmission.Passed == true) {
+	if (bestLeaderboardScoreExists == 1 && bestLeaderboardScore.Score < scoreSubmission.TotalScore) || ((bestLeaderboardScore.Passed == 0 && scoreQueryResult == 0) && scoreSubmission.Passed) {
 		queryResult, oldLeaderboardPlaceResult := database.ScoresGetBeatmapLeaderboardPlace(bestLeaderboardScore.ScoreId, int32(bestLeaderboardScore.BeatmapId))
 
 		if queryResult != 0 {

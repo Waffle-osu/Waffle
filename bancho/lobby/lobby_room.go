@@ -167,3 +167,7 @@ func GetMultiMatchById(matchId uint16) *MultiplayerLobby {
 
 	return match
 }
+
+func GetMatchCount() int {
+	return len(multiLobbies)
+}

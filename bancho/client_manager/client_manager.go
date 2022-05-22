@@ -74,3 +74,7 @@ func UnregisterClient(client OsuClient) {
 
 	UnlockClientList()
 }
+
+func GetClientCount() int {
+	return len(clientList)
+}

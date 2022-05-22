@@ -3,10 +3,11 @@ package web
 import (
 	"Waffle/database"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func HandleOsuScreenshot(ctx *gin.Context) {
@@ -19,7 +20,7 @@ func HandleOsuScreenshot(ctx *gin.Context) {
 		return
 	}
 
-	if authResult == false {
+	if !authResult {
 		ctx.String(http.StatusUnauthorized, "Failed to upload Screenshot!")
 		return
 	}
@@ -31,7 +32,7 @@ func HandleOsuScreenshot(ctx *gin.Context) {
 
 	filename := fmt.Sprintf("%x-%x", userId, time.Now().Unix())
 
-	if database.ScreenshotsInsertNewScreenshot(uint64(userId), filename) == false {
+	if !database.ScreenshotsInsertNewScreenshot(uint64(userId), filename) {
 		ctx.String(http.StatusOK, "an_error_occured")
 		return
 	}
