@@ -153,7 +153,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	scoreSubmission := parseScoreString(score)
 
 	//fail the submission if the score wasnt parsed right
-	if scoreSubmission.ParsedSuccessfully {
+	if !scoreSubmission.ParsedSuccessfully {
 		ctx.String(http.StatusBadRequest, "error: bad score submission")
 		return
 	}

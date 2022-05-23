@@ -12,6 +12,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -454,6 +455,186 @@ func (client *Client) HandleIncoming() {
 						Target:  client.UserData.Username,
 					})
 				}
+				break
+			case packets.OsuBeatmapInfoRequest:
+				infoRequest := packets.ReadBeatmapInfoRequest(packetDataReader)
+
+				go func() {
+					infoReply := packets.BeatmapInfoReply{}
+
+					queryArguments := []interface{}{
+						client.OsuStats.UserID, client.OsuStats.UserID, client.OsuStats.UserID,
+					}
+
+					questionMarks := ""
+
+					if len(infoRequest.Filenames) == 0 {
+						questionMarks = "?"
+						queryArguments = append(queryArguments, "")
+					} else {
+						for i := 0; i != len(infoRequest.Filenames); i++ {
+							questionMarks += "?, "
+						}
+					}
+
+					questionMarks = strings.TrimSuffix(questionMarks, ", ")
+
+					beatmapIds := ""
+
+					if len(infoRequest.BeatmapIds) == 0 {
+						beatmapIds = "0"
+					} else {
+						for i := 0; i != len(infoRequest.BeatmapIds); i++ {
+							beatmapIds += string(infoRequest.BeatmapIds[i]) + ", "
+						}
+					}
+
+					beatmapIds = strings.TrimSuffix(beatmapIds, ", ")
+
+					sql := fmt.Sprintf("SELECT result.beatmap_id, result.beatmapset_id, result.filename, result.beatmap_md5, result.ranking_status, result.final_osu_ranking AS 'osu_ranking', result.final_taiko_ranking AS 'taiko_ranking', result.final_catch_ranking AS 'catch_ranking' FROM (SELECT beatmaps.beatmap_id, beatmaps.beatmapset_id, beatmaps.filename, beatmaps.beatmap_md5, beatmaps.ranking_status, osuResult.ranking AS 'osu_ranking', osuResult.user_id AS 'osu_user_id', taikoResult.ranking AS 'taiko_ranking', taikoResult.user_id AS 'taiko_user_id', catchResult.ranking AS 'catch_ranking', catchResult.user_id AS 'catch_user_id',CASE WHEN osuResult.ranking IS NULL THEN 'N' ELSE osuResult.ranking END AS 'final_osu_ranking',CASE WHEN taikoResult.ranking IS NULL THEN 'N' ELSE taikoResult.ranking END AS 'final_taiko_ranking', CASE WHEN catchResult.ranking IS NULL THEN 'N' ELSE catchResult.ranking END AS 'final_catch_ranking'FROM waffle.beatmaps LEFT JOIN scores osuResult ON osuResult.beatmap_id = beatmaps.beatmap_id AND osuResult.mapset_best = 1 AND osuResult.playmode = 0 AND osuResult.user_id = ? LEFT JOIN scores taikoResult ON taikoResult.beatmap_id = beatmaps.beatmap_id AND taikoResult.mapset_best = 1 AND taikoResult.playmode = 1 AND taikoResult.user_id = ? LEFT JOIN scores catchResult ON catchResult.beatmap_id = beatmaps.beatmap_id AND catchResult.mapset_best = 1 AND catchResult.playmode = 2 AND catchResult.user_id = ? WHERE beatmaps.filename IN ( %s ) OR beatmaps.beatmap_id IN ( %s )) result", questionMarks, beatmapIds)
+
+					for i := 0; i != len(infoRequest.Filenames); i++ {
+						queryArguments = append(queryArguments, infoRequest.Filenames[i])
+					}
+
+					databaseQuery, databaseQueryErr := database.Database.Query(sql, queryArguments...)
+
+					if databaseQueryErr != nil {
+						if databaseQuery != nil {
+							databaseQuery.Close()
+						}
+
+						fmt.Printf("fuck\n")
+					}
+
+					if databaseQuery != nil {
+						for databaseQuery.Next() {
+							beatmapInfo := packets.BeatmapInfo{}
+
+							beatmapInfo.InfoId = -1
+
+							var osuRank, taikoRank, catchRank string
+							var osuFilename string
+
+							databaseQuery.Scan(&beatmapInfo.BeatmapId, &beatmapInfo.BeatmapSetId, &osuFilename, &beatmapInfo.BeatmapChecksum, &beatmapInfo.Ranked, &osuRank, &taikoRank, &catchRank)
+
+							switch osuRank {
+							case "XH":
+								beatmapInfo.OsuRank = 0
+								break
+							case "SH":
+								beatmapInfo.OsuRank = 1
+								break
+							case "X":
+								beatmapInfo.OsuRank = 2
+								break
+							case "S":
+								beatmapInfo.OsuRank = 3
+								break
+							case "A":
+								beatmapInfo.OsuRank = 4
+								break
+							case "B":
+								beatmapInfo.OsuRank = 5
+								break
+							case "C":
+								beatmapInfo.OsuRank = 6
+								break
+							case "D":
+								beatmapInfo.OsuRank = 7
+								break
+							case "F":
+								beatmapInfo.OsuRank = 8
+								break
+							case "N":
+								beatmapInfo.OsuRank = 9
+								break
+							}
+
+							switch taikoRank {
+							case "XH":
+								beatmapInfo.TaikoRank = 0
+								break
+							case "SH":
+								beatmapInfo.TaikoRank = 1
+								break
+							case "X":
+								beatmapInfo.TaikoRank = 2
+								break
+							case "S":
+								beatmapInfo.TaikoRank = 3
+								break
+							case "A":
+								beatmapInfo.TaikoRank = 4
+								break
+							case "B":
+								beatmapInfo.TaikoRank = 5
+								break
+							case "C":
+								beatmapInfo.TaikoRank = 6
+								break
+							case "D":
+								beatmapInfo.TaikoRank = 7
+								break
+							case "F":
+								beatmapInfo.TaikoRank = 8
+								break
+							case "N":
+								beatmapInfo.TaikoRank = 9
+								break
+							}
+
+							switch catchRank {
+							case "XH":
+								beatmapInfo.CatchRank = 0
+								break
+							case "SH":
+								beatmapInfo.CatchRank = 1
+								break
+							case "X":
+								beatmapInfo.CatchRank = 2
+								break
+							case "S":
+								beatmapInfo.CatchRank = 3
+								break
+							case "A":
+								beatmapInfo.CatchRank = 4
+								break
+							case "B":
+								beatmapInfo.CatchRank = 5
+								break
+							case "C":
+								beatmapInfo.CatchRank = 6
+								break
+							case "D":
+								beatmapInfo.CatchRank = 7
+								break
+							case "F":
+								beatmapInfo.CatchRank = 8
+								break
+							case "N":
+								beatmapInfo.CatchRank = 9
+								break
+							}
+
+							infoPosition := int16(-1)
+
+							for k := 0; k != len(infoRequest.Filenames); k++ {
+								if infoRequest.Filenames[k] == osuFilename {
+									infoPosition = int16(k)
+								}
+							}
+
+							beatmapInfo.InfoId = infoPosition
+
+							infoReply.BeatmapInfos = append(infoReply.BeatmapInfos, beatmapInfo)
+						}
+
+						packets.BanchoSendBeatmapInfoReply(client.PacketQueue, infoReply)
+
+						databaseQuery.Close()
+					}
+				}()
 				break
 			default:
 				helpers.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
