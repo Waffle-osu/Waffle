@@ -500,8 +500,41 @@ func (client *Client) HandleIncoming() {
 					//trim off comma to not have a extra one
 					beatmapIds = strings.TrimSuffix(beatmapIds, ", ")
 
+					sqlString := `
+SELECT				
+	result.beatmap_id,				
+	result.beatmapset_id,
+	result.filename,
+	result.beatmap_md5,
+	result.ranking_status,
+	result.final_osu_ranking AS 'osu_ranking',
+	result.final_taiko_ranking AS 'taiko_ranking',
+	result.final_catch_ranking AS 'catch_ranking'
+FROM (
+	SELECT beatmaps.beatmap_id, 
+		   beatmaps.beatmapset_id, 
+		   beatmaps.filename, 
+		   beatmaps.beatmap_md5, 
+		   beatmaps.ranking_status, 
+		   osuResult.ranking AS 'osu_ranking', 
+		   osuResult.user_id AS 'osu_user_id', 
+		   taikoResult.ranking AS 'taiko_ranking',
+		   taikoResult.user_id AS 'taiko_user_id', 
+		   catchResult.ranking AS 'catch_ranking', 
+		   catchResult.user_id AS 'catch_user_id',
+		CASE WHEN osuResult.ranking IS NULL THEN 'N' ELSE osuResult.ranking END AS 'final_osu_ranking',
+		CASE WHEN taikoResult.ranking IS NULL THEN 'N' ELSE taikoResult.ranking END AS 'final_taiko_ranking', 
+		CASE WHEN catchResult.ranking IS NULL THEN 'N' ELSE catchResult.ranking END AS 'final_catch_ranking'
+			FROM waffle.beatmaps 
+		LEFT JOIN scores osuResult ON osuResult.beatmap_id = beatmaps.beatmap_id AND osuResult.mapset_best = 1 AND osuResult.playmode = 0 AND osuResult.user_id = ? 
+		LEFT JOIN scores taikoResult ON taikoResult.beatmap_id = beatmaps.beatmap_id AND taikoResult.mapset_best = 1 AND taikoResult.playmode = 1 AND taikoResult.user_id = ? 
+		LEFT JOIN scores catchResult ON catchResult.beatmap_id = beatmaps.beatmap_id AND catchResult.mapset_best = 1 AND catchResult.playmode = 2 AND catchResult.user_id = ? 
+	WHERE beatmaps.filename IN ( %s ) 
+	OR beatmaps.beatmap_id IN ( %s )
+) result
+`
 					//the absolutely gigantic sql
-					sql := fmt.Sprintf("SELECT result.beatmap_id, result.beatmapset_id, result.filename, result.beatmap_md5, result.ranking_status, result.final_osu_ranking AS 'osu_ranking', result.final_taiko_ranking AS 'taiko_ranking', result.final_catch_ranking AS 'catch_ranking' FROM (SELECT beatmaps.beatmap_id, beatmaps.beatmapset_id, beatmaps.filename, beatmaps.beatmap_md5, beatmaps.ranking_status, osuResult.ranking AS 'osu_ranking', osuResult.user_id AS 'osu_user_id', taikoResult.ranking AS 'taiko_ranking', taikoResult.user_id AS 'taiko_user_id', catchResult.ranking AS 'catch_ranking', catchResult.user_id AS 'catch_user_id',CASE WHEN osuResult.ranking IS NULL THEN 'N' ELSE osuResult.ranking END AS 'final_osu_ranking',CASE WHEN taikoResult.ranking IS NULL THEN 'N' ELSE taikoResult.ranking END AS 'final_taiko_ranking', CASE WHEN catchResult.ranking IS NULL THEN 'N' ELSE catchResult.ranking END AS 'final_catch_ranking'FROM waffle.beatmaps LEFT JOIN scores osuResult ON osuResult.beatmap_id = beatmaps.beatmap_id AND osuResult.mapset_best = 1 AND osuResult.playmode = 0 AND osuResult.user_id = ? LEFT JOIN scores taikoResult ON taikoResult.beatmap_id = beatmaps.beatmap_id AND taikoResult.mapset_best = 1 AND taikoResult.playmode = 1 AND taikoResult.user_id = ? LEFT JOIN scores catchResult ON catchResult.beatmap_id = beatmaps.beatmap_id AND catchResult.mapset_best = 1 AND catchResult.playmode = 2 AND catchResult.user_id = ? WHERE beatmaps.filename IN ( %s ) OR beatmaps.beatmap_id IN ( %s )) result", questionMarks, beatmapIds)
+					sql := fmt.Sprintf(sqlString, questionMarks, beatmapIds)
 
 					//add the filenames as query arguments
 					for i := 0; i != len(infoRequest.Filenames); i++ {
