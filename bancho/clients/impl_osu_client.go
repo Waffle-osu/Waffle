@@ -22,16 +22,12 @@ func (client *Client) GetRelevantUserStats() database.UserStats {
 	switch client.Status.Playmode {
 	case packets.OsuGamemodeOsu:
 		stats = client.OsuStats
-		break
 	case packets.OsuGamemodeTaiko:
 		stats = client.TaikoStats
-		break
 	case packets.OsuGamemodeCatch:
 		stats = client.CatchStats
-		break
 	case packets.OsuGamemodeMania:
 		stats = client.ManiaStats
-		break
 	}
 
 	return stats

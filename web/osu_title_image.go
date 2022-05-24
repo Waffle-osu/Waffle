@@ -4,9 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 func HandleTitleImage(ctx *gin.Context) {

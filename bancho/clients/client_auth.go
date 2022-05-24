@@ -43,14 +43,14 @@ func HandleNewClient(connection net.Conn) {
 	textReader := bufio.NewReader(connection)
 
 	//Read everything the client gave us
-	username, readErr := textReader.ReadString('\n')
-	password, readErr := textReader.ReadString('\n')
-	userData, readErr := textReader.ReadString('\n')
+	username, readErrUsername := textReader.ReadString('\n')
+	password, readErrPassword := textReader.ReadString('\n')
+	userData, readErrData := textReader.ReadString('\n')
 
 	//Create a packet queue
 	packetQueue := make(chan packets.BanchoPacket, 128)
 
-	if readErr != nil {
+	if readErrUsername != nil || readErrPassword != nil || readErrData != nil {
 		helpers.Logger.Printf("[Bancho@Auth] Failed to read initial user data\n")
 		connection.Close()
 		return
@@ -139,16 +139,16 @@ func HandleNewClient(connection net.Conn) {
 	packets.BanchoSendLoginReply(packetQueue, int32(user.UserID))
 
 	//Retrieve stats
-	statGetResult, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
-	statGetResult, taikoStats := database.UserStatsFromDatabase(user.UserID, 1)
-	statGetResult, catchStats := database.UserStatsFromDatabase(user.UserID, 2)
-	statGetResult, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
+	statGetResultOsu, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
+	statGetResultTaiko, taikoStats := database.UserStatsFromDatabase(user.UserID, 1)
+	statGetResultCatch, catchStats := database.UserStatsFromDatabase(user.UserID, 2)
+	statGetResultMania, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
 
-	if statGetResult == -1 {
+	if statGetResultOsu == -1 || statGetResultTaiko == -1 || statGetResultCatch == -1 || statGetResultMania == -1 {
 		packets.BanchoSendAnnounce(packetQueue, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
-	} else if statGetResult == -2 {
+	} else if statGetResultOsu == -2 || statGetResultTaiko == -2 || statGetResultCatch == -2 || statGetResultMania == -2 {
 		packets.BanchoSendAnnounce(packetQueue, "A weird server-side fuckup occured, stats could not be loaded...")
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
@@ -252,9 +252,9 @@ func HandleNewClient(connection net.Conn) {
 	//Try getting info on the version the user's running
 	working, recorded := guaranteedWorkingVersion[clientInfo.Version]
 
-	if recorded == false {
+	if !recorded {
 		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s has not yet been tested and may not work as intended! Unforseen problems may occur, report them to Furball if you can, depending on version it could be fixed.", clientInfo.Version))
-	} else if working == false {
+	} else if !working {
 		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s is tested and has been found to not work properly on Waffle! Your experience may not be the best.", clientInfo.Version))
 	} else {
 		packets.BanchoSendAnnounce(client.PacketQueue, "Welcome to Waffle!")

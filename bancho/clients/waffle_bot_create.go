@@ -36,10 +36,10 @@ func CreateWaffleBot() {
 		return
 	}
 
-	statGetResult, osuStats := database.UserStatsGetWaffleBot(0)
-	statGetResult, taikoStats := database.UserStatsGetWaffleBot(1)
-	statGetResult, catchStats := database.UserStatsGetWaffleBot(2)
-	statGetResult, maniaStats := database.UserStatsGetWaffleBot(3)
+	statGetResultOsu, osuStats := database.UserStatsGetWaffleBot(0)
+	statGetResultTaiko, taikoStats := database.UserStatsGetWaffleBot(1)
+	statGetResultCatch, catchStats := database.UserStatsGetWaffleBot(2)
+	statGetResultMania, maniaStats := database.UserStatsGetWaffleBot(3)
 
 	//Makes the Rank not display in the client, good for distinguishing that this isn't a real player
 	osuStats.Rank = 0
@@ -48,7 +48,7 @@ func CreateWaffleBot() {
 	maniaStats.Rank = 0
 
 	//If this happens, you either removed stuff from the DB or your MySQL stuff is wrong
-	if statGetResult != 0 {
+	if statGetResultOsu != 0 || statGetResultTaiko != 0 || statGetResultCatch != 0 || statGetResultMania != 0 {
 		helpers.Logger.Printf("[Bancho@WaffleBotCreate] //////////////// IMPORTANT /////////////////")
 		helpers.Logger.Printf("[Bancho@WaffleBotCreate] Failed to Find WaffleBot stats in Database!!")
 		helpers.Logger.Printf("[Bancho@WaffleBotCreate] ////////////////////////////////////////////")

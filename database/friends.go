@@ -10,6 +10,7 @@ func FriendsGetFriendsList(userId uint64) (result int, friendsList []FriendEntry
 	var friends = []FriendEntry{}
 
 	queryResult, queryErr := Database.Query("SELECT user_1, user_2 FROM waffle.friends WHERE user_1 = ?", userId)
+
 	defer queryResult.Close()
 
 	if queryErr != nil {

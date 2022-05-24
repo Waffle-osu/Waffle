@@ -105,16 +105,12 @@ func main() {
 			switch key {
 			case "mysql_username":
 				mySqlUsername = value
-				break
 			case "mysql_password":
 				mySqlPassword = value
-				break
 			case "mysql_database":
 				mySqlDatabase = value
-				break
 			case "mysql_location":
 				mySqlLocation = value
-				break
 			}
 		}
 

@@ -112,7 +112,7 @@ func BeatmapImporter(songsDir string) {
 		errors := 0
 		startTime := time.Now()
 
-		if directory.IsDir() == false {
+		if !directory.IsDir() {
 			continue
 		}
 
@@ -122,7 +122,7 @@ func BeatmapImporter(songsDir string) {
 		if onlyReprocess != nil {
 			process, exists := onlyReprocess[setId]
 
-			if exists == false || process == false {
+			if !exists || !process {
 				continue
 			}
 		}
@@ -138,7 +138,7 @@ func BeatmapImporter(songsDir string) {
 		}
 
 		for _, beatmapFolderFile := range folderFiles {
-			if strings.HasSuffix(beatmapFolderFile.Name(), ".osu") == false {
+			if !strings.HasSuffix(beatmapFolderFile.Name(), ".osu") {
 				continue
 			}
 
@@ -190,17 +190,11 @@ func BeatmapImporter(songsDir string) {
 			if currentBeatmapset == nil {
 				currentBeatmapset = new(database.Beatmapset)
 
-				beatmapsetId, parseErr := strconv.ParseInt(beatmapInfo.BeatmapsetID, 10, 32)
-				creatorId, parseErr := strconv.ParseInt(beatmapInfo.CreatorID, 10, 32)
-				hasVideo, parseErr := strconv.ParseInt(beatmapInfo.Video, 10, 32)
-				hasStoryboard, parseErr := strconv.ParseInt(beatmapInfo.Storyboard, 10, 32)
-				bpm, parseErr := strconv.ParseFloat(beatmapInfo.Bpm, 64)
-
-				if parseErr != nil {
-					logger.Printf("Failed to parse JSON values to their types. Set ID %s", setId)
-					errors++
-					continue
-				}
+				beatmapsetId, _ := strconv.ParseInt(beatmapInfo.BeatmapsetID, 10, 32)
+				creatorId, _ := strconv.ParseInt(beatmapInfo.CreatorID, 10, 32)
+				hasVideo, _ := strconv.ParseInt(beatmapInfo.Video, 10, 32)
+				hasStoryboard, _ := strconv.ParseInt(beatmapInfo.Storyboard, 10, 32)
+				bpm, _ := strconv.ParseFloat(beatmapInfo.Bpm, 64)
 
 				currentBeatmapset.BeatmapsetId = int32(beatmapsetId)
 				currentBeatmapset.CreatorId = creatorId
@@ -215,29 +209,23 @@ func BeatmapImporter(songsDir string) {
 				currentBeatmapset.Tags = beatmapInfo.Tags
 			}
 
-			beatmapId, parseErr := strconv.ParseInt(beatmapInfo.BeatmapID, 10, 32)
-			totalLength, parseErr := strconv.ParseInt(beatmapInfo.TotalLength, 10, 32)
-			drainTime, parseErr := strconv.ParseInt(beatmapInfo.HitLength, 10, 32)
-			countNormal, parseErr := strconv.ParseInt(beatmapInfo.CountNormal, 10, 32)
-			countSliders, parseErr := strconv.ParseInt(beatmapInfo.CountSlider, 10, 32)
-			countSpinners, parseErr := strconv.ParseInt(beatmapInfo.CountSpinner, 10, 32)
-			diffHp, parseErr := strconv.ParseInt(beatmapInfo.DiffDrain, 10, 32)
-			diffCs, parseErr := strconv.ParseInt(beatmapInfo.DiffSize, 10, 32)
-			diffOd, parseErr := strconv.ParseInt(beatmapInfo.DiffOverall, 10, 32)
-			playmode, parseErr := strconv.ParseInt(beatmapInfo.Mode, 10, 32)
-			rankingStatus, parseErr := strconv.ParseInt(beatmapInfo.Approved, 10, 32)
-
-			if parseErr != nil {
-				logger.Printf("Failed to parse JSON values to their types. Set ID %s", setId)
-				errors++
-				continue
-			}
+			beatmapId, _ := strconv.ParseInt(beatmapInfo.BeatmapID, 10, 32)
+			totalLength, _ := strconv.ParseInt(beatmapInfo.TotalLength, 10, 32)
+			drainTime, _ := strconv.ParseInt(beatmapInfo.HitLength, 10, 32)
+			countNormal, _ := strconv.ParseInt(beatmapInfo.CountNormal, 10, 32)
+			countSliders, _ := strconv.ParseInt(beatmapInfo.CountSlider, 10, 32)
+			countSpinners, _ := strconv.ParseInt(beatmapInfo.CountSpinner, 10, 32)
+			diffHp, _ := strconv.ParseInt(beatmapInfo.DiffDrain, 10, 32)
+			diffCs, _ := strconv.ParseInt(beatmapInfo.DiffSize, 10, 32)
+			diffOd, _ := strconv.ParseInt(beatmapInfo.DiffOverall, 10, 32)
+			playmode, _ := strconv.ParseInt(beatmapInfo.Mode, 10, 32)
+			rankingStatus, _ := strconv.ParseInt(beatmapInfo.Approved, 10, 32)
 
 			countObjects := countNormal + countSpinners + countSliders
 
 			foundFilename, filenameExists := checksumToFilename[beatmapInfo.FileMd5]
 
-			if filenameExists == false {
+			if !filenameExists {
 				logger.Printf("Failed to find matching Filename for .osu file. Set ID %s", setId)
 				errors++
 				continue

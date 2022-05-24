@@ -31,7 +31,6 @@ func (client *Client) WaffleBotHandleOutgoing() {
 
 				go client.WaffleBotHandleCommand(sender, message)
 			}
-			break
 		case packets.OsuSendIrcMessagePrivate:
 			message := packets.ReadMessage(packetDataReader)
 			//Assign a sender, as the client doesn't seem to send itself as the sender
@@ -42,7 +41,6 @@ func (client *Client) WaffleBotHandleOutgoing() {
 
 				go client.WaffleBotHandleCommand(sender, message)
 			}
-			break
 		case packets.BanchoSpectatorJoined:
 			var userId int32
 
@@ -58,10 +56,8 @@ func (client *Client) WaffleBotHandleOutgoing() {
 					Target:  userById.GetUserData().Username,
 				})
 			}
-			break
 		default:
 			helpers.Logger.Printf("[Bancho@WaffleBotHandle] WaffleBot got %s\n", packets.GetPacketName(packet.PacketId))
-			break
 		}
 	}
 }

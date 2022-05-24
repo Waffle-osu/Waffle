@@ -173,7 +173,7 @@ func (multiLobby *MultiplayerLobby) HandleHostLeave(slot int) {
 			multiLobby.MatchHost = multiLobby.MultiClients[i]
 
 			//We can move them freely if the match isn't in progress, as the slot IDs don't have to be preserved, unlike during gameplay
-			if multiLobby.InProgress == false {
+			if !multiLobby.InProgress {
 				multiLobby.MoveSlot(i, slot)
 			}
 

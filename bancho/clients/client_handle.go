@@ -48,7 +48,7 @@ func (client *Client) HandleIncoming() {
 
 			readIndex += read
 
-			if failedRead == true {
+			if failedRead {
 				continue
 			}
 
@@ -70,19 +70,18 @@ func (client *Client) HandleIncoming() {
 				client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
 					packets.BanchoSendOsuUpdate(packetQueue, client.GetRelevantUserStats(), client.Status)
 				})
-				break
 			//The client is informing us, that it wants to know its own updated stats
 			case packets.OsuRequestStatusUpdate:
 				//Retrieve stats
-				statGetResult, osuStats := database.UserStatsFromDatabase(client.UserData.UserID, 0)
-				statGetResult, taikoStats := database.UserStatsFromDatabase(client.UserData.UserID, 1)
-				statGetResult, catchStats := database.UserStatsFromDatabase(client.UserData.UserID, 2)
-				statGetResult, maniaStats := database.UserStatsFromDatabase(client.UserData.UserID, 3)
+				statGetResultOsu, osuStats := database.UserStatsFromDatabase(client.UserData.UserID, 0)
+				statGetResultTaiko, taikoStats := database.UserStatsFromDatabase(client.UserData.UserID, 1)
+				statGetResultCatch, catchStats := database.UserStatsFromDatabase(client.UserData.UserID, 2)
+				statGetResultMania, maniaStats := database.UserStatsFromDatabase(client.UserData.UserID, 3)
 
-				if statGetResult == -1 {
+				if statGetResultOsu == -1 || statGetResultTaiko == -1 || statGetResultCatch == -1 || statGetResultMania == -1 {
 					packets.BanchoSendAnnounce(client.PacketQueue, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
 					return
-				} else if statGetResult == -2 {
+				} else if statGetResultOsu == -2 || statGetResultTaiko == -2 || statGetResultCatch == -2 || statGetResultMania == -2 {
 					packets.BanchoSendAnnounce(client.PacketQueue, "A weird server-side fuckup occured, stats could not be loaded...")
 					return
 				}
@@ -94,7 +93,6 @@ func (client *Client) HandleIncoming() {
 
 				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.GetRelevantUserStats(), client.GetClientTimezone())
 				packets.BanchoSendOsuUpdate(client.PacketQueue, client.GetRelevantUserStats(), client.Status)
-				break
 			//The Client is requesting more information about certain clients
 			case packets.OsuUserStatsRequest:
 				var listLength int16
@@ -140,7 +138,6 @@ func (client *Client) HandleIncoming() {
 					channel.SendMessage(client, message.Message, message.Target)
 					database.ChatInsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
 				}
-				break
 				//The client is sending a private message to someone
 			case packets.OsuSendIrcMessagePrivate:
 				message := packets.ReadMessage(packetDataReader)
@@ -167,7 +164,6 @@ func (client *Client) HandleIncoming() {
 
 					database.ChatInsertNewMessage(uint64(client.GetUserId()), strconv.FormatInt(int64(targetClient.GetUserId()), 10), message.Message)
 				}
-				break
 			//The client nicely informs the server that its leaving
 			case packets.OsuExit:
 				client.CleanupClient("Player Exited")
@@ -194,7 +190,6 @@ func (client *Client) HandleIncoming() {
 				}
 
 				client.spectatingClient = toSpectate
-				break
 			//The client informs the server that it wants to stop spectating the current user
 			case packets.OsuStopSpectating:
 				if client.spectatingClient == nil {
@@ -203,7 +198,6 @@ func (client *Client) HandleIncoming() {
 
 				client.spectatingClient.InformSpectatorLeft(client)
 				client.spectatingClient = nil
-				break
 			//The client is sending replay frames for spectators, this is only done if it knows it has spectators
 			case packets.OsuSpectateFrames:
 				frameBundle := packets.ReadSpectatorFrameBundle(packetDataReader)
@@ -212,33 +206,27 @@ func (client *Client) HandleIncoming() {
 				client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
 					packets.BanchoSendSpectateFrames(packetQueue, frameBundle)
 				})
-				break
 			//The client informs the server that it's missing the map which the client its spectating is playing
 			case packets.OsuCantSpectate:
 				if client.spectatingClient != nil {
 					client.spectatingClient.InformSpectatorCantSpectate(client)
 				}
-				break
 			//The client informs the server about an error which had occurred
 			case packets.OsuErrorReport:
 				errorString := string(packets.ReadBanchoString(packetDataReader))
 
 				helpers.Logger.Printf("[Bancho@Handling] %s Encountered an error!! Error Details:\n%s", client.UserData.Username, errorString)
-				break
 			//This is the response to a BanchoPing
 			case packets.OsuPong:
 				client.lastReceive = time.Now()
-				break
 			//The client has joined the lobby
 			case packets.OsuLobbyJoin:
 				lobby.JoinLobby(client)
 				client.isInLobby = true
-				break
 			//The client has left the lobby
 			case packets.OsuLobbyPart:
 				lobby.PartLobby(client)
 				client.isInLobby = false
-				break
 			//The client is requesting to join a chat channel
 			case packets.OsuChannelJoin:
 				channelName := string(packets.ReadBanchoString(packetDataReader))
@@ -256,7 +244,6 @@ func (client *Client) HandleIncoming() {
 				} else {
 					packets.BanchoSendChannelRevoked(client.PacketQueue, channelName)
 				}
-				break
 			//The client is requesting to leave a chat channel
 			case packets.OsuChannelLeave:
 				channelName := string(packets.ReadBanchoString(packetDataReader))
@@ -268,13 +255,11 @@ func (client *Client) HandleIncoming() {
 					channel.Leave(client)
 					delete(client.joinedChannels, channelName)
 				}
-				break
 			//The client is creating a multiplayer match
 			case packets.OsuMatchCreate:
 				match := packets.ReadMultiplayerMatch(packetDataReader)
 
 				lobby.CreateNewMultiMatch(match, client)
-				break
 			//The client is looking to join a multiplayer match
 			case packets.OsuMatchJoin:
 				matchJoin := packets.ReadMatchJoin(packetDataReader)
@@ -290,7 +275,6 @@ func (client *Client) HandleIncoming() {
 			//The client wants to leave the current multiplayer match
 			case packets.OsuMatchPart:
 				client.LeaveCurrentMatch()
-				break
 			//The client wants to change in which multiplayer slot its in
 			case packets.OsuMatchChangeSlot:
 				if client.currentMultiLobby != nil {
@@ -300,13 +284,11 @@ func (client *Client) HandleIncoming() {
 
 					client.currentMultiLobby.TryChangeSlot(client, int(newSlot))
 				}
-				break
 			//The client wants to change sides
 			case packets.OsuMatchChangeTeam:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.ChangeTeam(client)
 				}
-				break
 			//The client wants to transfer its host status onto someone else
 			case packets.OsuMatchTransferHost:
 				if client.currentMultiLobby != nil {
@@ -316,26 +298,22 @@ func (client *Client) HandleIncoming() {
 
 					client.currentMultiLobby.TransferHost(client, int(newHost))
 				}
-				break
 			//The client informs the server it has pressed the ready button
 			case packets.OsuMatchReady:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.ReadyUp(client)
 				}
-				break
 			//The client informs the server it has pressed the not ready button
 			case packets.OsuMatchNotReady:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.Unready(client)
 				}
-				break
 			//The client informs the server it has made some changes to the settings of the match
 			case packets.OsuMatchChangeSettings:
 				if client.currentMultiLobby != nil {
 					newMatch := packets.ReadMultiplayerMatch(packetDataReader)
 					client.currentMultiLobby.ChangeSettings(client, newMatch)
 				}
-				break
 			//The client informs the server that it has changed the mods in the match
 			case packets.OsuMatchChangeMods:
 				if client.currentMultiLobby != nil {
@@ -345,7 +323,6 @@ func (client *Client) HandleIncoming() {
 
 					client.currentMultiLobby.ChangeMods(client, newMods)
 				}
-				break
 			//The client informs the server that it has tried to lock a slot in the multi lobby
 			case packets.OsuMatchLock:
 				if client.currentMultiLobby != nil {
@@ -355,31 +332,26 @@ func (client *Client) HandleIncoming() {
 
 					client.currentMultiLobby.LockSlot(client, int(slot))
 				}
-				break
 			//The client informs the server that it's missing the beatmap to be played
 			case packets.OsuMatchNoBeatmap:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformNoBeatmap(client)
 				}
-				break
 			//The client informs the server that it now has the beatmap that is to be played
 			case packets.OsuMatchHasBeatmap:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformGotBeatmap(client)
 				}
-				break
 			//The client informs the server that it has completed playing the map
 			case packets.OsuMatchComplete:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformCompletion(client)
 				}
-				break
 			//The client informs the server that it has loaded into the game successfully
 			case packets.OsuMatchLoadComplete:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformLoadComplete(client)
 				}
-				break
 			//The client informs the server of its new score
 			case packets.OsuMatchScoreUpdate:
 				if client.currentMultiLobby != nil {
@@ -387,25 +359,21 @@ func (client *Client) HandleIncoming() {
 
 					client.currentMultiLobby.InformScoreUpdate(client, scoreFrame)
 				}
-				break
 			//The client has requested to skip the beginning break
 			case packets.OsuMatchSkipRequest:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformPressedSkip(client)
 				}
-				break
 			//The client has failed the map
 			case packets.OsuMatchFailed:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformFailed(client)
 				}
-				break
 			//The client has pressed start game
 			case packets.OsuMatchStart:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.StartGame(client)
 				}
-				break
 			//The client is looking to add a friend to their friends list
 			case packets.OsuFriendsAdd:
 				var friendId int32
@@ -420,7 +388,6 @@ func (client *Client) HandleIncoming() {
 
 				//Save in database
 				go database.FriendsAddFriend(client.UserData.UserID, uint64(friendId))
-				break
 			//The client is looking to remove a friend from their friends list
 			case packets.OsuFriendsRemove:
 				var friendId int32
@@ -434,7 +401,6 @@ func (client *Client) HandleIncoming() {
 				}
 
 				go database.FriendsRemoveFriend(client.UserData.UserID, uint64(friendId))
-				break
 			//The client is setting their away message
 			case packets.OsuSetIrcAwayMessage:
 				awayMessage := packets.ReadMessage(packetDataReader)
@@ -455,7 +421,6 @@ func (client *Client) HandleIncoming() {
 						Target:  client.UserData.Username,
 					})
 				}
-				break
 			case packets.OsuBeatmapInfoRequest:
 				infoRequest := packets.ReadBeatmapInfoRequest(packetDataReader)
 
@@ -567,102 +532,72 @@ FROM (
 							switch osuRank {
 							case "XH":
 								beatmapInfo.OsuRank = 0
-								break
 							case "SH":
 								beatmapInfo.OsuRank = 1
-								break
 							case "X":
 								beatmapInfo.OsuRank = 2
-								break
 							case "S":
 								beatmapInfo.OsuRank = 3
-								break
 							case "A":
 								beatmapInfo.OsuRank = 4
-								break
 							case "B":
 								beatmapInfo.OsuRank = 5
-								break
 							case "C":
 								beatmapInfo.OsuRank = 6
-								break
 							case "D":
 								beatmapInfo.OsuRank = 7
-								break
 							case "F":
 								beatmapInfo.OsuRank = 8
-								break
 							case "N":
 								beatmapInfo.OsuRank = 9
-								break
 							}
 
 							//convert string rank to peppys enum ranking
 							switch taikoRank {
 							case "XH":
 								beatmapInfo.TaikoRank = 0
-								break
 							case "SH":
 								beatmapInfo.TaikoRank = 1
-								break
 							case "X":
 								beatmapInfo.TaikoRank = 2
-								break
 							case "S":
 								beatmapInfo.TaikoRank = 3
-								break
 							case "A":
 								beatmapInfo.TaikoRank = 4
-								break
 							case "B":
 								beatmapInfo.TaikoRank = 5
-								break
 							case "C":
 								beatmapInfo.TaikoRank = 6
-								break
 							case "D":
 								beatmapInfo.TaikoRank = 7
-								break
 							case "F":
 								beatmapInfo.TaikoRank = 8
-								break
 							case "N":
 								beatmapInfo.TaikoRank = 9
-								break
 							}
 
 							//convert string rank to peppys enum ranking
 							switch catchRank {
 							case "XH":
 								beatmapInfo.CatchRank = 0
-								break
 							case "SH":
 								beatmapInfo.CatchRank = 1
-								break
 							case "X":
 								beatmapInfo.CatchRank = 2
-								break
 							case "S":
 								beatmapInfo.CatchRank = 3
-								break
 							case "A":
 								beatmapInfo.CatchRank = 4
-								break
 							case "B":
 								beatmapInfo.CatchRank = 5
-								break
 							case "C":
 								beatmapInfo.CatchRank = 6
-								break
 							case "D":
 								beatmapInfo.CatchRank = 7
-								break
 							case "F":
 								beatmapInfo.CatchRank = 8
-								break
 							case "N":
 								beatmapInfo.CatchRank = 9
-								break
 							}
 
 							//will store the index of the info request the client gave us
@@ -688,10 +623,8 @@ FROM (
 						databaseQuery.Close()
 					}
 				}()
-				break
 			default:
 				helpers.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
-				break
 			}
 		}
 	}

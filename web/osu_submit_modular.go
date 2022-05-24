@@ -38,18 +38,18 @@ type ScoreSubmission struct {
 func parseScoreString(score string) ScoreSubmission {
 	splitScore := strings.Split(score, ":")
 
-	count300, parseErr := strconv.Atoi(splitScore[3])
-	count100, parseErr := strconv.Atoi(splitScore[4])
-	count50, parseErr := strconv.Atoi(splitScore[5])
-	countGeki, parseErr := strconv.Atoi(splitScore[6])
-	countKatu, parseErr := strconv.Atoi(splitScore[7])
-	countMiss, parseErr := strconv.Atoi(splitScore[8])
-	totalScore, parseErr := strconv.Atoi(splitScore[9])
-	maxCombo, parseErr := strconv.Atoi(splitScore[10])
-	mods, parseErr := strconv.Atoi(splitScore[13])
-	playmode, parseErr := strconv.Atoi(splitScore[15])
+	count300, parseErr1 := strconv.Atoi(splitScore[3])
+	count100, parseErr2 := strconv.Atoi(splitScore[4])
+	count50, parseErr3 := strconv.Atoi(splitScore[5])
+	countGeki, parseErr4 := strconv.Atoi(splitScore[6])
+	countKatu, parseErr5 := strconv.Atoi(splitScore[7])
+	countMiss, parseErr6 := strconv.Atoi(splitScore[8])
+	totalScore, parseErr7 := strconv.Atoi(splitScore[9])
+	maxCombo, parseErr8 := strconv.Atoi(splitScore[10])
+	mods, parseErr9 := strconv.Atoi(splitScore[13])
+	playmode, parseErr10 := strconv.Atoi(splitScore[15])
 
-	if parseErr != nil {
+	if parseErr1 != nil || parseErr2 != nil || parseErr3 != nil || parseErr4 != nil || parseErr5 != nil || parseErr6 != nil || parseErr7 != nil || parseErr8 != nil || parseErr9 != nil || parseErr10 != nil {
 		return ScoreSubmission{
 			ParsedSuccessfully: false,
 		}
@@ -398,13 +398,10 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	switch scoreSubmission.Playmode {
 	case 0:
 		userStats.Accuracy = helpers.CalculateGlobalAccuracyOsu(userStats.Hit50, userStats.Hit100, userStats.Hit300, userStats.HitGeki, userStats.HitKatu, userStats.HitMiss)
-		break
 	case 1:
 		userStats.Accuracy = helpers.CalculateGlobalAccuracyTaiko(userStats.Hit50, userStats.Hit100, userStats.Hit300, userStats.HitGeki, userStats.HitKatu, userStats.HitMiss)
-		break
 	case 2:
 		userStats.Accuracy = helpers.CalculateGlobalAccuracyCatch(userStats.Hit50, userStats.Hit100, userStats.Hit300, userStats.HitGeki, userStats.HitKatu, userStats.HitMiss)
-		break
 	}
 
 	queryPerfect := int8(0)
@@ -426,28 +423,20 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		switch scoreSubmission.Ranking {
 		case "XH":
 			userStats.CountSSH--
-			break
 		case "SH":
 			userStats.CountSS--
-			break
 		case "X":
 			userStats.CountSH--
-			break
 		case "S":
 			userStats.CountS--
-			break
 		case "A":
 			userStats.CountA--
-			break
 		case "B":
 			userStats.CountB--
-			break
 		case "C":
 			userStats.CountC--
-			break
 		case "D":
 			userStats.CountD--
-			break
 		}
 
 		bestMapsetScoreExists = 0
@@ -471,28 +460,20 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		switch scoreSubmission.Ranking {
 		case "XH":
 			userStats.CountSSH++
-			break
 		case "SH":
 			userStats.CountSS++
-			break
 		case "X":
 			userStats.CountSH++
-			break
 		case "S":
 			userStats.CountS++
-			break
 		case "A":
 			userStats.CountA++
-			break
 		case "B":
 			userStats.CountB++
-			break
 		case "C":
 			userStats.CountC++
-			break
 		case "D":
 			userStats.CountD++
-			break
 		}
 	}
 

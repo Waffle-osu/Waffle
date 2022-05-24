@@ -4,6 +4,7 @@ import (
 	"Waffle/helpers"
 	"crypto/md5"
 	"encoding/hex"
+
 	_ "github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -150,13 +151,13 @@ func CreateNewUser(username string, rawPassword string) bool {
 	var newUserId uint64
 	var newUsername string
 
-	insertResult, queryErr := Database.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, bcryptPassword)
-	queryResult, queryErr := Database.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
+	insertResult, queryErrInsert := Database.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, bcryptPassword)
+	queryResult, queryErrGet := Database.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
 
 	defer insertResult.Close()
 	defer queryResult.Close()
 
-	if queryErr != nil {
+	if queryErrInsert != nil || queryErrGet != nil {
 		helpers.Logger.Printf("[Database] Failed to create new user, MySQL query failed.\n")
 
 		return false
@@ -169,17 +170,17 @@ func CreateNewUser(username string, rawPassword string) bool {
 			return false
 		}
 
-		osuStatsInsert, statsInsertErr := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
-		taikoStatsInsert, statsInsertErr := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
-		catchStatsInsert, statsInsertErr := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
-		maniaStatsInsert, statsInsertErr := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
+		osuStatsInsert, statsInsertErrOsu := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 0)", newUserId)
+		taikoStatsInsert, statsInsertErrTaiko := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 1)", newUserId)
+		catchStatsInsert, statsInsertErrCatch := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 2)", newUserId)
+		maniaStatsInsert, statsInsertErrMania := Database.Query("INSERT INTO waffle.stats (user_id, mode) VALUES (?, 3)", newUserId)
 
 		osuStatsInsert.Close()
 		taikoStatsInsert.Close()
 		catchStatsInsert.Close()
 		maniaStatsInsert.Close()
 
-		if statsInsertErr != nil {
+		if statsInsertErrOsu != nil || statsInsertErrTaiko != nil || statsInsertErrCatch != nil || statsInsertErrMania != nil {
 			helpers.Logger.Printf("[Database] Failed to create new user, user stats creation failed. MySQL query failed.\n")
 			return false
 		}

@@ -82,10 +82,8 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 		return
 	case 1:
 		returnRankedStatus = "2"
-		break
 	case 2:
 		returnRankedStatus = "3"
-		break
 	}
 	//Ranked Status|Server has osz2 of map
 	returnString += returnRankedStatus

@@ -98,7 +98,7 @@ func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
 	for i := 0; i != 65536; i++ {
 		_, exists := multiLobbiesById[uint16(i)]
 
-		if exists == false {
+		if !exists {
 			match.MatchId = uint16(i)
 			break
 		}
@@ -161,7 +161,7 @@ func RemoveMultiMatch(matchId uint16) {
 func GetMultiMatchById(matchId uint16) *MultiplayerLobby {
 	match, exists := multiLobbiesById[matchId]
 
-	if exists == false {
+	if !exists {
 		return nil
 	}
 

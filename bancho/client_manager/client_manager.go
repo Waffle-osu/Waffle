@@ -34,7 +34,7 @@ func GetClientList() []OsuClient {
 func GetClientById(id int32) OsuClient {
 	value, exists := clientsById[id]
 
-	if exists == false {
+	if !exists {
 		return nil
 	}
 
@@ -45,7 +45,7 @@ func GetClientById(id int32) OsuClient {
 func GetClientByName(username string) OsuClient {
 	value, exists := clientsByName[username]
 
-	if exists == false {
+	if !exists {
 		return nil
 	}
 

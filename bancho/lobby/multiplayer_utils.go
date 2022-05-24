@@ -29,7 +29,7 @@ func (multiLobby *MultiplayerLobby) GetOpenSlotCount() int {
 // HaveAllPlayersSkipped is a utility function which checks if everyone skipped
 func (multiLobby *MultiplayerLobby) HaveAllPlayersSkipped() bool {
 	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusPlaying && multiLobby.PlayerSkipRequested[i] == false {
+		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusPlaying && !multiLobby.PlayerSkipRequested[i] {
 			return false
 		}
 	}
@@ -42,7 +42,7 @@ func (multiLobby *MultiplayerLobby) HaveAllPlayersCompleted() bool {
 	count := 0
 
 	for i := 0; i != 8; i++ {
-		if multiLobby.PlayerCompleted[i] == true {
+		if multiLobby.PlayerCompleted[i] {
 			count++
 		}
 	}
@@ -55,7 +55,7 @@ func (multiLobby *MultiplayerLobby) HaveAllPlayersLoaded() bool {
 	count := 0
 
 	for i := 0; i != 8; i++ {
-		if multiLobby.PlayersLoaded[i] == true {
+		if multiLobby.PlayersLoaded[i] {
 			count++
 		}
 	}
