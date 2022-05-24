@@ -50,18 +50,31 @@ func main() {
 		go func() {
 			time.Sleep(time.Second * 2)
 
+			defaultConfig := "mysql_username=root\nmysql_password=root\nmysql_location=127.0.0.1:3306\nmysql_database=waffle"
+
+			writeErr := os.WriteFile(".env", []byte(defaultConfig), 0644)
+
+			if writeErr != nil {
+				helpers.Logger.Printf("[Initialization] Failed to create default configuration!\n\n")
+				return
+			}
+
 			helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
 			helpers.Logger.Printf("[Initialization] //////////////////  First Run Advice  //////////////////\n")
 			helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
-			helpers.Logger.Printf("[Initialization] //   Run the osu!2011 Updater to configure waffle!!!  //\n")
-			helpers.Logger.Printf("[Initialization] //     You can set the MySQL Database and Location    //\n")
-			helpers.Logger.Printf("[Initialization] //      And more settings are likely coming soon!     //\n")
+			helpers.Logger.Printf("[Initialization] // No .env file detected in the Waffle.exe directory! //\n")
+			helpers.Logger.Printf("[Initialization] //    This file stores important configuration for    //\n")
+			helpers.Logger.Printf("[Initialization] //      The server, such as Database Credentials,     //\n")
 			helpers.Logger.Printf("[Initialization] //                                                    //\n")
-			helpers.Logger.Printf("[Initialization] //      The Updater won't work properly until the     //\n")
-			helpers.Logger.Printf("[Initialization] //           Server is configured properly!           //\n")
-			helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
-			helpers.Logger.Printf("[Initialization] //            Or fill in the .env manually            //\n")
-			helpers.Logger.Printf("[Initialization] //        updater's cooler though  ¯\\_(ツ)_/¯         //\n")
+			helpers.Logger.Printf("[Initialization] // A .env file with default settings has been created //\n")
+			helpers.Logger.Printf("[Initialization] //      Please change the settings as necessary       //\n")
+			helpers.Logger.Printf("[Initialization] //                                                    //\n")
+			helpers.Logger.Printf("[Initialization] //    Explanation to all the keys in the .env file:   //\n")
+			helpers.Logger.Printf("[Initialization] //                                                    //\n")
+			helpers.Logger.Printf("[Initialization] // mysql_location: Location of the MySQL Server       //\n")
+			helpers.Logger.Printf("[Initialization] // mysql_database: Name of the Database to use        //\n")
+			helpers.Logger.Printf("[Initialization] // mysql_username: Under which user to log in         //\n")
+			helpers.Logger.Printf("[Initialization] // mysql_password: Password for said user             //\n")
 			helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
 		}()
 	} else {

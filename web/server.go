@@ -25,9 +25,5 @@ func RunOsuWeb() {
 	// screenshots
 	ginServer.GET("/ss/:filename", HandleOsuGetScreenshot)
 
-	// updater admin panel
-	ginServer.GET("/admin/waffle_setup", HandleUpdaterAdminSetup)
-	ginServer.POST("/admin/post_config", HandleUpdaterAdminPostSettings)
-
 	ginServer.Run("127.0.0.1:80")
 }
