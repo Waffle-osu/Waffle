@@ -13,12 +13,12 @@ import (
 func HandleTitleImage(ctx *gin.Context) {
 	version := ctx.Query("v") //Client Edition, t = testers, p = public
 	current := ctx.Query("c") //MD5 Hash of the client's currently stored title image
-	clicked := ctx.Query("l") //Whether the image was clicked
+	//clicked := ctx.Query("l") //Whether the image was clicked
 
-	if clicked == "1" {
-		//TODO: some sort of redirection to what this is supposed to lead to
-		//maybe if you're advertising some waffle shop here you could do a redirect to their website or smth
-	}
+	//if clicked == "1" {
+	//TODO: some sort of redirection to what this is supposed to lead to
+	//maybe if you're advertising some waffle shop here you could do a redirect to their website or smth
+	//}
 
 	//Tester Build
 	if version == "t" {
