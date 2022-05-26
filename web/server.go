@@ -19,12 +19,17 @@ func RunOsuWeb() {
 	ginServer.GET("/web/osu-addfavourite.php", HandleOsuAddFavourite)
 	ginServer.POST("/web/osu-comment.php", HandleOsuComments)
 	ginServer.GET("/rating/ingame-rate2.php", HandleOsuIngameRate2)
+	ginServer.GET("/web/osu-search.php", HandleOsuDirectSearch)
 
 	// updater
 	//ginServer.GET("/p/changelog", HandleUpdaterChangelog)
 	//ginServer.GET("/release/update2.txt", HandleUpdaterUpdate2)
 	//ginServer.GET("/release/update2.php", HandleOsuUpdate2)
 	//ginServer.GET("/release/:filename", HandleUpdaterGetFile)
+
+	//direct stuff
+	ginServer.GET("/mt/:filename", HandleOsuGetDirectThumbnail)
+	ginServer.GET("/mp3/preview/:filename", HandleOsuGetDirectMp3Preview)
 
 	// screenshots
 	ginServer.GET("/ss/:filename", HandleOsuGetScreenshot)

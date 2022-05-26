@@ -34,6 +34,8 @@ func main() {
 	EnsureDirectoryExists("screenshots")
 	EnsureDirectoryExists("release")
 	EnsureDirectoryExists("replays")
+	EnsureDirectoryExists("direct_thumbnails")
+	EnsureDirectoryExists("mp3_previews")
 
 	helpers.InitializeLogger()               //Initializes Logging, logs to both console and to a file
 	chat.InitializeChannels()                //Initializes Chat channels
