@@ -16,6 +16,32 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `beatmap_comments`
+--
+
+DROP TABLE IF EXISTS `beatmap_comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `beatmap_comments` (
+  `comment_id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `beatmap_id` int NOT NULL,
+  `beatmapset_id` int NOT NULL,
+  `score_id` bigint unsigned NOT NULL,
+  `time` bigint NOT NULL,
+  `target` tinyint NOT NULL,
+  `comment` text NOT NULL,
+  `format_string` varchar(16) NOT NULL,
+  PRIMARY KEY (`comment_id`),
+  KEY `beatmapid_index` (`beatmap_id`,`target`),
+  KEY `beatmapset_id_index` (`beatmapset_id`,`target`) /*!80000 INVISIBLE */,
+  KEY `score_id_index` (`score_id`,`target`) /*!80000 INVISIBLE */,
+  KEY `userid_beatmap_comments_pk_idx` (`user_id`) /*!80000 INVISIBLE */,
+  CONSTRAINT `userid_beatmapcomments_pk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `beatmap_favourites`
 --
 
@@ -30,6 +56,36 @@ CREATE TABLE `beatmap_favourites` (
   KEY `userid_index` (`user_id`),
   CONSTRAINT `userid_pk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `beatmap_ratings`
+--
+
+DROP TABLE IF EXISTS `beatmap_ratings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `beatmap_ratings` (
+  `beatmapset_id` int NOT NULL,
+  `rating_sum` bigint NOT NULL DEFAULT '0',
+  `votes` bigint NOT NULL DEFAULT '0',
+  PRIMARY KEY (`beatmapset_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `beatmap_ratings_submissions`
+--
+
+DROP TABLE IF EXISTS `beatmap_ratings_submissions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `beatmap_ratings_submissions` (
+  `submission_id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `beatmapset_id` int NOT NULL,
+  PRIMARY KEY (`submission_id`,`user_id`,`beatmapset_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -146,7 +202,7 @@ CREATE TABLE `irc_log` (
   `message` text NOT NULL,
   `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`message_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -186,7 +242,7 @@ CREATE TABLE `scores` (
   KEY `beatmapid_index` (`beatmap_id`),
   KEY `userid_fk_idx` (`user_id`),
   CONSTRAINT `userid_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=74 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=85 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -290,4 +346,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-25 19:30:37
+-- Dump completed on 2022-05-26 17:29:57
