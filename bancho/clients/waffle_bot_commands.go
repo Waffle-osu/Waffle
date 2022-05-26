@@ -310,3 +310,94 @@ func WaffleBotCommandRank(sender client_manager.OsuClient, args []string) []stri
 		fmt.Sprintf("Playcount: %d", userStats.Playcount),
 	}
 }
+
+func WaffleBotCommandLeaderboards(sender client_manager.OsuClient, args []string) []string {
+	offset := 0
+	mode := int8(0)
+	writtenMode := "osu!"
+
+	if len(args) != 0 {
+		if len(args) == 2 {
+			parsedOffset, parseErr := strconv.ParseInt(args[0], 10, 64)
+
+			if parseErr != nil {
+				return []string{
+					"Failed to load leaderboards, invalid offset.",
+				}
+			}
+
+			offset = int(parsedOffset)
+
+			switch args[1] {
+			case "osu!":
+				mode = 0
+				writtenMode = "osu!"
+			case "osu!taiko":
+				mode = 1
+				writtenMode = "osu!taiko"
+			case "osu!catch":
+				mode = 2
+				writtenMode = "osu!catch"
+			}
+		} else {
+			switch args[0] {
+			case "osu!":
+				mode = 0
+				writtenMode = "osu!"
+			case "osu!taiko":
+				mode = 1
+				writtenMode = "osu!taiko"
+			case "osu!catch":
+				mode = 2
+				writtenMode = "osu!catch"
+			default:
+				parsedOffset, parseErr := strconv.ParseInt(args[0], 10, 64)
+
+				if parseErr != nil {
+					return []string{
+						"Failed to load leaderboards, invalid offset.",
+					}
+				}
+
+				offset = int(parsedOffset)
+			}
+		}
+	}
+
+	leaderboardQuery, leaderboardQueryErr := database.Database.Query("SELECT users.username, stats.* FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank', ranked_score, total_score, user_level FROM waffle.stats WHERE mode = ? AND user_id != 1) stats LEFT JOIN waffle.users ON stats.user_id = users.user_id LIMIT 2 OFFSET ?", mode, offset)
+
+	if leaderboardQueryErr != nil {
+		if leaderboardQuery != nil {
+			leaderboardQuery.Close()
+		}
+
+		return []string{
+			"Failed to load leaderboards, query failed.",
+		}
+	}
+
+	returnResults := []string{
+		fmt.Sprintf("Showing leaderboards for %s #%d - #%d", writtenMode, offset, offset+10),
+	}
+
+	for leaderboardQuery.Next() {
+		var username string
+		partialStats := database.UserStats{}
+
+		scanErr := leaderboardQuery.Scan(&username, &partialStats.UserID, &partialStats.Mode, &partialStats.Rank, &partialStats.RankedScore, &partialStats.TotalScore, &partialStats.Level)
+
+		if scanErr != nil {
+			leaderboardQuery.Close()
+
+			return []string{
+				"Failed to load leaderboards, query failed.",
+			}
+		}
+
+		returnResults = append(returnResults, fmt.Sprintf("#%d %s - Score: %d (%d) Level %.0f", partialStats.Rank, username, partialStats.RankedScore, partialStats.TotalScore, partialStats.Level))
+	}
+
+	leaderboardQuery.Close()
+
+	return returnResults
+}

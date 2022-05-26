@@ -19,6 +19,10 @@ var helpStrings = []string{
 	"!rank <osu!|osu!taiko|osu!catch> :: Shows your own stats for a given mode",
 	"!rank <username> :: Shows a user's osu! stats",
 	"!rank <username> <osu!|osu!taiko|osu!catch> :: Shows a user's stats for a given mode",
+	"!leaderboards <osu!|osu!taiko|osu!catch> :: Shows a mode's leaderboard",
+	"!leaderboards <offset> <osu!|osu!taiko|osu!catch> :: Shows a mode's leaderboard and offsets it",
+	"!leaderboards <offset> :: Shows the osu! leaderboard and offsets it",
+	"!leaderboards :: Shows the osu!'s top 10",
 }
 
 var adminHelpStrings = []string{
@@ -38,6 +42,8 @@ func WaffleBotInitializeCommands() {
 	commandHandlers["!roll"] = WaffleBotCommandRoll
 	commandHandlers["!stats"] = WaffleBotCommandBanchoStatistics
 	commandHandlers["!rank"] = WaffleBotCommandRank
+	commandHandlers["!leaderboard"] = WaffleBotCommandLeaderboards
+	commandHandlers["!leaderboards"] = WaffleBotCommandLeaderboards
 }
 
 func (client *Client) WaffleBotHandleCommand(sender client_manager.OsuClient, message packets.Message) {

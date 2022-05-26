@@ -51,6 +51,7 @@ func CreateWaffleBot() {
 	if statGetResultOsu != 0 || statGetResultTaiko != 0 || statGetResultCatch != 0 || statGetResultMania != 0 {
 		helpers.Logger.Printf("[Bancho@WaffleBotCreate] //////////////// IMPORTANT /////////////////")
 		helpers.Logger.Printf("[Bancho@WaffleBotCreate] Failed to Find WaffleBot stats in Database!!")
+		helpers.Logger.Printf("[Bancho@WaffleBotCreate] Please create a user called WaffleBot under the User ID of 1")
 		helpers.Logger.Printf("[Bancho@WaffleBotCreate] ////////////////////////////////////////////")
 
 		return
