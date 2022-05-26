@@ -110,6 +110,8 @@ ORDER BY time ASC
 			scanErr := getQuery.Scan(&comment.CommentId, &comment.UserId, &comment.BeatmapId, &comment.BeatmapSetId, &comment.ScoreId, &comment.Time, &comment.Target, &comment.Comment, &comment.FormatString)
 
 			if scanErr != nil {
+				getQuery.Close()
+
 				ctx.String(http.StatusInternalServerError, "")
 				return
 			}
@@ -161,6 +163,8 @@ ORDER BY time ASC
 
 			scanErr := playerQuery.Scan(&foundScoreId, &foundUserId)
 
+			playerQuery.Close()
+
 			if scanErr != nil {
 				ctx.String(http.StatusInternalServerError, "")
 				return
@@ -169,8 +173,6 @@ ORDER BY time ASC
 			if foundUserId == uint64(userId) {
 				formatString = "player"
 			}
-
-			playerQuery.Close()
 		}
 
 		//check if the creator is sending the comment
@@ -192,6 +194,8 @@ ORDER BY time ASC
 
 			scanErr := creatorQuery.Scan(&foundSetId, &foundCreatorId, &foundCreator)
 
+			creatorQuery.Close()
+
 			if scanErr != nil {
 				ctx.String(http.StatusInternalServerError, "")
 				return
@@ -200,8 +204,6 @@ ORDER BY time ASC
 			if foundCreatorId == int64(userId) || databaseUser.Username == foundCreator {
 				formatString = "creator"
 			}
-
-			creatorQuery.Close()
 		}
 
 		//check if its a osu!supporter sending the comment

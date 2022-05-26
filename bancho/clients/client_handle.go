@@ -521,12 +521,14 @@ FROM (
 						for databaseQuery.Next() {
 							beatmapInfo := packets.BeatmapInfo{}
 
-							beatmapInfo.InfoId = -1
-
 							var osuRank, taikoRank, catchRank string
 							var osuFilename string
 
-							databaseQuery.Scan(&beatmapInfo.BeatmapId, &beatmapInfo.BeatmapSetId, &osuFilename, &beatmapInfo.BeatmapChecksum, &beatmapInfo.Ranked, &osuRank, &taikoRank, &catchRank)
+							scanErr := databaseQuery.Scan(&beatmapInfo.BeatmapId, &beatmapInfo.BeatmapSetId, &osuFilename, &beatmapInfo.BeatmapChecksum, &beatmapInfo.Ranked, &osuRank, &taikoRank, &catchRank)
+
+							if scanErr != nil {
+								continue
+							}
 
 							//convert string rank to peppys enum ranking
 							switch osuRank {

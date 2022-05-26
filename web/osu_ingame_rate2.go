@@ -76,9 +76,7 @@ func HandleOsuIngameRate2(ctx *gin.Context) {
 
 		scanErr := getMapRatingsExistQuery.Scan(&count)
 
-		if getMapRatingsExistQuery != nil {
-			getMapRatingsExistQuery.Close()
-		}
+		getMapRatingsExistQuery.Close()
 
 		if scanErr != nil {
 			ctx.String(http.StatusOK, "because server fucked up")
@@ -129,9 +127,7 @@ func HandleOsuIngameRate2(ctx *gin.Context) {
 
 			scanErr := getRatingInfoQuery.Scan(&beatmapsetId, &ratingSum, &votes)
 
-			if getRatingInfoQuery != nil {
-				getRatingInfoQuery.Close()
-			}
+			getRatingInfoQuery.Close()
 
 			if scanErr != nil {
 				ctx.String(http.StatusOK, "because server fucked up")
@@ -155,9 +151,7 @@ func HandleOsuIngameRate2(ctx *gin.Context) {
 
 			scanErr := userHasSubmittedRatingQuery.Scan(&count)
 
-			if userHasSubmittedRatingQuery != nil {
-				userHasSubmittedRatingQuery.Close()
-			}
+			userHasSubmittedRatingQuery.Close()
 
 			if scanErr != nil {
 				ctx.String(http.StatusOK, "because server fucked up")

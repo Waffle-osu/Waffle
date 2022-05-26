@@ -2,6 +2,7 @@ package database
 
 import (
 	"Waffle/helpers"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -24,14 +25,13 @@ func UserStatsFromDatabase(id uint64, mode int8) (int8, UserStats) {
 	if queryResult.Next() {
 		scanErr := queryResult.Scan(&returnStats.UserID, &returnStats.Mode, &returnStats.Rank, &returnStats.RankedScore, &returnStats.TotalScore, &returnStats.Level, &returnStats.Accuracy, &returnStats.Playcount, &returnStats.CountSSH, &returnStats.CountSS, &returnStats.CountSH, &returnStats.CountS, &returnStats.CountA, &returnStats.CountB, &returnStats.CountC, &returnStats.CountD, &returnStats.Hit300, &returnStats.Hit100, &returnStats.Hit50, &returnStats.HitMiss, &returnStats.HitGeki, &returnStats.HitKatu, &returnStats.ReplaysWatched)
 
+		queryResult.Close()
+
 		if scanErr != nil {
 			helpers.Logger.Printf("[Database] Failed to Scan Database results onto UserStats object.\n")
 
-			queryResult.Close()
 			return -2, returnStats
 		}
-
-		queryResult.Close()
 
 		return 0, returnStats
 	}
@@ -58,14 +58,13 @@ func UserStatsGetWaffleBot(mode int8) (int8, UserStats) {
 	if queryResult.Next() {
 		scanErr := queryResult.Scan(&returnStats.UserID, &returnStats.Mode, &returnStats.Rank, &returnStats.RankedScore, &returnStats.TotalScore, &returnStats.Level, &returnStats.Accuracy, &returnStats.Playcount, &returnStats.CountSSH, &returnStats.CountSS, &returnStats.CountSH, &returnStats.CountS, &returnStats.CountA, &returnStats.CountB, &returnStats.CountC, &returnStats.CountD, &returnStats.Hit300, &returnStats.Hit100, &returnStats.Hit50, &returnStats.HitMiss, &returnStats.HitGeki, &returnStats.HitKatu, &returnStats.ReplaysWatched)
 
+		queryResult.Close()
+
 		if scanErr != nil {
 			helpers.Logger.Printf("[Database] Failed to Scan Database results onto UserStats object.\n")
 
-			queryResult.Close()
 			return -2, returnStats
 		}
-
-		queryResult.Close()
 
 		return 0, returnStats
 	}

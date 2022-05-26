@@ -117,9 +117,7 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 
 		scanErr := getRatingInfoQuery.Scan(&beatmapsetId, &ratingSum, &votes)
 
-		if getRatingInfoQuery != nil {
-			getRatingInfoQuery.Close()
-		}
+		getRatingInfoQuery.Close()
 
 		if scanErr != nil {
 			ctx.String(http.StatusOK, "because server fucked up")

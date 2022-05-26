@@ -14,6 +14,10 @@ func GetUserFavourites(userId uint64) (result int8, favourites []BeatmapFavourit
 	defer queryResult.Close()
 
 	if queryErr != nil {
+		if queryResult != nil {
+			queryResult.Close()
+		}
+
 		return -1, beatmapFavourites
 	}
 
@@ -23,6 +27,10 @@ func GetUserFavourites(userId uint64) (result int8, favourites []BeatmapFavourit
 		queryResult.Scan(&beatmapEntry.UserId, &beatmapEntry.BeatmapSetId)
 
 		beatmapFavourites = append(beatmapFavourites, beatmapEntry)
+	}
+
+	if queryResult != nil {
+		queryResult.Close()
 	}
 
 	return 0, beatmapFavourites

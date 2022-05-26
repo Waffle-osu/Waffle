@@ -29,12 +29,11 @@ func BeatmapsetsGetBeatmapsetById(beatmapsetId int32) (queryResult int8, beatmap
 
 		scanErr := beatmapsetQuery.Scan(&returnBeatmapset.BeatmapsetId, &returnBeatmapset.CreatorId, &returnBeatmapset.Artist, &returnBeatmapset.Title, &returnBeatmapset.Creator, &returnBeatmapset.Source, &returnBeatmapset.Tags, &returnBeatmapset.HasVideo, &returnBeatmapset.HasStoryboard, &returnBeatmapset.Bpm)
 
+		beatmapsetQuery.Close()
+
 		if scanErr != nil {
-			beatmapsetQuery.Close()
 			return -2, Beatmapset{}
 		}
-
-		beatmapsetQuery.Close()
 
 		return 0, returnBeatmapset
 	} else {

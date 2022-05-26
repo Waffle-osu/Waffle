@@ -65,15 +65,14 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 	if queryResult.Next() {
 		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt)
 
+		queryResult.Close()
+
 		if scanErr != nil {
 			helpers.Logger.Printf("[Database] Failed to Scan Database results onto User object.\n")
-
-			queryResult.Close()
 
 			return -2, returnUser
 		}
 
-		queryResult.Close()
 		return 0, returnUser
 	}
 
@@ -103,14 +102,14 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 	if queryResult.Next() {
 		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt)
 
+		queryResult.Close()
+
 		if scanErr != nil {
 			helpers.Logger.Printf("[Database] Failed to Scan Database results onto User object.\n")
 
-			queryResult.Close()
 			return -2, returnUser
 		}
 
-		queryResult.Close()
 		return 0, returnUser
 	}
 
@@ -122,9 +121,12 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 // CreateNewUser creates a new user given a username and a password
 func CreateNewUser(username string, rawPassword string) bool {
 	duplicateUsernameQuery, duplicateUsernameQueryErr := Database.Query("SELECT COUNT(*) FROM waffle.users WHERE username = ?", username)
-	defer duplicateUsernameQuery.Close()
 
 	if duplicateUsernameQueryErr != nil {
+		if duplicateUsernameQuery != nil {
+			duplicateUsernameQuery.Close()
+		}
+
 		helpers.Logger.Printf("[Database] Failed to create new user, MySQL query failed.\n")
 
 		return false
@@ -133,9 +135,11 @@ func CreateNewUser(username string, rawPassword string) bool {
 	if duplicateUsernameQuery.Next() {
 		var count uint64
 
-		duplicateUsernameQuery.Scan(&count)
+		scanErr := duplicateUsernameQuery.Scan(&count)
 
-		if count != 0 {
+		duplicateUsernameQuery.Close()
+
+		if count != 0 || scanErr != nil {
 			return false
 		}
 	}
@@ -154,8 +158,7 @@ func CreateNewUser(username string, rawPassword string) bool {
 	insertResult, queryErrInsert := Database.Query("INSERT INTO waffle.users (username, password) VALUES (?, ?)", username, bcryptPassword)
 	queryResult, queryErrGet := Database.Query("SELECT user_id, username FROM waffle.users WHERE username = ?", username)
 
-	defer insertResult.Close()
-	defer queryResult.Close()
+	insertResult.Close()
 
 	if queryErrInsert != nil || queryErrGet != nil {
 		helpers.Logger.Printf("[Database] Failed to create new user, MySQL query failed.\n")
@@ -165,6 +168,8 @@ func CreateNewUser(username string, rawPassword string) bool {
 
 	if queryResult.Next() {
 		scanErr := queryResult.Scan(&newUserId, &newUsername)
+
+		queryResult.Close()
 
 		if scanErr != nil {
 			return false
@@ -193,17 +198,22 @@ func CreateNewUser(username string, rawPassword string) bool {
 
 func AuthenticateUser(username string, password string) (userId int32, authSuccess bool) {
 	query, queryErr := Database.Query("SELECT user_id, username, password FROM waffle.users WHERE username = ?", username)
-	defer query.Close()
 
 	var scanUsername, scanPassword string
 	var scanUserId int32
 
 	if queryErr != nil {
+		if query != nil {
+			query.Close()
+		}
+
 		return -2, false
 	}
 
 	if query.Next() {
 		scanErr := query.Scan(&scanUserId, &scanUsername, &scanPassword)
+
+		query.Close()
 
 		if scanErr != nil {
 			return -2, false

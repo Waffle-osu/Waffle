@@ -64,12 +64,12 @@ func ScoresGetUserLeaderboardBest(beatmapId int32, userId uint64, mode int8) (qu
 
 		scanErr := scoreQuery.Scan(&onlineRank, &username, &returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Playmode, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash)
 
+		scoreQuery.Close()
+
 		if scanErr != nil {
-			scoreQuery.Close()
 			return -2, Score{}, "", -1
 		}
 
-		scoreQuery.Close()
 		return 0, returnScore, username, onlineRank
 	} else {
 		scoreQuery.Close()
@@ -93,12 +93,12 @@ func ScoresGetBeatmapsetBestUserScore(beatmapsetId int32, userId uint64, mode in
 
 		scanErr := scoreQuery.Scan(&returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash, &returnScore.Playmode)
 
+		scoreQuery.Close()
+
 		if scanErr != nil {
-			scoreQuery.Close()
 			return -2, Score{}
 		}
 
-		scoreQuery.Close()
 		return 0, returnScore
 	} else {
 		scoreQuery.Close()
@@ -124,12 +124,12 @@ func ScoresGetBeatmapLeaderboardPlace(scoreId uint64, beatmapId int32) (queryRes
 
 		scanErr := scoreQuery.Scan(&scoreId, &beatmapId, &leaderboardPlace)
 
+		scoreQuery.Close()
+
 		if scanErr != nil {
-			scoreQuery.Close()
 			return -2, -1
 		}
 
-		scoreQuery.Close()
 		return 0, leaderboardPlace
 	} else {
 		scoreQuery.Close()
