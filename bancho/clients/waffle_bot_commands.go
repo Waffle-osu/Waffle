@@ -6,6 +6,7 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
 	"Waffle/bancho/packets"
+	"Waffle/database"
 	"fmt"
 	"math"
 	"math/rand"
@@ -14,19 +15,6 @@ import (
 	"strings"
 	"time"
 )
-
-var helpStrings = []string{
-	"!help  :: You're reading this right now",
-	"!roll  :: Rolls a random number between 0 and 100",
-	"!stats :: Shows Waffle Statistics",
-}
-
-var adminHelpStrings = []string{
-	"---------------------------------",
-	"!announce target <client username> : <message> :: Sends a Notification to a client",
-	"^^^ That : seperator is important there!!",
-	"!announce all <message> :: Sends a Notification to everyone on the server",
-}
 
 func WaffleBotCommandTemplate(sender client_manager.OsuClient, args []string) []string {
 	return []string{}
@@ -253,5 +241,72 @@ func WaffleBotCommandBanchoStatistics(sender client_manager.OsuClient, args []st
 		fmt.Sprintf("[WAFFLE-STATS] %s have been recieved", dataRecvString),
 		fmt.Sprintf("[WAFFLE-STATS] %d Goroutines are currently running", runtime.NumGoroutine()),
 		fmt.Sprintf("[WAFFLE-STATS] Currently using approximately %.2fmb RAM", mbAlloc),
+	}
+}
+
+func WaffleBotCommandRank(sender client_manager.OsuClient, args []string) []string {
+	username := sender.GetUserData().Username
+	mode := int8(0)
+	writtenMode := "osu!"
+
+	if len(args) != 0 {
+		if len(args) == 2 {
+			username = args[0]
+			switch args[1] {
+			case "osu!":
+				mode = 0
+				writtenMode = "osu!"
+			case "osu!taiko":
+				mode = 1
+				writtenMode = "osu!taiko"
+			case "osu!catch":
+				mode = 2
+				writtenMode = "osu!catch"
+			}
+		} else {
+			switch args[0] {
+			case "osu!":
+				mode = 0
+				writtenMode = "osu!"
+			case "osu!taiko":
+				mode = 1
+				writtenMode = "osu!taiko"
+			case "osu!catch":
+				mode = 2
+				writtenMode = "osu!catch"
+			default:
+				username = args[0]
+			}
+		}
+	}
+
+	userQueryResult, user := database.UserFromDatabaseByUsername(username)
+
+	if userQueryResult == -2 {
+		return []string{
+			"Server Error occured. Could not retrieve user stats.",
+		}
+	} else if userQueryResult == -1 {
+		return []string{
+			"User not found.",
+		}
+	}
+
+	userStatsQueryResult, userStats := database.UserStatsFromDatabase(user.UserID, mode)
+
+	if userStatsQueryResult == -2 {
+		return []string{
+			"Server Error occured. Could not retrieve user stats.",
+		}
+	}
+
+	return []string{
+		fmt.Sprintf("---------- User Statistics of %s for %s", username, writtenMode),
+		fmt.Sprintf("Rank: %d", userStats.Rank),
+		fmt.Sprintf("Ranked Score: %d", userStats.RankedScore),
+		fmt.Sprintf("Total Score: %d", userStats.TotalScore),
+		fmt.Sprintf("Level: %.2f", userStats.Level),
+		fmt.Sprintf("Accuracy: %.2f%%", userStats.Accuracy*100.0),
+		fmt.Sprintf("Playcount: %d", userStats.Playcount),
 	}
 }

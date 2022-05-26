@@ -11,6 +11,23 @@ type WaffleCommand interface {
 	Execute(args []string) []string
 }
 
+var helpStrings = []string{
+	"!help  :: You're reading this right now",
+	"!roll  :: Rolls a random number between 0 and 100",
+	"!stats :: Shows Waffle Statistics",
+	"!rank  :: Shows your osu! stats",
+	"!rank <osu!|osu!taiko|osu!catch> :: Shows your own stats for a given mode",
+	"!rank <username> :: Shows a user's osu! stats",
+	"!rank <username> <osu!|osu!taiko|osu!catch> :: Shows a user's stats for a given mode",
+}
+
+var adminHelpStrings = []string{
+	"---------------------------------",
+	"!announce target <client username> : <message> :: Sends a Notification to a client",
+	"^^^ That : seperator is important there!!",
+	"!announce all <message> :: Sends a Notification to everyone on the server",
+}
+
 var commandHandlers map[string]func(client_manager.OsuClient, []string) []string
 
 func WaffleBotInitializeCommands() {
@@ -20,6 +37,7 @@ func WaffleBotInitializeCommands() {
 	commandHandlers["!announce"] = WaffleBotCommandAnnounce
 	commandHandlers["!roll"] = WaffleBotCommandRoll
 	commandHandlers["!stats"] = WaffleBotCommandBanchoStatistics
+	commandHandlers["!rank"] = WaffleBotCommandRank
 }
 
 func (client *Client) WaffleBotHandleCommand(sender client_manager.OsuClient, message packets.Message) {

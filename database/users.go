@@ -86,7 +86,6 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 	returnUser := User{}
 
 	queryResult, queryErr := Database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE username = ?", username)
-	defer queryResult.Close()
 
 	if queryErr != nil {
 		helpers.Logger.Printf("[Database] Failed to Fetch User from Database, MySQL query failed.\n")
