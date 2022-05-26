@@ -78,7 +78,7 @@ func ScoresGetUserLeaderboardBest(beatmapId int32, userId uint64, mode int8) (qu
 }
 
 func ScoresGetBeatmapsetBestUserScore(beatmapsetId int32, userId uint64, mode int8) (queryResult int8, score Score) {
-	scoreQuery, scoreQueryErr := Database.Query("SELECT score_id, beatmap_id, beatmapset_id, user_id, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, date, leaderboard_best, mapset_best, score_hash, playmode FROM waffle.scores WHERE beatmapset_id = ? AND user_id = ? AND mapset_best = 1", beatmapsetId, userId, mode)
+	scoreQuery, scoreQueryErr := Database.Query("SELECT score_id, beatmap_id, beatmapset_id, user_id, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, date, leaderboard_best, mapset_best, score_hash, playmode FROM waffle.scores WHERE beatmapset_id = ? AND user_id = ? AND playmode = ? AND mapset_best = 1", beatmapsetId, userId, mode)
 
 	if scoreQueryErr != nil {
 		if scoreQuery != nil {

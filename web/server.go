@@ -18,6 +18,7 @@ func RunOsuWeb() {
 	ginServer.GET("/web/osu-getfavourites.php", HandleOsuGetFavourites)
 	ginServer.GET("/web/osu-addfavourite.php", HandleOsuAddFavourite)
 	ginServer.POST("/web/osu-comment.php", HandleOsuComments)
+	ginServer.GET("/rating/ingame-rate2.php", HandleOsuIngameRate2)
 
 	// updater
 	//ginServer.GET("/p/changelog", HandleUpdaterChangelog)

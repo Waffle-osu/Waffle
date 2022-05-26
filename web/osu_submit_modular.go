@@ -320,7 +320,11 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		if passPlayCountsQuery.Next() {
 			passPlayCountsQuery.Scan(&playcount, &passcount)
 
-			scoreSubmissionResponse["beatmapPlaycount"] = strconv.FormatInt(playcount+1, 10)
+			if playcount == 0 {
+				playcount++
+			}
+
+			scoreSubmissionResponse["beatmapPlaycount"] = strconv.FormatInt(playcount, 10)
 			scoreSubmissionResponse["beatmapPasscount"] = strconv.FormatInt(passcount, 10)
 		} else {
 			scoreSubmissionResponse["beatmapPlaycount"] = "1"
@@ -411,6 +415,11 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	mapsetBestScoreQueryResult, mapsetBestScore := database.ScoresGetBeatmapsetBestUserScore(scoreBeatmap.BeatmapsetId, uint64(userId), int8(scoreSubmission.Playmode))
 	bestMapsetScoreExists := 0
+
+	if mapsetBestScoreQueryResult == -2 {
+		ctx.String(http.StatusOK, "error: server error")
+		return
+	}
 
 	if mapsetBestScoreQueryResult == 0 {
 		bestMapsetScoreExists = 1

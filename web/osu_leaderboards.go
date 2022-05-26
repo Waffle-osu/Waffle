@@ -98,8 +98,43 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 	returnString += "0\n"
 	//Display Title
 	returnString += fmt.Sprintf("[bold:0,size:20]%s|%s\n", beatmapset.Artist, beatmapset.Title)
+
+	getRatingInfoQuery, getRatingInfoQueryErr := database.Database.Query("SELECT * FROM beatmap_ratings WHERE beatmapset_id = ?", beatmapset.BeatmapsetId)
+
+	if getRatingInfoQueryErr != nil {
+		if getRatingInfoQuery != nil {
+			getRatingInfoQuery.Close()
+		}
+
+		ctx.String(http.StatusOK, "because server fucked up")
+		return
+	}
+
+	var ratingSum, votes int64
+
+	if getRatingInfoQuery.Next() {
+		var beatmapsetId int32
+
+		scanErr := getRatingInfoQuery.Scan(&beatmapsetId, &ratingSum, &votes)
+
+		if getRatingInfoQuery != nil {
+			getRatingInfoQuery.Close()
+		}
+
+		if scanErr != nil {
+			ctx.String(http.StatusOK, "because server fucked up")
+			return
+		}
+	}
+
+	if votes == 0 {
+		votes++
+	}
+
+	totalRating := float64(ratingSum) / float64(votes)
+
 	//Online Rating, currently rating doesnt exist, so TODO
-	returnString += "0\n"
+	returnString += fmt.Sprintf("%.2f\n", totalRating)
 
 	if skipScores == "1" {
 		ctx.String(http.StatusOK, returnString)
