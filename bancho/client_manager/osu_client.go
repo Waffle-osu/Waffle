@@ -19,4 +19,5 @@ type OsuClient interface {
 	CleanupClient(reason string)
 	Cut()
 	GetAwayMessage() string
+	HandleBeatmapInfoRequest(infoRequest packets.BeatmapInfoRequest)
 }

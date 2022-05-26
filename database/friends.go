@@ -59,10 +59,6 @@ func FriendsAddFriend(userId uint64, friendId uint64) bool {
 func FriendsRemoveFriend(userId uint64, friendId uint64) bool {
 	query, queryErr := Database.Query("DELETE FROM waffle.friends WHERE user_1 = ? AND user_2 = ?", userId, friendId)
 
-	if query != nil {
-		query.Close()
-	}
-
 	if queryErr != nil {
 		return false
 	}

@@ -107,7 +107,7 @@ func ScoresGetBeatmapsetBestUserScore(beatmapsetId int32, userId uint64, mode in
 }
 
 func ScoresGetBeatmapLeaderboardPlace(scoreId uint64, beatmapId int32) (queryResult int8, leaderboardPlace int64) {
-	scoreQuery, scoreQueryErr := Database.Query("SELECT score_id, beatmap_id, ROW_NUMBER() OVER (ORDER BY score DESC) AS 'rank' FROM waffle.scores WHERE beatmap_id = ? AND score_id = ? AND leaderboard_best = 1", beatmapId, scoreId)
+	scoreQuery, scoreQueryErr := Database.Query("SELECT * FROM (SELECT score_id, beatmap_id, ROW_NUMBER() OVER (ORDER BY score DESC) AS 'rank' FROM waffle.scores WHERE beatmap_id = ? AND leaderboard_best = 1) t WHERE score_id = ?", beatmapId, scoreId)
 
 	if scoreQueryErr != nil {
 		if scoreQuery != nil {

@@ -48,12 +48,11 @@ func BeatmapsGetByMd5(checksum string) (queryResult int8, beatmap Beatmap) {
 
 		scanErr := beatmapQuery.Scan(&returnBeatmap.BeatmapId, &returnBeatmap.BeatmapsetId, &returnBeatmap.CreatorId, &returnBeatmap.Filename, &returnBeatmap.BeatmapMd5, &returnBeatmap.Version, &returnBeatmap.TotalLength, &returnBeatmap.DrainTime, &returnBeatmap.CountObjects, &returnBeatmap.CountNormal, &returnBeatmap.CountSlider, &returnBeatmap.CountSpinner, &returnBeatmap.DiffHp, &returnBeatmap.DiffCs, &returnBeatmap.DiffOd, &returnBeatmap.DiffStars, &returnBeatmap.Playmode, &returnBeatmap.RankingStatus, &returnBeatmap.LastUpdate, &returnBeatmap.SubmitDate, &returnBeatmap.ApproveDate, &returnBeatmap.BeatmapSource)
 
+		beatmapQuery.Close()
+
 		if scanErr != nil {
-			beatmapQuery.Close()
 			return -2, Beatmap{}
 		}
-
-		beatmapQuery.Close()
 
 		return 0, returnBeatmap
 	} else {
@@ -78,12 +77,11 @@ func BeatmapsGetByFilename(filename string) (queryResult int8, beatmap Beatmap) 
 
 		scanErr := beatmapQuery.Scan(&returnBeatmap.BeatmapId, &returnBeatmap.BeatmapsetId, &returnBeatmap.CreatorId, &returnBeatmap.Filename, &returnBeatmap.BeatmapMd5, &returnBeatmap.Version, &returnBeatmap.TotalLength, &returnBeatmap.DrainTime, &returnBeatmap.CountObjects, &returnBeatmap.CountNormal, &returnBeatmap.CountSlider, &returnBeatmap.CountSpinner, &returnBeatmap.DiffHp, &returnBeatmap.DiffCs, &returnBeatmap.DiffOd, &returnBeatmap.DiffStars, &returnBeatmap.Playmode, &returnBeatmap.RankingStatus, &returnBeatmap.LastUpdate, &returnBeatmap.SubmitDate, &returnBeatmap.ApproveDate, &returnBeatmap.BeatmapSource)
 
+		beatmapQuery.Close()
+
 		if scanErr != nil {
-			beatmapQuery.Close()
 			return -2, Beatmap{}
 		}
-
-		beatmapQuery.Close()
 
 		return 0, returnBeatmap
 	} else {

@@ -1,6 +1,8 @@
 package web
 
 import (
+	"Waffle/bancho/client_manager"
+	"Waffle/bancho/packets"
 	"Waffle/database"
 	"Waffle/helpers"
 	"crypto/md5"
@@ -689,9 +691,6 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	returnString += "toNextRankUser:" + scoreSubmissionResponse["toNextRankUser"] + "|"
 	returnString += "achievements:" + scoreSubmissionResponse["achievements"]
 
-	//make sure there's no trailing |
-	returnString = strings.TrimSuffix(returnString, "|")
-
 	ctx.String(http.StatusOK, returnString+"\n")
 
 	replay, replayGetErr := ctx.FormFile("score")
@@ -699,4 +698,18 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	if replayGetErr == nil {
 		ctx.SaveUploadedFile(replay, fmt.Sprintf("replays/%d", newScoreId))
 	}
+
+	go func() {
+		foundClient := client_manager.GetClientById(userId)
+
+		if foundClient != nil {
+			infoRequest := packets.BeatmapInfoRequest{}
+
+			infoRequest.BeatmapIds = []int32{
+				scoreBeatmap.BeatmapsetId,
+			}
+
+			foundClient.HandleBeatmapInfoRequest(infoRequest)
+		}
+	}()
 }

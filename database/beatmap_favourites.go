@@ -11,8 +11,6 @@ func GetUserFavourites(userId uint64) (result int8, favourites []BeatmapFavourit
 
 	queryResult, queryErr := Database.Query("SELECT user_id, beatmapset_id FROM waffle.beatmap_favourites WHERE user_id = ?", userId)
 
-	defer queryResult.Close()
-
 	if queryErr != nil {
 		if queryResult != nil {
 			queryResult.Close()
