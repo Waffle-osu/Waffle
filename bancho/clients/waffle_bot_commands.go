@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -240,10 +241,17 @@ func WaffleBotCommandBanchoStatistics(sender client_manager.OsuClient, args []st
 		pluralMatches = "match"
 	}
 
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	mbAlloc := (float64(m.Alloc) / 1024.0) / 1024.0
+
 	return []string{
 		fmt.Sprintf("[WAFFLE-STATS] Waffle has been up for %s", uptimeString),
 		fmt.Sprintf("[WAFFLE-STATS] Serving %d %s, playing %d %s", client_manager.GetClientCount(), pluralUsers, lobby.GetMatchCount(), pluralMatches),
 		fmt.Sprintf("[WAFFLE-STATS] %s have been sent", dataSentString),
 		fmt.Sprintf("[WAFFLE-STATS] %s have been recieved", dataRecvString),
+		fmt.Sprintf("[WAFFLE-STATS] %d Goroutines are currently running", runtime.NumGoroutine()),
+		fmt.Sprintf("[WAFFLE-STATS] Currently using approximately %.2fmb RAM", mbAlloc),
 	}
 }
