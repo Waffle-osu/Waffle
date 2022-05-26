@@ -364,7 +364,7 @@ func WaffleBotCommandLeaderboards(sender client_manager.OsuClient, args []string
 		}
 	}
 
-	leaderboardQuery, leaderboardQueryErr := database.Database.Query("SELECT users.username, stats.* FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank', ranked_score, total_score, user_level FROM waffle.stats WHERE mode = ? AND user_id != 1) stats LEFT JOIN waffle.users ON stats.user_id = users.user_id LIMIT 2 OFFSET ?", mode, offset)
+	leaderboardQuery, leaderboardQueryErr := database.Database.Query("SELECT users.username, stats.* FROM (SELECT user_id, mode, ROW_NUMBER() OVER (ORDER BY ranked_score DESC) AS 'rank', ranked_score, total_score, user_level FROM waffle.stats WHERE mode = ? AND user_id != 1) stats LEFT JOIN waffle.users ON stats.user_id = users.user_id LIMIT 10 OFFSET ?", mode, offset)
 
 	if leaderboardQueryErr != nil {
 		if leaderboardQuery != nil {
