@@ -37,6 +37,7 @@ func main() {
 	EnsureDirectoryExists("direct_thumbnails")
 	EnsureDirectoryExists("mp3_previews")
 	EnsureDirectoryExists("oszs")
+	EnsureDirectoryExists("osus")
 
 	helpers.InitializeLogger()               //Initializes Logging, logs to both console and to a file
 	chat.InitializeChannels()                //Initializes Chat channels
@@ -126,6 +127,8 @@ func main() {
 			BeatmapImporter(os.Args[2])
 		case "osz_renamer":
 			RenameOszs(os.Args[2])
+		case "osu_mover":
+			MoveOsuFiles(os.Args[2])
 		}
 
 		return

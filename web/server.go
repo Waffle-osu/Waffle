@@ -20,6 +20,7 @@ func RunOsuWeb() {
 	ginServer.POST("/web/osu-comment.php", HandleOsuComments)
 	ginServer.GET("/rating/ingame-rate2.php", HandleOsuIngameRate2)
 	ginServer.GET("/web/osu-search.php", HandleOsuDirectSearch)
+	ginServer.GET("/web/maps/:filename", HandleOsuMapUpdate)
 
 	// updater
 	//ginServer.GET("/p/changelog", HandleUpdaterChangelog)
