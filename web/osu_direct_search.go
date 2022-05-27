@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -99,7 +98,7 @@ FROM (
 	WHERE ranking_status IN (%s)
 	GROUP BY beatmapsets.beatmapset_id 
 	ORDER BY approve_date DESC
-	
+	LIMIT 250
 ) result
 		`
 
@@ -223,31 +222,6 @@ FROM (
 			return
 		}
 
-		if _, err := os.Stat("mp3_previews/" + strconv.FormatInt(int64(beatmap.BeatmapsetId), 10)); errors.Is(err, os.ErrNotExist) {
-			mp3response, getErr := http.Get("https://s.ppy.sh/mp3/preview/" + strconv.FormatInt(int64(beatmap.BeatmapsetId), 10))
-
-			if getErr != nil {
-				fmt.Printf("nya %d\n", beatmap.BeatmapsetId)
-			}
-
-			outputFile, outputFileErr := os.Create("mp3_previews/" + strconv.FormatInt(int64(beatmap.BeatmapsetId), 10))
-
-			if outputFileErr != nil {
-				fmt.Printf("nya %d\n", beatmap.BeatmapsetId)
-			}
-
-			_, copyErr := io.Copy(outputFile, mp3response.Body)
-
-			if copyErr != nil {
-				fmt.Printf("nya %d\n", beatmap.BeatmapsetId)
-
-				outputFile.Close()
-				mp3response.Body.Close()
-			}
-
-			outputFile.Close()
-		}
-
 		//Seperated by |
 		//[0]:  Server Filename
 		//[1]:  Artist
@@ -263,8 +237,11 @@ FROM (
 		//[11]: File Size
 		//[12]: File Size without Video
 
-		//TODO: file sizes
-		returnString += fmt.Sprintf("%s|%s|%s|%s|%d|%.2f|%s|%d|%d|%d|%d|%d|%d\n", strconv.FormatInt(int64(beatmap.BeatmapsetId), 10)+".osz", beatmap.Artist, beatmap.Title, beatmap.Creator, beatmap.RankingStatus, float64(beatmap.RatingSum)/float64(beatmap.Votes), beatmap.ApproveDate, beatmap.BeatmapsetId, 0, beatmap.HasVideo, beatmap.HasStoryboard, 0, 0)
+		if fileStats, err := os.Stat("oszs/" + strconv.FormatInt(int64(beatmap.BeatmapsetId), 10) + ".osz"); errors.Is(err, os.ErrNotExist) {
+
+		} else {
+			returnString += fmt.Sprintf("%s|%s|%s|%s|%d|%.2f|%s|%d|%d|%d|%d|%d|%d\n", strconv.FormatInt(int64(beatmap.BeatmapsetId), 10)+".osz", beatmap.Artist, beatmap.Title, beatmap.Creator, beatmap.RankingStatus, float64(beatmap.RatingSum)/float64(beatmap.Votes), beatmap.ApproveDate, beatmap.BeatmapsetId, 0, beatmap.HasVideo, beatmap.HasStoryboard, fileStats.Size(), fileStats.Size())
+		}
 	}
 
 	beatmapRows.Close()

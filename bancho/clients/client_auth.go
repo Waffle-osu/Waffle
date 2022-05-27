@@ -57,9 +57,13 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//They have \r\n at the end, we trim that off
-	username = strings.Replace(username, "\r\n", "", -1)
-	password = strings.Replace(password, "\r\n", "", -1)
-	userData = strings.Replace(userData, "\r\n", "", -1)
+	username = strings.Replace(username, "\r", "", -1)
+	password = strings.Replace(password, "\r", "", -1)
+	userData = strings.Replace(userData, "\r", "", -1)
+
+	username = strings.Replace(username, "\n", "", -1)
+	password = strings.Replace(password, "\n", "", -1)
+	userData = strings.Replace(userData, "\n", "", -1)
 
 	//Start parsing the userData
 	userDataSplit := strings.Split(userData, "|")

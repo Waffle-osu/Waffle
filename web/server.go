@@ -30,6 +30,7 @@ func RunOsuWeb() {
 	//direct stuff
 	ginServer.GET("/mt/:filename", HandleOsuGetDirectThumbnail)
 	ginServer.GET("/mp3/preview/:filename", HandleOsuGetDirectMp3Preview)
+	ginServer.GET("/d/:filename", HandleOsuDirectDownload)
 
 	// screenshots
 	ginServer.GET("/ss/:filename", HandleOsuGetScreenshot)

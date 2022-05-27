@@ -49,6 +49,9 @@ func HandleOsuGetDirectThumbnail(ctx *gin.Context) {
 		}
 
 		ctx.Data(http.StatusOK, "image/jpg", thumbnail)
+
+		outputFile.Close()
+		thumbnailResponse.Body.Close()
 	} else {
 		thumbnail, error := os.ReadFile("direct_thumbnails/" + filename)
 

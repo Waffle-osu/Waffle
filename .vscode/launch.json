@@ -9,6 +9,19 @@
             "program": "${workspaceFolder}",
             "cwd": "${workspaceFolder}/build",
             "output": "build/Waffle.exe"
+        },
+        {
+            "name": "Launch osz Renamer",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/build",
+            "output": "build/Waffle.exe",
+            "args": [
+                "osz_renamer",
+                "${workspaceFolder}/build/oszs"
+            ] 
         }
     ]
 }

@@ -36,6 +36,7 @@ func main() {
 	EnsureDirectoryExists("replays")
 	EnsureDirectoryExists("direct_thumbnails")
 	EnsureDirectoryExists("mp3_previews")
+	EnsureDirectoryExists("oszs")
 
 	helpers.InitializeLogger()               //Initializes Logging, logs to both console and to a file
 	chat.InitializeChannels()                //Initializes Chat channels
@@ -119,8 +120,14 @@ func main() {
 		database.Initialize(mySqlUsername, mySqlPassword, mySqlLocation, mySqlDatabase)
 	}
 
-	if len(os.Args) == 3 && os.Args[1] == "beatmap_importer" {
-		BeatmapImporter(os.Args[2])
+	if len(os.Args) == 3 {
+		switch os.Args[1] {
+		case "beatmap_importer":
+			BeatmapImporter(os.Args[2])
+		case "osz_renamer":
+			RenameOszs(os.Args[2])
+		}
+
 		return
 	}
 
