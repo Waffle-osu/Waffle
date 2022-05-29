@@ -45,6 +45,7 @@ func main() {
 	lobby.InitializeLobby()                  //Initializes the multi lobby
 	clients.WaffleBotInitializeCommands()    //Initializes Chat Commands
 	misc.InitializeStatistics()              //Initializes Statistics
+	clients.InitializeCompatibilityLists()   //Initializes Client Compatibility lists
 
 	_, fileError := os.Stat(".env")
 

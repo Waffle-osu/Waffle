@@ -18,16 +18,37 @@ import (
 
 // All the currently tested versions and whether they work well or not
 var guaranteedWorkingVersion = map[string]bool{
-	//Official
+
+	/* Official Builds Starting Here */
+
+	//b1816
 	"b1816.test":  true,
 	"b1816.peppy": true,
 	"b1816":       true,
-	"b1815":       true,
-	"b1807":       true,
-	"b1814":       true,
-	"b1844.test":  true,
+	//b1815
+	"b1815":               true,
+	"b1815.peppy":         true,
+	"b1815.test":          true,
+	"b1815.ctbtest":       true,
+	"b1815arcade":         true,
+	"b1815arcade.peppy":   true,
+	"b1815arcade.test":    true,
+	"b1815arcade.ctbtest": true,
+	//b1807
+	"b1807": true,
+	//b1814
+	"b1814": true,
+	//b1844
+	"b1844.test": true,
+	//b20121119
+	"b20121119":            false,
+	"b20121119arcade":      false,
+	"b20121119dev":         false,
+	"b20121119public_test": false,
 
-	//Unofficial
+	/* Unofficial Builds Starting Here */
+
+	//b1816 ported to FNA
 	"b1816modernized":                true,
 	"b1816modernized.dev":            true,
 	"b1816modernized.test":           true,
@@ -36,6 +57,15 @@ var guaranteedWorkingVersion = map[string]bool{
 	"b1816modernized-arcade.dev":     true,
 	"b1816modernized-arcade.test":    true,
 	"b1816modernized-arcade.ctbtest": true,
+}
+
+var knownIssuesList = map[string]string{}
+
+func InitializeCompatibilityLists() {
+	knownIssuesList["b20121119"] = "Multiplayer Matches cannot be created. Likely due to a difference in the MatchCreate packet, Leaderboards may fail to load, and the BanchoBeatmapInfoReply causes errors."
+	knownIssuesList["b20121119arcade"] = knownIssuesList["b20121119"]
+	knownIssuesList["b20121119dev"] = knownIssuesList["b20121119"]
+	knownIssuesList["b20121119public_test"] = knownIssuesList["b20121119"]
 }
 
 // HandleNewClient handles a new connection
@@ -271,6 +301,12 @@ func HandleNewClient(connection net.Conn) {
 		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s has not yet been tested and may not work as intended! Unforseen problems may occur, report them to Furball if you can, depending on version it could be fixed.", clientInfo.Version))
 	} else if !working {
 		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s is tested and has been found to not work properly on Waffle! Your experience may not be the best.", clientInfo.Version))
+
+		issues, hasKnownIssues := knownIssuesList[clientInfo.Version]
+
+		if hasKnownIssues {
+			packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The Client you're running on has these known issues:  %s", issues))
+		}
 	} else {
 		packets.BanchoSendAnnounce(client.PacketQueue, "Welcome to Waffle!")
 	}
