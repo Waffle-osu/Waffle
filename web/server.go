@@ -33,6 +33,9 @@ func RunOsuWeb() {
 	ginServer.GET("/mp3/preview/:filename", HandleOsuGetDirectMp3Preview)
 	ginServer.GET("/d/:filename", HandleOsuDirectDownload)
 
+	//avatars
+	ginServer.GET("/a/:filename", HandleOsuGetAvatar)
+
 	// screenshots
 	ginServer.GET("/ss/:filename", HandleOsuGetScreenshot)
 

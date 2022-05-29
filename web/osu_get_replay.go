@@ -14,7 +14,7 @@ func HandleGetReplay(ctx *gin.Context) {
 	replay, error := os.ReadFile("replays/" + scoreId)
 
 	if error != nil {
-		ctx.Data(http.StatusOK, "image/png", []byte{})
+		ctx.Data(http.StatusOK, "waffle/blob", []byte{})
 		fmt.Println("replay get failed")
 	} else {
 		ctx.Data(http.StatusOK, "waffle/blob", replay)

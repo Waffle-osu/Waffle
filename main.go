@@ -38,6 +38,7 @@ func main() {
 	EnsureDirectoryExists("mp3_previews")
 	EnsureDirectoryExists("oszs")
 	EnsureDirectoryExists("osus")
+	EnsureDirectoryExists("avatars")
 
 	helpers.InitializeLogger()               //Initializes Logging, logs to both console and to a file
 	chat.InitializeChannels()                //Initializes Chat channels
