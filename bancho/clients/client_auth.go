@@ -18,6 +18,7 @@ import (
 
 // All the currently tested versions and whether they work well or not
 var guaranteedWorkingVersion = map[string]bool{
+	//Official
 	"b1816.test":  true,
 	"b1816.peppy": true,
 	"b1816":       true,
@@ -25,6 +26,16 @@ var guaranteedWorkingVersion = map[string]bool{
 	"b1807":       true,
 	"b1814":       true,
 	"b1844.test":  true,
+
+	//Unofficial
+	"b1816modernized":                true,
+	"b1816modernized.dev":            true,
+	"b1816modernized.test":           true,
+	"b1816modernized.ctbtest":        true,
+	"b1816modernized-arcade":         true,
+	"b1816modernized-arcade.dev":     true,
+	"b1816modernized-arcade.test":    true,
+	"b1816modernized-arcade.ctbtest": true,
 }
 
 // HandleNewClient handles a new connection
