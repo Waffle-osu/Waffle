@@ -18,7 +18,7 @@ import (
 // HandleIncoming handles things coming from the osu! client
 func (client *Client) HandleIncoming() {
 	//make a 4kb Buffer to read stuff
-	readBuffer := make([]byte, 4096)
+	readBuffer := make([]byte, 32768)
 
 	for client.continueRunning {
 		read, readErr := client.connection.Read(readBuffer)

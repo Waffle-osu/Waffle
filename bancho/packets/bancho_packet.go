@@ -122,7 +122,7 @@ func ReadBanchoPacketHeader(packetBuffer *bytes.Buffer) (int, BanchoPacket, bool
 	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketCompression)
 	binary.Read(packetBuffer, binary.LittleEndian, &packet.PacketSize)
 
-	if packet.PacketSize >= 2048 || packet.PacketId > 86 {
+	if packet.PacketSize >= 32768 || packet.PacketId > 86 {
 		return int(BanchoHeaderSize), packet, true
 	}
 
