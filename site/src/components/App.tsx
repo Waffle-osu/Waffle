@@ -1,23 +1,21 @@
 import React from 'react';
-import './App.css';
-import Navbar from './Navbar';
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Content from './Content';
+import MainLayout from './Main';
 
 function App() {
 	return (
-		<div className="main">
-			<Navbar></Navbar>
-
-
+		<>	
 			<Router>
 				<Routes>
-					<Route path='beatmaps' element={
-						<p>Beatmaps!</p>
-					}/>
+					<Route path='/' element={<MainLayout></MainLayout>}>
+						<Route path="beatmaps" element={<Content></Content>}/>
+					</Route>
 				</Routes>
 			</Router>
-		</div>
+			
+		</>
 	);
 }
 
