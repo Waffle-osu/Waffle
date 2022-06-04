@@ -4,11 +4,11 @@ import { AppProps } from "./../AppState";
 
 function Content(props: AppProps) {
     useEffect(() => {
-        window.sessionStorage.setItem("waffle-token", "Hi!")
+        window.sessionStorage.setItem("waffle-token", "Furball")
 		
         props.appState.setLoginState({
-            username: "Hi!",
-            token: "Hi!",
+            username: "Furball",
+            token: "dslfhsfskjdfhsdf",
             userId: 2,
             loggedIn: true
         })

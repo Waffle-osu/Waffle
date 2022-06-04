@@ -1,4 +1,6 @@
 .navbar {
+    display: flex;
+    align-items: left;
     overflow: hidden;
     background-color: #333;
     position: fixed;
@@ -7,8 +9,8 @@
 }
 
 .navbar a {
-    float: left;
-    display: block;
+    display: flex;
+    align-items: left;
     color: white;
     text-align: center;
     padding: 14px 16px;
@@ -16,13 +18,14 @@
 }
 
 .navbar p {
-    float: left;
-    display: block;
+    display: flex;
+    align-items: left;
     color: white;
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
-    margin: 0
+    margin: 0;
+    border: 0px;
 }
 
 .navbar a:hover {
@@ -44,7 +47,29 @@
 }
 
 .navbar .right-align {
-    float: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.navbar .right-align a {
+    padding: 0;
+    margin: 0;
+}
+
+.navbar .login-area {
+    display: flex;
+    align-items: center;
+}
+
+.navbar .login-area p {
+    padding-right: 24px;
+}
+
+.navbar .login-area img {
+    height: 32px;   
+    padding-right: 16px; 
 }
 
 .main {
