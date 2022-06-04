@@ -3,14 +3,15 @@ import React from "react";
 import './App.css'
 
 import Navbar from "./Navbar";
+import { AppProps } from "./../AppState";
 
 import { Outlet } from 'react-router-dom';
 
-function MainLayout() {
+function MainLayout(props: AppProps) {
     return (
         <>
             <div className="main">
-				<Navbar></Navbar>
+                <Navbar appState={props.appState}></Navbar>
                 
                 <Outlet/>
 			</div>

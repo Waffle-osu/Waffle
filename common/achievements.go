@@ -100,6 +100,8 @@ func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, rank
 				return true
 			}
 		}
+
+		return false
 	}
 
 	for unachievedAchievementsQuery.Next() {

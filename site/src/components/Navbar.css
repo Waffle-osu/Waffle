@@ -15,9 +15,32 @@
     text-decoration: none;
 }
 
+.navbar p {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    margin: 0
+}
+
 .navbar a:hover {
     background: #ddd;
     color: black;
+    transition: 0.3s;
+}
+
+.navbar .waffle-text {
+    color: #74cedc;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.navbar .waffle-text:hover {
+    color: white;
+    background-color: #74cedc;
+    transition: 0.3s;
 }
 
 .navbar .right-align {
