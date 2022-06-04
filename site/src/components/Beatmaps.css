@@ -1,0 +1,17 @@
+.beatmaps-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 90vw;
+    max-width: 900px;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: -8px;
+    
+}
+
+.content-item {
+    background-color: rgb(51, 51, 51);
+    background-clip: content-box;
+    margin-top: 24px;
+}

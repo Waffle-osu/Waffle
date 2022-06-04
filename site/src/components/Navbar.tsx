@@ -34,7 +34,7 @@ function Navbar(props: AppProps) {
 
     return (	
         <div className="navbar">
-			<p className="waffle-text">Waffle</p>
+			<Link to="/" className="waffle-text">Waffle</Link>
 
 			<Link to="/">Home</Link>
 			<Link to="/download">Download</Link>

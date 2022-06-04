@@ -1,7 +1,7 @@
 import { useState, useEffect }  from 'react';
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Content from './Content';
+import Beatmaps from './Beatmaps';
 import MainLayout from './Main';
 
 import { AppState, LoginDetails } from "./../AppState";
@@ -12,15 +12,17 @@ function App() {
 	let appState: AppState = new AppState(getLoginState, setLoginState);
 
 	useEffect(() => {
+		let username = window.sessionStorage.getItem("waffle-username")
 		let token = window.sessionStorage.getItem("waffle-token")
+		let userId = window.sessionStorage.getItem("waffle-userId")
 
 		console.log("token:" + token)
 
-		if(token !== null) {
+		if(token !== null && username !== null && userId !== null) {
 			let currentLoginDetails: LoginDetails = {
-				username: token,
+				username: username,
 				token: token,
-				userId: 0,
+				userId: Number(userId),
 				loggedIn: true
 			};
 
@@ -32,8 +34,8 @@ function App() {
 		<>	
 			<Router>
 				<Routes>
-					<Route path='/' element={<MainLayout appState={appState}></MainLayout>}>
-						<Route path="beatmaps" element={<Content appState={appState}></Content>}/>
+					<Route path='/' element={ <MainLayout appState={appState} ></MainLayout> }>
+						<Route path="beatmaps" element={ <Beatmaps appState={appState} ></Beatmaps> }/>
 					</Route>
 				</Routes>
 			</Router>	
