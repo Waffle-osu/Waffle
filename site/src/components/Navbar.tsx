@@ -10,13 +10,17 @@ function Navbar(props: AppProps) {
 	if(props.appState.loginState?.loggedIn) {
 		userPanel = (
 			<>
+				<div className="login-area">
 				<Link to={"/users/" + props.appState.loginState.userId}>
-					<div className="login-area">
-						<p>{props.appState.loginState.username}</p>
-						<img src={"http://127.0.0.1:80/a/" + props.appState.loginState.userId } ></img>
-						
-					</div>
+					<p>{props.appState.loginState.username}</p>
+	
+					<img 
+						src={"http://127.0.0.1:80/a/" + props.appState.loginState.userId } 
+						alt="<avatar>"
+					></img>
+					
 				</Link>
+				</div>
 			</>
 		)
 	} else {

@@ -48,28 +48,23 @@
 
 .navbar .right-align {
     display: flex;
-    align-items: center;
     justify-content: flex-end;
     margin-left: auto;
-}
-
-.navbar .right-align a {
-    padding: 0;
-    margin: 0;
-}
-
-.navbar .login-area {
-    display: flex;
-    align-items: center;
 }
 
 .navbar .login-area p {
     padding-right: 24px;
 }
 
+.navbar .login-area a {
+    padding: 0;
+}
+
 .navbar .login-area img {
+    align-items: center;
+    margin-top: 8px;
+    padding-right: 16px;
     height: 32px;   
-    padding-right: 16px; 
 }
 
 .main {
