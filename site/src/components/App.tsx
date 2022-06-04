@@ -5,6 +5,7 @@ import Beatmaps from './Beatmaps';
 import MainLayout from './Main';
 
 import { AppState, LoginDetails } from "./../AppState";
+import Login from './Login';
 
 function App() {
 	let [getLoginState, setLoginState] = useState<LoginDetails>()
@@ -36,6 +37,7 @@ function App() {
 				<Routes>
 					<Route path='/' element={ <MainLayout appState={appState} ></MainLayout> }>
 						<Route path="beatmaps" element={ <Beatmaps appState={appState} ></Beatmaps> }/>
+						<Route path="login" element={ <Login appState={appState} ></Login> }/>
 					</Route>
 				</Routes>
 			</Router>	

@@ -2,12 +2,12 @@ import { useEffect } from "react";
 
 import { AppProps } from "../AppState";
 
-import "./Beatmaps.css"
+import "./Content.css"
 
 function Beatmaps(props: AppProps) {
     return (
         <>
-            <div className="beatmaps-content">
+            <div className="downward-content-box">
                 <div className="content-item">
                     <p>Test</p>
                     <br></br>
