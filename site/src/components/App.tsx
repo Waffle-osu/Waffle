@@ -7,6 +7,7 @@ import MainLayout from './Main';
 import { AppState, LoginDetails } from "./../AppState";
 import Login from './Login';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import DownloadPanel from './Download';
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ function App() {
 						<Route path='/' element={ <MainLayout appState={appState} ></MainLayout> }>
 							<Route path="beatmaps" element={ <Beatmaps appState={appState} ></Beatmaps> }/>
 							<Route path="login" element={ <Login appState={appState} ></Login> }/>
+							<Route path="download" element={ <DownloadPanel appState={appState} ></DownloadPanel> }/>
 						</Route>
 					</Routes>
 				</Router>	

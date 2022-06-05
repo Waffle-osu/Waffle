@@ -1,0 +1,125 @@
+:root {
+    --box-min-height: 280px
+}
+
+.started-text {
+    font-size: 24pt;
+    color: #74cedc;
+    text-align: center;
+    margin-top: 16px;
+}
+
+.step-panels {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+}
+
+.right-flowing-container {
+    margin: 0;
+    width: 100%;
+    color: black;
+    font-size: 14pt;
+
+    padding: 10px;
+
+    display: flex;
+    flex-direction: column;
+
+    position: relative;
+
+    text-decoration: none;
+}
+
+.step-one {  
+    margin-left: 32px;
+    min-height: var(--box-min-height);
+    
+    background-color: rgb(255, 201, 14);
+}
+
+.step-one:hover {
+    transition: 0.3s;
+    background-color: rgb(255, 255, 0);
+}
+
+.step-two {
+    margin-left: 32px;
+    min-height: var(--box-min-height);
+    background-color: rgb(181, 230, 29);
+}
+
+.step-two:hover {
+    transition: 0.3s;
+    background-color: rgb(191, 255, 0);
+}
+
+.step-three {
+    margin-left: 32px;
+    margin-right: 32px;
+    min-height: var(--box-min-height);
+    background-color: rgb(153, 217, 234);
+}
+
+.step-three:hover {
+    transition: 0.3s;
+    background-color:  rgb(199, 243, 255);
+}
+
+.centered-text {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.middle-aligned-text {
+    align-self: flex-end;
+    justify-content: flex-end; 
+
+    margin-top: 32px;
+    margin-bottom: auto;
+}
+
+.down-aligned-text {
+    margin-top: auto;
+    margin-bottom: 0;
+}
+
+.small-text {
+    text-align: center;
+    font-size: 9.5pt;
+}
+
+.info-text {
+    font-size: 14pt;
+
+    padding-right: 32px;
+    padding-left: 32px;
+
+    text-decoration: none; 
+}
+
+.blue-text {
+    color: #74cedc;
+}
+
+.pink-text {
+    color: violet
+}
+
+.green-text {
+    color: greenyellow
+}
+
+.red-text {
+    color: rgb(255, 105, 105);
+}
+
+.dark-blue-text {
+    color: lightblue;
+    text-decoration: none;
+}
+
+.orange-text {
+    color: orangered;
+}
