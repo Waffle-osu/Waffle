@@ -1,13 +1,13 @@
 import { useState, useEffect }  from 'react';
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Beatmaps from './Beatmaps';
+import Beatmaps from './Beatmaps/Beatmaps';
 import MainLayout from './Main';
 
 import { AppState, LoginDetails } from "./../AppState";
-import Login from './Login';
+import Login from './Login/Login';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import DownloadPanel from './Download';
+import DownloadPanel from './Download/Download';
 
 const queryClient = new QueryClient();
 

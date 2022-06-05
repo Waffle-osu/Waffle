@@ -1,6 +1,6 @@
-import { AppProps } from "../AppState";
+import { AppProps } from "../../AppState";
 
-import "./Content.css"
+import "./../Common/Content.css"
 import "./Download.css"
 
 function DownloadPanel(props: AppProps) {

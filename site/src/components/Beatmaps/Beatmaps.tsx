@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
-import { AppProps } from "../AppState";
+import { AppProps } from "../../AppState";
 
-import "./Content.css"
+import "./../Common/Content.css"
 
 function Beatmaps(props: AppProps) {
     return (

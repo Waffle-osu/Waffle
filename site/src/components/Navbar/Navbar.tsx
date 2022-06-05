@@ -2,7 +2,7 @@ import "./Navbar.css"
 
 import { Link } from "react-router-dom"
 
-import { AppProps } from "./../AppState";
+import { AppProps } from "../../AppState";
 
 function Navbar(props: AppProps) {
 	let userPanel: JSX.Element;

@@ -2,9 +2,10 @@ import axios from "axios";
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
-import { AppProps } from "../AppState";
+import { AppProps } from "../../AppState";
 
-import "./Content.css"
+import "./../Common/Content.css"
+
 import "./Login.css"
 
 interface LoginResponse {
