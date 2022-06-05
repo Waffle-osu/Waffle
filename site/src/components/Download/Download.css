@@ -30,6 +30,8 @@
     position: relative;
 
     text-decoration: none;
+
+    z-index:unset;
 }
 
 .step-one {  

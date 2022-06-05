@@ -8,6 +8,7 @@ import { AppState, LoginDetails } from "./../AppState";
 import Login from './Login/Login';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import DownloadPanel from './Download/Download';
+import Register from './Register/Register';
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function App() {
 							<Route path="beatmaps" element={ <Beatmaps appState={appState} ></Beatmaps> }/>
 							<Route path="login" element={ <Login appState={appState} ></Login> }/>
 							<Route path="download" element={ <DownloadPanel appState={appState} ></DownloadPanel> }/>
+							<Route path="register" element={ <Register appState={appState} ></Register> }/>
 						</Route>
 					</Routes>
 				</Router>	

@@ -1,17 +1,35 @@
+import { createRef, MouseEventHandler, useRef, useState, LegacyRef } from "react";
 import { AppProps } from "../../AppState";
+import Register from "../Register/Register";
 
 import "./../Common/Content.css"
 import "./Download.css"
 
 function DownloadPanel(props: AppProps) {
+    let [showRegisterPanel, setShowRegisterPanel] = useState(false);
+
+    let registerStepClick = function(event: React.MouseEvent<HTMLElement>) {
+        event.preventDefault()
+
+        setShowRegisterPanel(!showRegisterPanel)
+       
+        setTimeout(() => {
+             registerMoveDiv.current?.scrollIntoView({behavior: "smooth"})
+        }, 50) 
+    }
+
+    let registerMoveDiv = useRef<HTMLElement>();
+
     return (
         <>
             <div className="downward-content-box">
                 <div className="content-item">
+                
+
                     <p className="started-text">Let's get you started!</p>
 
                     <div className="step-panels">  
-                        <a className="right-flowing-container step-one" href="#hi">
+                        <a className="right-flowing-container step-one" href="" onClick={registerStepClick}>
                             Step 1. <br/> <br/>
 
                             <p className="centered-text">Create Waffle Account</p>
@@ -23,7 +41,7 @@ function DownloadPanel(props: AppProps) {
                             <p className="down-aligned-text small-text">Click on this if you need to create one!</p>
                         </a>
 
-                        <a className="right-flowing-container step-two">
+                        <a className="right-flowing-container step-two" href="">
                             Step 2. <br/> <br/>
 
                             <p className="centered-text">Download Waffle Updater</p> 
@@ -33,7 +51,7 @@ function DownloadPanel(props: AppProps) {
                             </p>
                         </a>
 
-                        <a className="right-flowing-container step-three">
+                        <a className="right-flowing-container step-three" href="">
                             Step 3. <br/> <br/>
 
                             <p className="centered-text">Log in and enjoy!</p>
@@ -65,6 +83,13 @@ function DownloadPanel(props: AppProps) {
                         </p>
                     </div>
                 </div>
+
+                {showRegisterPanel ? (
+                    <>        
+                        <div ref={registerMoveDiv as LegacyRef<HTMLDivElement> | undefined}></div>
+                        <Register appState={props.appState} setVisibleState={setShowRegisterPanel}></Register>
+                    </>
+                ) : (<></>)}
             </div>
         </>
     )

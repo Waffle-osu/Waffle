@@ -47,18 +47,18 @@ function Login(props: AppProps) {
         event.preventDefault()
 
         await postLoginRequest().then((response) => {
-            const resposneData = response.data
+            const responseData = response.data
 
-            if(resposneData?.WaffleToken !== "" && resposneData?.WaffleUserId! > 0 && resposneData?.WaffleUsername !== "") {
-                window.sessionStorage.setItem("waffle-username", resposneData?.WaffleUsername!)
-                window.sessionStorage.setItem("waffle-token", resposneData?.WaffleToken!)
-                window.sessionStorage.setItem("waffle-userId", resposneData?.WaffleUserId.toString()!)
+            if(responseData?.WaffleToken !== "" && responseData?.WaffleUserId! > 0 && responseData?.WaffleUsername !== "") {
+                window.sessionStorage.setItem("waffle-username", responseData?.WaffleUsername!)
+                window.sessionStorage.setItem("waffle-token", responseData?.WaffleToken!)
+                window.sessionStorage.setItem("waffle-userId", responseData?.WaffleUserId.toString()!)
     
                 props.appState.setLoginState({
                     loggedIn: true,
-                    userId: resposneData?.WaffleUserId!,
-                    username: resposneData?.WaffleUsername!,
-                    token: resposneData?.WaffleToken!
+                    userId: responseData?.WaffleUserId!,
+                    username: responseData?.WaffleUsername!,
+                    token: responseData?.WaffleToken!
                 })
                 
                 navigate("/")

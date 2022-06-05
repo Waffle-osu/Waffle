@@ -43,6 +43,7 @@ func RunOsuWeb() {
 
 	//api
 	ginServer.POST("/api/waffle-login", waffle_api.ApiHandleWaffleLogin)
+	ginServer.POST("/api/waffle-site-register", waffle_api.ApiHandleWaffleRegister)
 
 	ginServer.Run("127.0.0.1:80")
 }
