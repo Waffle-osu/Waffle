@@ -6,6 +6,9 @@ import MainLayout from './Main';
 
 import { AppState, LoginDetails } from "./../AppState";
 import Login from './Login';
+import { QueryClient, QueryClientProvider } from 'react-query';
+
+const queryClient = new QueryClient();
 
 function App() {
 	let [getLoginState, setLoginState] = useState<LoginDetails>()
@@ -16,8 +19,6 @@ function App() {
 		let username = window.sessionStorage.getItem("waffle-username")
 		let token = window.sessionStorage.getItem("waffle-token")
 		let userId = window.sessionStorage.getItem("waffle-userId")
-
-		console.log("token:" + token)
 
 		if(token !== null && username !== null && userId !== null) {
 			let currentLoginDetails: LoginDetails = {
@@ -32,15 +33,16 @@ function App() {
 	}, [])
 
 	return (
-		<>	
-			<Router>
-				<Routes>
-					<Route path='/' element={ <MainLayout appState={appState} ></MainLayout> }>
-						<Route path="beatmaps" element={ <Beatmaps appState={appState} ></Beatmaps> }/>
-						<Route path="login" element={ <Login appState={appState} ></Login> }/>
-					</Route>
-				</Routes>
-			</Router>	
+		<>	<QueryClientProvider  client={queryClient}>
+				<Router>
+					<Routes>
+						<Route path='/' element={ <MainLayout appState={appState} ></MainLayout> }>
+							<Route path="beatmaps" element={ <Beatmaps appState={appState} ></Beatmaps> }/>
+							<Route path="login" element={ <Login appState={appState} ></Login> }/>
+						</Route>
+					</Routes>
+				</Router>	
+			</QueryClientProvider>
 		</>
 	);
 }

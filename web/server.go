@@ -1,6 +1,8 @@
 package web
 
 import (
+	"Waffle/web/waffle_api"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,6 +40,9 @@ func RunOsuWeb() {
 
 	// screenshots
 	ginServer.GET("/ss/:filename", HandleOsuGetScreenshot)
+
+	//api
+	ginServer.POST("/api/waffle-login", waffle_api.ApiHandleWaffleLogin)
 
 	ginServer.Run("127.0.0.1:80")
 }
