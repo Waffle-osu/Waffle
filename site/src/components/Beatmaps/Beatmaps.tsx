@@ -3,31 +3,21 @@ import { useEffect } from "react";
 import { AppProps } from "../../AppState";
 
 import "./../Common/Content.css"
+import BeatmapElement from "./BeatmapElement/BeatmapElement";
+import BeatmapListBox from "./BeatmapListBox/BeatmapListBox";
+import BeatmapSearchBox from "./BeatmapSearchBox/BeatmapSearchBox";
 
 function Beatmaps(props: AppProps) {
+    let newQuerySubmitHandler = (query: string) => {
+
+    }
+
     return (
         <>
             <div className="downward-content-box">
-                <div className="content-item">
-                    <p>Test</p>
-                    <br></br>
-                    <br></br>
-                    <br></br>
-                    <br></br>
-                </div>
+                <BeatmapSearchBox appState={props} onNewQuerySubmit={newQuerySubmitHandler}></BeatmapSearchBox>
 
-                <div className="content-item">
-                    <p>Test</p>
-                    <br></br>
-                </div>
-
-                <div className="content-item">
-                    <p>Test</p>
-                    <br></br>
-                    <br></br>
-                    <br></br>
-                    <br></br>
-                </div>
+                <BeatmapListBox></BeatmapListBox>
             </div>
         </>
     );
