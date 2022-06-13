@@ -17,21 +17,25 @@ function BeatmapElement(props: BeatmapElementProps) {
             rankedImage = (<></>)
             break
         case 1:
-            rankedImage = (<><img src="/selection-ranked.png" height="32" className="ranked-status"></img></>)
+            rankedImage = (<><img src="/selection-ranked.png" height="24" className="ranked-status"></img></>)
             break
         case 2:
-            rankedImage = (<><img src="/selection-approved.png" height="32" className="ranked-status"></img></>)
+            rankedImage = (<><img src="/selection-approved.png" height="24" className="ranked-status"></img></>)
             break 
+    }
+
+    let elementOnClick = (event: React.MouseEvent<HTMLElement>) => {
+        event.preventDefault()
     }
 
     return (
         <>
             <div className="beatmap-element-container">
-                <a className="beatmap-element-anchor" href="">
+                <a className="beatmap-element-anchor" href="" onClick={elementOnClick}>
                     <div className="beatmap-element">    
                         <div className="left-side-container">
                             <div className="thumbnail">
-                                <img src="http://127.0.0.1:80/mt/22472l" height="64" className="beatmap-thumbnail"></img>
+                                <img src="http://127.0.0.1:80/mt/22472l" height="48" className="beatmap-thumbnail"></img>
                             </div>
                             <div className="metadata">
                                 <p className="beatmap-metadata">
@@ -40,15 +44,16 @@ function BeatmapElement(props: BeatmapElementProps) {
                             </div>
                             
                             <div className="extra-metadata">
-                                {props.LastUpdatedString} <br/>
-                                Plays: 123 <br/>
+                                {props.LastUpdatedString} <br/> 
                             </div>
                             
-                            <progress className="beatmap-rating" max="100" value={props.MapRating * 10.0}></progress>
+                            <div className="beatmap-rating-container">
+                                <progress className="beatmap-rating" max="100" value={props.MapRating * 10.0}></progress> 
+                            </div>
                         </div>
 
                         <div className="right-side-container">
-                            <h3>{props.Creator}</h3>
+                            <h4>{props.Creator}</h4>
 
                             {rankedImage}
                         </div>

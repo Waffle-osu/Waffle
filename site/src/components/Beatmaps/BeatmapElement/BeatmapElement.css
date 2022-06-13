@@ -1,18 +1,20 @@
 .beatmap-element-container {
-    margin-top: 16px;
+    width: 98%;
+}
+
+.beatmap-element-anchor {
 }
 
 .beatmap-element {
     background-color: rgba(0, 255, 21, 0.15);
-    width: 96%;
-    min-height: 100px;
+    min-height: 86px;
 
     margin-left: 2%;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 
     z-index: 50;
 
-    background-clip:padding-box; 
+    background-clip: padding-box; 
 }
 
 .beatmap-element-anchor {
@@ -36,7 +38,7 @@
 
 .left-side-container {  
     display: grid;
-    grid-template-columns: 100px fit-content(100%);
+    grid-template-columns: 80px fit-content(100%);
     grid-template-rows: 1fr 1fr;
     gap: 0px 0px;
     grid-auto-flow: row;
@@ -53,7 +55,7 @@
 .thumbnail { grid-area: thumbnail; }
   
 .extra-metadata { 
-    margin-top: -8px;
+    margin-top: 4px;
     grid-area: extra-metadata; 
 }
 
@@ -66,11 +68,15 @@
     text-align: right;
 }
 
-.right-side-container h3 {
+.right-side-container h4 {
     padding-top: 8px;
     margin-bottom: 12px;
 }
 
 .ranked-status {
     padding-right: 8px;
+}
+
+.beatmap-rating-container {
+    
 }
