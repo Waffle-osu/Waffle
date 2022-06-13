@@ -35,7 +35,8 @@ function App() {
 	}, [])
 
 	return (
-		<>	<QueryClientProvider  client={queryClient}>
+		<>	
+			<QueryClientProvider  client={queryClient}>
 				<Router>
 					<Routes>
 						<Route path='/' element={ <MainLayout appState={appState} ></MainLayout> }>

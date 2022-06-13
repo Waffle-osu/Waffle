@@ -10,11 +10,9 @@
     min-height: 86px;
 
     margin-left: 2%;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 
     z-index: 50;
-
-    background-clip: padding-box; 
 }
 
 .beatmap-element-anchor {

@@ -1,9 +1,6 @@
-import { useEffect } from "react";
-
 import { AppProps } from "../../AppState";
 
 import "./../Common/Content.css"
-import BeatmapElement from "./BeatmapElement/BeatmapElement";
 import BeatmapListBox from "./BeatmapListBox/BeatmapListBox";
 import BeatmapSearchBox from "./BeatmapSearchBox/BeatmapSearchBox";
 

@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, LegacyRef, useRef } from "react";
+import { KeyboardEvent, LegacyRef, useRef } from "react";
 import { AppProps } from "../../../AppState"
 
 import "./BeatmapSearchBox.css"
@@ -40,8 +40,6 @@ function BeatmapSearchBox(props: BeatmapSearchBoxProps) {
     }
 
     let queryOnKeyPressedHandler = (event: KeyboardEvent) => {
-        event.preventDefault()
-
         if (event.key === 'Enter') {
             querySubmitHandler(queryRef.current!.value!)
         }        

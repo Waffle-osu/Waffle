@@ -1,4 +1,4 @@
-import { createRef, MouseEventHandler, useRef, useState, LegacyRef } from "react";
+import { useRef, useState, LegacyRef } from "react";
 import { AppProps } from "../../AppState";
 import Register from "../Register/Register";
 

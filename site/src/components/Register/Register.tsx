@@ -23,7 +23,7 @@ function Register(props: AppProps | EmbeddedRegisterProps) {
     const [statusText, setStatusText] = useState<string>("");
 
     //login query
-    let {status: registerStatus, data: registerDataResponse, refetch: postRegisterRequest} = useQuery<RegisterResponse, Error>("login-response", async () => {
+    let {refetch: postRegisterRequest} = useQuery<RegisterResponse, Error>("login-response", async () => {
         let loginFormData = new FormData();
 
         loginFormData.append("username", username!)
