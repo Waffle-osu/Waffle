@@ -120,8 +120,7 @@ function Register(props: AppProps | EmbeddedRegisterProps) {
                             <br/>
 
                             Password:<br/> <input type="password" value={password} onChange={onPasswordChange} className="input-box"></input>
-                            {statusText === "" ? (<><input type="submit" value="Register"/>  </>) : (<><p>{statusText}</p></>)}
-                                   
+                            {statusText === "" ? (<><input type="submit" value="Register"/>  </>) : (<><p>{statusText}</p></>)}          
                         </form>                        
                     </div>
                 </div>

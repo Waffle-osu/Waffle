@@ -7,6 +7,7 @@ import (
 	"Waffle/bancho/clients"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
+	"Waffle/config"
 	"Waffle/database"
 	"Waffle/helpers"
 	"Waffle/web"
@@ -56,7 +57,7 @@ func main() {
 		go func() {
 			time.Sleep(time.Second * 2)
 
-			defaultConfig := "mysql_username=root\nmysql_password=root\nmysql_location=127.0.0.1:3306\nmysql_database=waffle"
+			defaultConfig := "mysql_username=root\nmysql_password=root\nmysql_location=127.0.0.1:3306\nmysql_database=waffle\ntoken_format=wa%sff%sle%dto%dke%sn"
 
 			writeErr := os.WriteFile(".env", []byte(defaultConfig), 0644)
 
@@ -81,6 +82,15 @@ func main() {
 			helpers.Logger.Printf("[Initialization] // mysql_database: Name of the Database to use        //\n")
 			helpers.Logger.Printf("[Initialization] // mysql_username: Under which user to log in         //\n")
 			helpers.Logger.Printf("[Initialization] // mysql_password: Password for said user             //\n")
+			helpers.Logger.Printf("[Initialization] // token_format:   Format string specifier for tokens //\n")
+			helpers.Logger.Printf("[Initialization] //                 make sure to change it, otherwise  //\n")
+			helpers.Logger.Printf("[Initialization] //                 you run the risk (even if small)   //\n")
+			helpers.Logger.Printf("[Initialization] //                 that your tokens will be forged.   //\n")
+			helpers.Logger.Printf("[Initialization] //                 Your format string needs to        //\n")
+			helpers.Logger.Printf("[Initialization] //                 contain 2 %%s's 2 %%d's and a %%s     //\n")
+			helpers.Logger.Printf("[Initialization] //                 in this exact order.               //\n")
+			helpers.Logger.Printf("[Initialization] //                                                    //\n")
+			helpers.Logger.Printf("[Initialization] // example:        wa%%sff%%sle%%dto%%dke%%sn              //\n")
 			helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
 		}()
 	} else {
@@ -94,6 +104,7 @@ func main() {
 		mySqlPassword := "root"
 		mySqlLocation := "127.0.0.1:3306"
 		mySqlDatabase := "waffle"
+		tokenFormat := ""
 
 		stringData := string(data)
 		eachSetting := strings.Split(stringData, "\n")
@@ -117,10 +128,37 @@ func main() {
 				mySqlDatabase = value
 			case "mysql_location":
 				mySqlLocation = value
+			case "token_format":
+				tokenFormat = value
 			}
 		}
 
 		database.Initialize(mySqlUsername, mySqlPassword, mySqlLocation, mySqlDatabase)
+
+		if tokenFormat == "" {
+			config.TokenFormatString = "wa%sff%sle%dto%dke%sn"
+
+			go func() {
+				time.Sleep(time.Second * 2)
+
+				helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+				helpers.Logger.Printf("[Initialization] //////////////////  Attention!!!!!!!  //////////////////\n")
+				helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+				helpers.Logger.Printf("[Initialization] // A new update just dropped with a new configuration //\n")
+				helpers.Logger.Printf("[Initialization] // option in the .env file, the token_format.         //\n")
+				helpers.Logger.Printf("[Initialization] //                                                    //\n")
+				helpers.Logger.Printf("[Initialization] // token_format:   Format string specifier for tokens //\n")
+				helpers.Logger.Printf("[Initialization] //                 make sure to change it, otherwise  //\n")
+				helpers.Logger.Printf("[Initialization] //                 you run the risk (even if small)   //\n")
+				helpers.Logger.Printf("[Initialization] //                 that your tokens will be forged.   //\n")
+				helpers.Logger.Printf("[Initialization] //                 Your format string needs to        //\n")
+				helpers.Logger.Printf("[Initialization] //                 contain 2 %%s's 2 %%d's and a %%s     //\n")
+				helpers.Logger.Printf("[Initialization] //                 in this exact order.               //\n")
+				helpers.Logger.Printf("[Initialization] //                                                    //\n")
+				helpers.Logger.Printf("[Initialization] // example:        wa%%sff%%sle%%dto%%dke%%sn              //\n")
+				helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+			}()
+		}
 	}
 
 	if len(os.Args) == 3 {

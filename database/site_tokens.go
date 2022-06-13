@@ -1,6 +1,7 @@
 package database
 
 import (
+	"Waffle/config"
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
@@ -17,7 +18,7 @@ func TokensCreateNewToken(user User) string {
 		CreationDate: time.Now(),
 	}
 
-	hashInput := fmt.Sprintf("wa%sff%sle%dto%dke%sn", user.Username, user.Password, newToken.CreationDate.UnixMilli(), user.UserID, user.JoinedAt)
+	hashInput := fmt.Sprintf(config.TokenFormatString, user.Username, user.Password, newToken.CreationDate.UnixMilli(), user.UserID, user.JoinedAt)
 	hashedInput := sha512.Sum512([]byte(hashInput))
 	stringHashedInput := hex.EncodeToString(hashedInput[:])
 

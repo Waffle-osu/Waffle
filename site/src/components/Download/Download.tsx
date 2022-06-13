@@ -23,8 +23,7 @@ function DownloadPanel(props: AppProps) {
     return (
         <>
             <div className="downward-content-box">
-                <div className="content-item">
-                
+                <div className="content-item">    
 
                     <p className="started-text">Let's get you started!</p>
 

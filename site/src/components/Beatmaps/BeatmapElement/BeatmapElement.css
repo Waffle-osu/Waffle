@@ -2,9 +2,6 @@
     width: 98%;
 }
 
-.beatmap-element-anchor {
-}
-
 .beatmap-element {
     background-color: rgba(0, 255, 21, 0.15);
     min-height: 86px;
@@ -47,8 +44,7 @@
     float: left;
 }
   
-.metadata { grid-area: metadata; }
-  
+.metadata { grid-area: metadata; } 
   
 .thumbnail { grid-area: thumbnail; }
   
@@ -73,8 +69,4 @@
 
 .ranked-status {
     padding-right: 8px;
-}
-
-.beatmap-rating-container {
-    
 }

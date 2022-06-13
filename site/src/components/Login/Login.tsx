@@ -72,8 +72,7 @@ function Login(props: AppProps) {
                 <div className="content-item ">
                     <p className="login-text">Log in</p>
 
-                    <div className="login-items-box">   
-                        
+                    <div className="login-items-box">                
                         <form onSubmit={submitLogin}>
                             Username:<br/> <input type="text" value={username} onChange={onUsernameChange} className="input-box"></input>
                         

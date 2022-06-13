@@ -24,6 +24,8 @@ function BeatmapElement(props: BeatmapElementProps) {
             break 
     }
 
+    let thumbnailUrl = "http://127.0.0.1:80/mt/" + props.BeatmapSetId + "l"
+
     let elementOnClick = (event: React.MouseEvent<HTMLElement>) => {
         event.preventDefault()
     }
@@ -35,7 +37,7 @@ function BeatmapElement(props: BeatmapElementProps) {
                     <div className="beatmap-element">    
                         <div className="left-side-container">
                             <div className="thumbnail">
-                                <img src="http://127.0.0.1:80/mt/22472l" height="48" className="beatmap-thumbnail"></img>
+                                <img src={thumbnailUrl} height="48" className="beatmap-thumbnail"></img>
                             </div>
                             <div className="metadata">
                                 <p className="beatmap-metadata">
@@ -44,7 +46,7 @@ function BeatmapElement(props: BeatmapElementProps) {
                             </div>
                             
                             <div className="extra-metadata">
-                                {props.LastUpdatedString} <br/> 
+                                {props.LastUpdatedString} 
                             </div>
                             
                             <div className="beatmap-rating-container">
