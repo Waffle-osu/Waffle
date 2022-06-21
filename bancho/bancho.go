@@ -3,12 +3,11 @@ package bancho
 import (
 	"Waffle/bancho/clients"
 	"Waffle/helpers"
-	"fmt"
 	"net"
 )
 
 func RunBancho() {
-	fmt.Printf("Running Bancho on 127.0.0.1:13381\n")
+	helpers.Logger.Printf("Running Bancho on 127.0.0.1:13381\n")
 
 	//Creates the TCP server under which Waffle runs
 	listener, err := net.Listen("tcp", "127.0.0.1:13381")
