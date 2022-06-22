@@ -35,6 +35,20 @@ var EnvFileWarningString string = `
 [Initialization] //                 in this exact order.               //
 [Initialization] //                                                    //
 [Initialization] // example:        wa%%sff%%sle%%dto%%dke%%sn              //
+[Initialization] //                                                    //
+[Initialization] // ssl_silence_warning: silences the warning about    //
+[Initialization] //                      IRC SSL Certificates missing  //
+[Initialization] //                                                    //
+[Initialization] // ssl_key:   Location of the Private Key File.       //
+[Initialization] // ssl_cert:  Location of the SSL Certificate.        //
+[Initialization] //                                                    //
+[Initialization] // bancho_ip:  Where the Bancho TCP Listener is hosted//
+[Initialization] // irc_ip:     Where the IRC TCP Listener is hosted   //
+[Initialization] // irc_ssl_ip: Where IRC/SSL is hosted                //
+[Initialization] //                                                    //
+[Initialization] // host_irc:      Enables/Disables IRC Server         //
+[Initialization] // host_irc_ssl:  Enables/Disables IRC SSL Server     //
+[Initialization] //                                                    //
 [Initialization] ////////////////////////////////////////////////////////
 `
 
