@@ -2,7 +2,15 @@ package config
 
 import "Waffle/helpers"
 
-func MySqlSettingsIncompleteError() string {
+var displayedWarnings map[string]bool = map[string]bool{}
+
+func MySqlSettingsIncompleteError() {
+	_, runAlready := displayedWarnings["mysql"]
+
+	if runAlready {
+		return
+	}
+
 	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
 	helpers.Logger.Printf("[Initialization] //////////////////  Attention!!!!!!!  //////////////////\n")
 	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
@@ -19,10 +27,16 @@ func MySqlSettingsIncompleteError() string {
 	helpers.Logger.Printf("[Initialization] // mysql_password: Password for said user             //\n")
 	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
 
-	return "mysql"
+	displayedWarnings["mysql"] = true
 }
 
-func TokenFormatWarning() string {
+func TokenFormatWarning() {
+	_, runAlready := displayedWarnings["token_format"]
+
+	if runAlready {
+		return
+	}
+
 	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
 	helpers.Logger.Printf("[Initialization] //////////////////  Attention!!!!!!!  //////////////////\n")
 	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
@@ -42,12 +56,39 @@ func TokenFormatWarning() string {
 	helpers.Logger.Printf("[Initialization] // example:        wa%%sff%%sle%%dto%%dke%%sn              //\n")
 	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
 
-	return "token_format"
+	displayedWarnings["token_format"] = true
 }
 
-func IrcSslCertsWarning() string {
-	if SSLSilenceWarning == "true" {
-		return "ssl"
+func BanchoIpWarning() {
+	_, runAlready := displayedWarnings["bancho_ip"]
+
+	if runAlready {
+		return
+	}
+
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] //////////////////  Attention!!!!!!!  //////////////////\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] // The Bancho IP in the .env file has been left empty //\n")
+	helpers.Logger.Printf("[Initialization] // The Bancho IP is essential in running Waffle.      //\n")
+	helpers.Logger.Printf("[Initialization] // You should definetly fill it out if you wish to    //\n")
+	helpers.Logger.Printf("[Initialization] // run Waffle.                                        //\n")
+	helpers.Logger.Printf("[Initialization] //                                                    //\n")
+	helpers.Logger.Printf("[Initialization] // bancho_ip: Where the Bancho TCP Listener is hosted //\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+
+	displayedWarnings["bancho_ip"] = true
+}
+
+func IrcSslCertsWarning() {
+	if SSLSilenceWarning == "true" || HostIrcSsl == "false" {
+		return
+	}
+
+	_, runAlready := displayedWarnings["ssl"]
+
+	if runAlready {
+		return
 	}
 
 	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
@@ -63,5 +104,58 @@ func IrcSslCertsWarning() string {
 	helpers.Logger.Printf("[Initialization] // ssl_cert:  Location of the SSL Certificate.        //\n")
 	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
 
-	return "ssl"
+	displayedWarnings["ssl"] = true
+}
+
+func IrcIpMissing() {
+	if HostIrc == "false" {
+		return
+	}
+
+	_, runAlready := displayedWarnings["irc_ip"]
+
+	if runAlready {
+		return
+	}
+
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] //////////////////  Attention!!!!!!!  //////////////////\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] // The IRC IP in the .env file has been left empty    //\n")
+	helpers.Logger.Printf("[Initialization] // If you wish to not run a IRC server, you can       //\n")
+	helpers.Logger.Printf("[Initialization] // set host_irc to false, which will disable IRC and  //\n")
+	helpers.Logger.Printf("[Initialization] // silence this warning.                              //\n")
+	helpers.Logger.Printf("[Initialization] //                                                    //\n")
+	helpers.Logger.Printf("[Initialization] // irc_ip: Where the IRC TCP Listener is hosted       //\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+
+	displayedWarnings["irc_ip"] = true
+}
+
+func IrcSSLIpMissing() {
+	if HostIrcSsl == "false" {
+		return
+	}
+
+	_, runAlready := displayedWarnings["irc_ssl_ip"]
+
+	if runAlready {
+		return
+	}
+
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] //////////////////  Attention!!!!!!!  //////////////////\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] // The IRC/SSL IP in the .env file has been left      //\n")
+	helpers.Logger.Printf("[Initialization] // empty. if you wish to not run a IRC server, you    //\n")
+	helpers.Logger.Printf("[Initialization] // can set host_irc_ssl to false, which will disable  //\n")
+	helpers.Logger.Printf("[Initialization] // IRC/SSL and silence this warning.                  //\n")
+	helpers.Logger.Printf("[Initialization] // Not providing certificate locations will also      //\n")
+	helpers.Logger.Printf("[Initialization] // automatically disable IRC/SSL, although it won't   //\n")
+	helpers.Logger.Printf("[Initialization] // silence this warning.                              //\n")
+	helpers.Logger.Printf("[Initialization] //                                                    //\n")
+	helpers.Logger.Printf("[Initialization] // irc_ssl_ip: Where IRC/SSL is hosted                //\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+
+	displayedWarnings["irc_ssl_ip"] = true
 }

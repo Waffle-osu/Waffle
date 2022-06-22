@@ -3,6 +3,7 @@ package config
 import (
 	"Waffle/helpers"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -42,7 +43,7 @@ type ExpectedKey struct {
 	Critical bool
 }
 
-var ExpectedKeys map[ExpectedKey]func()string = map[ExpectedKey]func()string{
+var ExpectedKeys map[ExpectedKey]func() = map[ExpectedKey]func(){
 	{"mysql_location", true}:       MySqlSettingsIncompleteError,
 	{"mysql_database", true}:       MySqlSettingsIncompleteError,
 	{"mysql_username", true}:       MySqlSettingsIncompleteError,
@@ -51,10 +52,20 @@ var ExpectedKeys map[ExpectedKey]func()string = map[ExpectedKey]func()string{
 	{"ssl_silence_warning", false}: nil,
 	{"ssl_key", false}:             IrcSslCertsWarning,
 	{"ssl_cert", false}:            IrcSslCertsWarning,
+	{"bancho_ip", true}:            BanchoIpWarning,
+	{"host_irc", false}:            nil,
+	{"host_irc_ssl", false}:        nil,
+	{"irc_ip", false}:              IrcIpMissing,
+	{"irc_ssl_ip", false}:          IrcSSLIpMissing,
 }
 
 var DefaultSettings map[string]string = map[string]string{
 	"token_format": "wa%sff%sle%dto%dke%sn",
+	"bancho_ip":    "127.0.0.1:13381",
+	"host_irc":     "true",
+	"host_irc_ssl": "true",
+	"irc_ip":       "127.0.0.1:6667",
+	"irc_ssl_ip":   "127.0.0.1:6697",
 }
 
 func ReadConfiguration() {
@@ -81,7 +92,7 @@ func ReadConfiguration() {
 	data, err := os.ReadFile(".env")
 
 	if err != nil {
-		helpers.Logger.Fatalf("[Initialization] Failed to read configuration file, cannot start server!")
+		helpers.Logger.Fatalf("[Initialization] Failed to read configuration file, cannot start server!\n")
 	}
 
 	asString := string(data)
@@ -95,10 +106,14 @@ func ReadConfiguration() {
 			continue
 		}
 
+		if len(iniEntry) == 0 {
+			continue
+		}
+
 		splitEntry := strings.Split(iniEntry, "=")
 
 		if len(splitEntry) != 2 {
-			helpers.Logger.Printf("[Initialization] .env file has an error on line %d, ignoring.", lineCounter)
+			helpers.Logger.Printf("[Initialization] .env file has an error on line %d, ignoring.\n", lineCounter)
 
 			continue
 		}
@@ -106,33 +121,26 @@ func ReadConfiguration() {
 		key := splitEntry[0]
 		value := splitEntry[1]
 
+		if value == "" {
+			continue
+		}
+
 		existingKeys[key] = true
 
-		switch key {
-		case "mysql_username":
-			MySqlUsername = value
-		case "mysql_password":
-			MySqlPassword = value
-		case "mysql_database":
-			MySqlDatabase = value
-		case "mysql_location":
-			MySqlLocation = value
-		case "token_format":
-			TokenFormatString = value
-		case "ssl_silence_warning":
-			SSLSilenceWarning = value
-		case "ssl_key":
-			SSLKeyLocation = value
-		case "ssl_cert":
-			SSLCertLocation = value
-		}
+		UnsafeSetKey(key, value)
 	}
 
 	warningsToRun := []func(){}
-	warningsAlreadyRun := map[string]bool{}
+	defaultSetWarningsToRun := []func(){}
 
 	displayAllWarnings := func() {
 		for _, warningFunction := range warningsToRun {
+			warningFunction()
+		}
+	}
+
+	displayAllSetDefaultWarnings := func() {
+		for _, warningFunction := range defaultSetWarningsToRun {
 			warningFunction()
 		}
 	}
@@ -141,14 +149,24 @@ func ReadConfiguration() {
 		exists := existingKeys[key.Key]
 
 		if !exists {
-			if value != nil {
+			defaultValue, defaultExists := DefaultSettings[key.Key]
+
+			if value != nil && !defaultExists {
 				warningsToRun = append(warningsToRun, value)
 			}
 
-			if key.Critical {
+			if key.Critical && !defaultExists {
 				displayAllWarnings()
 
-				helpers.Logger.Fatalf("[Initialization] Critical Configuration key is missing. Exiting.")
+				helpers.Logger.Fatalf("[Initialization] Critical Configuration key is missing. Exiting.\n")
+			}
+
+			if defaultExists {
+				defaultSetWarningsToRun = append(defaultSetWarningsToRun, func() {
+					helpers.Logger.Printf("[Initialization] Key %s has been set to the default value %s\n", key.Key, defaultValue)
+				})
+
+				UnsafeSetKey(key.Key, defaultValue)
 			}
 		}
 	}
@@ -157,6 +175,10 @@ func ReadConfiguration() {
 		time.Sleep(2 * time.Second)
 
 		displayAllWarnings()
+
+		fmt.Printf("[Initialization] ----- Keep in mind set to default does not mean it will save in .env -----\n")
+
+		displayAllSetDefaultWarnings()
 	}()
 }
 
@@ -179,6 +201,18 @@ tokenformat=wa%sff%sle%dto%dke%sn
 # Uncomment the Following line if you wish to silence the SSL Certificate missing warning.
 # ssl_silence_warning=true
 
+bancho_ip=127.0.0.1:13381
+
+# Uncomment this line if you wish to not create a IRC Server for Waffle.
+#
+#host_irc=false
+irc_ip=127.0.0.1:6667
+
+# Uncomment this line if you wish to not create a SSL IRC Server for Waffle.
+#
+#host_irc_ssl=false
+irc_ssl_ip=127.0.0.1:6697
+
 `
 
 	writeErr := os.WriteFile(".env", []byte(defaultConfiguration), 0644)
@@ -189,4 +223,35 @@ tokenformat=wa%sff%sle%dto%dke%sn
 	}
 
 	return true
+}
+
+func UnsafeSetKey(key string, value string) {
+	switch key {
+	case "mysql_username":
+		MySqlUsername = value
+	case "mysql_password":
+		MySqlPassword = value
+	case "mysql_database":
+		MySqlDatabase = value
+	case "mysql_location":
+		MySqlLocation = value
+	case "token_format":
+		TokenFormatString = value
+	case "ssl_silence_warning":
+		SSLSilenceWarning = value
+	case "ssl_key":
+		SSLKeyLocation = value
+	case "ssl_cert":
+		SSLCertLocation = value
+	case "bancho_ip":
+		BanchoIp = value
+	case "host_irc":
+		HostIrc = value
+	case "host_irc_ssl":
+		HostIrcSsl = value
+	case "irc_ip":
+		IrcIp = value
+	case "irc_ssl_ip":
+		IrcSslIp = value
+	}
 }

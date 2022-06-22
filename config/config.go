@@ -10,3 +10,10 @@ var MySqlDatabase string
 var SSLSilenceWarning string
 var SSLKeyLocation string
 var SSLCertLocation string
+
+var BanchoIp string
+var IrcIp string
+var IrcSslIp string
+
+var HostIrc string
+var HostIrcSsl string

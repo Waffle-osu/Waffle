@@ -1,18 +1,23 @@
 package irc
 
 import (
+	"Waffle/config"
 	"Waffle/helpers"
 	"net"
 )
 
 func RunIrcSSL() {
-	helpers.Logger.Printf("Running IRC/SSL on 127.0.0.1:6697\n")
+	if config.HostIrcSsl == "false" || config.SSLCertLocation == "" || config.SSLKeyLocation == "" {
+		return
+	}
 
-	listener, err := net.Listen("tcp", "127.0.0.1:6697")
+	listener, err := net.Listen("tcp", config.IrcSslIp)
 
 	if err != nil {
-		helpers.Logger.Printf("[IRC/SSL] Failed to create TCP Listener for IRC/SSL on 127.0.0.1:6697\n")
+		helpers.Logger.Printf("[IRC/SSL] Failed to create TCP Listener for IRC/SSL on %s\n", config.IrcSslIp)
 	}
+
+	helpers.Logger.Printf("Running IRC/SSL on %s\n", config.IrcSslIp)
 
 	for {
 		conn, err := listener.Accept()
@@ -23,6 +28,5 @@ func RunIrcSSL() {
 			continue
 		}
 
-		
 	}
 }
