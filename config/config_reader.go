@@ -57,6 +57,11 @@ type ExpectedKey struct {
 	Critical bool
 }
 
+type KeyValuePair struct {
+	Key   string
+	Value string
+}
+
 var ExpectedKeys map[ExpectedKey]func() = map[ExpectedKey]func(){
 	{"mysql_location", true}:       MySqlSettingsIncompleteError,
 	{"mysql_database", true}:       MySqlSettingsIncompleteError,
@@ -145,7 +150,7 @@ func ReadConfiguration() {
 	}
 
 	warningsToRun := []func(){}
-	defaultSetWarningsToRun := []func(){}
+	defaultSetWarningsToRun := []KeyValuePair{}
 
 	displayAllWarnings := func() {
 		for _, warningFunction := range warningsToRun {
@@ -154,8 +159,8 @@ func ReadConfiguration() {
 	}
 
 	displayAllSetDefaultWarnings := func() {
-		for _, warningFunction := range defaultSetWarningsToRun {
-			warningFunction()
+		for _, kv := range defaultSetWarningsToRun {
+			helpers.Logger.Printf("[Initialization] Key %s has been set to the default value %s\n", kv.Key, kv.Value)
 		}
 	}
 
@@ -176,8 +181,9 @@ func ReadConfiguration() {
 			}
 
 			if defaultExists {
-				defaultSetWarningsToRun = append(defaultSetWarningsToRun, func() {
-					helpers.Logger.Printf("[Initialization] Key %s has been set to the default value %s\n", key.Key, defaultValue)
+				defaultSetWarningsToRun = append(defaultSetWarningsToRun, KeyValuePair{
+					Key:   key.Key,
+					Value: defaultValue,
 				})
 
 				UnsafeSetKey(key.Key, defaultValue)
@@ -210,7 +216,7 @@ mysql_database=waffle
 # 
 # example: wa%sff%sle%dto%dke%sn
 
-tokenformat=wa%sff%sle%dto%dke%sn
+token_format=wa%sff%sle%dto%dke%sn
 
 # Uncomment the Following line if you wish to silence the SSL Certificate missing warning.
 # ssl_silence_warning=true
