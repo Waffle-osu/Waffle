@@ -10,6 +10,7 @@ import (
 	"Waffle/config"
 	"Waffle/database"
 	"Waffle/helpers"
+	"Waffle/irc"
 	"Waffle/web"
 	"crypto/md5"
 	"encoding/hex"
@@ -105,6 +106,8 @@ func main() {
 
 	go bancho.RunBancho()
 	go web.RunOsuWeb()
+	go irc.RunIrcSSL()
+	go irc.RunIrc()
 
 	for {
 		time.Sleep(2 * time.Second)

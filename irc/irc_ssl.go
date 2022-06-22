@@ -3,7 +3,8 @@ package irc
 import (
 	"Waffle/config"
 	"Waffle/helpers"
-	"net"
+	"Waffle/irc/irc_clients"
+	"crypto/tls"
 )
 
 func RunIrcSSL() {
@@ -11,7 +12,17 @@ func RunIrcSSL() {
 		return
 	}
 
-	listener, err := net.Listen("tcp", config.IrcSslIp)
+	cert, certErr := tls.LoadX509KeyPair(config.SSLCertLocation, config.SSLKeyLocation)
+
+	if certErr != nil {
+		helpers.Logger.Fatalf("[IRC/SSL] Failed to create certificate.")
+	}
+
+	certConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	listener, err := tls.Listen("tcp", config.IrcSslIp, certConfig)
 
 	if err != nil {
 		helpers.Logger.Printf("[IRC/SSL] Failed to create TCP Listener for IRC/SSL on %s\n", config.IrcSslIp)
@@ -28,5 +39,6 @@ func RunIrcSSL() {
 			continue
 		}
 
+		go irc_clients.HandleNewIrcClient(conn)
 	}
 }
