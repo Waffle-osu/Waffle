@@ -1,4 +1,4 @@
-package irc_reading
+package irc_messages
 
 import (
 	"fmt"

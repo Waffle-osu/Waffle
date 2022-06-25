@@ -1,22 +1,28 @@
 package irc_clients
 
 import (
+	"Waffle/database"
 	"Waffle/helpers"
-	"Waffle/irc/irc_reading"
+	"Waffle/irc/irc_messages"
 	"bufio"
+	"crypto/md5"
+	"encoding/hex"
 	"net"
 	"strings"
+	"time"
 )
 
 func HandleNewIrcClient(connection net.Conn) {
+	authBegin := time.Now()
+
 	textReader := bufio.NewReader(connection)
 
 	ircClient := IrcClient{
-		Connection: connection,
-		Reader:     textReader,
+		connection: connection,
+		reader:     textReader,
 	}
 
-	for i := 0; i != 16; i++ {
+	for ircClient.Username == "" && ircClient.Password == "" && time.Since(authBegin).Seconds() < 32 {
 		line, err := textReader.ReadString('\n')
 
 		if err != nil {
@@ -25,7 +31,7 @@ func HandleNewIrcClient(connection net.Conn) {
 
 		helpers.Logger.Printf("[IRC@Debug] %s", line)
 
-		message := irc_reading.ParseMessage(line)
+		message := irc_messages.ParseMessage(line)
 
 		if len(message.Source) != 0 {
 			helpers.Logger.Printf("[IRC@Debug] -- Source: %s", message.Source)
@@ -37,5 +43,29 @@ func HandleNewIrcClient(connection net.Conn) {
 		if len(message.Trailing) != 0 {
 			helpers.Logger.Printf("[IRC@Debug] -- Trailing: %s", message.Trailing)
 		}
+
+		ircClient.ProcessMessage(message)
 	}
+
+	//TODO: irc tokens
+
+	passwordHashed := md5.Sum([]byte(ircClient.Password))
+	passwordHashedString := hex.EncodeToString(passwordHashed[:])
+
+	userId, authResult := database.AuthenticateUser(ircClient.Username, passwordHashedString)
+
+	if !authResult {
+		//do things
+		return
+	}
+
+	queryResult, foundUser := database.UserFromDatabaseById(uint64(userId))
+
+	if queryResult != 0 {
+		//do things
+
+		return
+	}
+
+	ircClient.UserData = foundUser
 }
