@@ -17,7 +17,7 @@ func (client *Client) BroadcastToSpectators(packetFunction func(chan packets.Ban
 }
 
 // InformSpectatorJoin is called by a new spectator, informing this client that its now being watched
-func (client *Client) InformSpectatorJoin(spectatingClient client_manager.OsuClient) {
+func (client *Client) InformSpectatorJoin(spectatingClient client_manager.WaffleClient) {
 	client.spectatorMutex.Lock()
 
 	client.spectators[spectatingClient.GetUserId()] = spectatingClient
@@ -36,7 +36,7 @@ func (client *Client) InformSpectatorJoin(spectatingClient client_manager.OsuCli
 }
 
 // InformSpectatorLeft is called by a spectator, informing that it has stopped watching
-func (client *Client) InformSpectatorLeft(spectatingClient client_manager.OsuClient) {
+func (client *Client) InformSpectatorLeft(spectatingClient client_manager.WaffleClient) {
 	client.spectatorMutex.Lock()
 
 	delete(client.spectators, spectatingClient.GetUserId())
@@ -51,7 +51,7 @@ func (client *Client) InformSpectatorLeft(spectatingClient client_manager.OsuCli
 }
 
 // InformSpectatorCantSpectate is called by a spectator, informing that it doesn't own the beatmap that is being played
-func (client *Client) InformSpectatorCantSpectate(spectateClient client_manager.OsuClient) {
+func (client *Client) InformSpectatorCantSpectate(spectateClient client_manager.WaffleClient) {
 	client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
 		packets.BanchoSendSpectatorCantSpectate(packetQueue, spectateClient.GetUserId())
 	})

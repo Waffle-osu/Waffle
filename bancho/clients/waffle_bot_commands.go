@@ -16,12 +16,12 @@ import (
 	"time"
 )
 
-func WaffleBotCommandTemplate(sender client_manager.OsuClient, args []string) []string {
+func WaffleBotCommandTemplate(sender client_manager.WaffleClient, args []string) []string {
 	return []string{}
 }
 
 // WaffleBotCommandHelp !help
-func WaffleBotCommandHelp(sender client_manager.OsuClient, args []string) []string {
+func WaffleBotCommandHelp(sender client_manager.WaffleClient, args []string) []string {
 	returnStrings := helpStrings
 
 	if (sender.GetUserData().Privileges & (chat.PrivilegesBAT | chat.PrivilegesAdmin)) > 0 {
@@ -32,7 +32,7 @@ func WaffleBotCommandHelp(sender client_manager.OsuClient, args []string) []stri
 }
 
 // WaffleBotCommandAnnounce !announce (both variants)
-func WaffleBotCommandAnnounce(sender client_manager.OsuClient, args []string) []string {
+func WaffleBotCommandAnnounce(sender client_manager.WaffleClient, args []string) []string {
 	//Check privileges
 	if (chat.PrivilegesAdmin & sender.GetUserData().Privileges) <= 0 {
 		return []string{
@@ -90,7 +90,7 @@ func WaffleBotCommandAnnounce(sender client_manager.OsuClient, args []string) []
 }
 
 // WaffleBotCommandRoll !roll <~max>
-func WaffleBotCommandRoll(sender client_manager.OsuClient, args []string) []string {
+func WaffleBotCommandRoll(sender client_manager.WaffleClient, args []string) []string {
 	max := 100.0
 
 	if len(args) != 0 {
@@ -108,7 +108,7 @@ func WaffleBotCommandRoll(sender client_manager.OsuClient, args []string) []stri
 	}
 }
 
-func WaffleBotCommandBanchoStatistics(sender client_manager.OsuClient, args []string) []string {
+func WaffleBotCommandBanchoStatistics(sender client_manager.WaffleClient, args []string) []string {
 	//Calculating Uptime
 	var uptimeString string
 
@@ -244,7 +244,7 @@ func WaffleBotCommandBanchoStatistics(sender client_manager.OsuClient, args []st
 	}
 }
 
-func WaffleBotCommandRank(sender client_manager.OsuClient, args []string) []string {
+func WaffleBotCommandRank(sender client_manager.WaffleClient, args []string) []string {
 	username := sender.GetUserData().Username
 	mode := int8(0)
 	writtenMode := "osu!"
@@ -311,7 +311,7 @@ func WaffleBotCommandRank(sender client_manager.OsuClient, args []string) []stri
 	}
 }
 
-func WaffleBotCommandLeaderboards(sender client_manager.OsuClient, args []string) []string {
+func WaffleBotCommandLeaderboards(sender client_manager.WaffleClient, args []string) []string {
 	offset := 0
 	mode := int8(0)
 	writtenMode := "osu!"

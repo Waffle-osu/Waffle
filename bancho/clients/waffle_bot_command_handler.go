@@ -32,10 +32,10 @@ var adminHelpStrings = []string{
 	"!announce all <message> :: Sends a Notification to everyone on the server",
 }
 
-var commandHandlers map[string]func(client_manager.OsuClient, []string) []string
+var commandHandlers map[string]func(client_manager.WaffleClient, []string) []string
 
 func WaffleBotInitializeCommands() {
-	commandHandlers = make(map[string]func(sender client_manager.OsuClient, args []string) []string)
+	commandHandlers = make(map[string]func(sender client_manager.WaffleClient, args []string) []string)
 
 	commandHandlers["!help"] = WaffleBotCommandHelp
 	commandHandlers["!announce"] = WaffleBotCommandAnnounce
@@ -46,7 +46,7 @@ func WaffleBotInitializeCommands() {
 	commandHandlers["!leaderboards"] = WaffleBotCommandLeaderboards
 }
 
-func (client *Client) WaffleBotHandleCommand(sender client_manager.OsuClient, message packets.Message) {
+func (client *Client) WaffleBotHandleCommand(sender client_manager.WaffleClient, message packets.Message) {
 	publicCommand := message.Target[0] == '#'
 
 	var command string

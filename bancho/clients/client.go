@@ -40,9 +40,9 @@ type Client struct {
 	joinedChannels map[string]*chat.Channel
 	awayMessage    string
 
-	spectators       map[int32]client_manager.OsuClient
+	spectators       map[int32]client_manager.WaffleClient
 	spectatorMutex   sync.Mutex
-	spectatingClient client_manager.OsuClient
+	spectatingClient client_manager.WaffleClient
 
 	isInLobby         bool
 	currentMultiLobby *lobby.MultiplayerLobby
@@ -73,7 +73,7 @@ func (client *Client) CleanupClient(reason string) {
 		client.spectatingClient.InformSpectatorLeft(client)
 	}
 
-	client.spectators = map[int32]client_manager.OsuClient{}
+	client.spectators = map[int32]client_manager.WaffleClient{}
 
 	if client.isInLobby {
 		lobby.PartLobby(client)

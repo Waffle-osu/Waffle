@@ -68,7 +68,7 @@ func CreateWaffleBot() {
 		joinedChannels: make(map[string]*chat.Channel),
 		awayMessage:    "",
 
-		spectators:       make(map[int32]client_manager.OsuClient),
+		spectators:       make(map[int32]client_manager.WaffleClient),
 		spectatorMutex:   sync.Mutex{},
 		spectatingClient: nil,
 

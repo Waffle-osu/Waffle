@@ -216,7 +216,7 @@ func HandleNewClient(connection net.Conn) {
 		lastReceive:     time.Now(),
 		continueRunning: true,
 
-		spectators: make(map[int32]client_manager.OsuClient),
+		spectators: make(map[int32]client_manager.WaffleClient),
 
 		PacketQueue: packetQueue,
 
