@@ -1,9 +1,9 @@
 package irc_clients
 
 import (
+	"Waffle/bancho/irc/irc_messages"
 	"Waffle/database"
 	"Waffle/helpers"
-	"Waffle/irc/irc_messages"
 	"bufio"
 	"crypto/md5"
 	"encoding/hex"

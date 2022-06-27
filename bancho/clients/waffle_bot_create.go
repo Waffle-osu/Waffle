@@ -1,19 +1,9 @@
 package clients
 
-import (
-	"Waffle/bancho/chat"
-	"Waffle/bancho/client_manager"
-	"Waffle/bancho/osu/b1815/packets"
-	"Waffle/database"
-	"Waffle/helpers"
-	"sync"
-	"time"
-)
-
-var WaffleBot *Client
+var WaffleBotInstance *WaffleBot
 
 // CreateWaffleBot creates and brings WaffleBot to life
-func CreateWaffleBot() {
+func CreateWaffleBot() {} /*
 	packetQueue := make(chan packets.BanchoPacket, 32)
 
 	//Most of those are irrelevant cuz we aren't dealing with a real client
@@ -125,3 +115,4 @@ func CreateWaffleBot() {
 	go botClient.WaffleBotMaintainClient()
 	go botClient.WaffleBotHandleOutgoing()
 }
+*/

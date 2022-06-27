@@ -1,9 +1,9 @@
 package irc
 
 import (
+	"Waffle/bancho/irc/irc_clients"
 	"Waffle/config"
 	"Waffle/helpers"
-	"Waffle/irc/irc_clients"
 	"net"
 )
 

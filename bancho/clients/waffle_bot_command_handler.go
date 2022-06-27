@@ -1,10 +1,8 @@
 package clients
 
 import (
-	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/osu/b1815/packets"
-	"strings"
+	"Waffle/bancho/osu/base_packet_structures"
 )
 
 type WaffleCommand interface {
@@ -46,48 +44,52 @@ func WaffleBotInitializeCommands() {
 	commandHandlers["!leaderboards"] = WaffleBotCommandLeaderboards
 }
 
-func (client *Client) WaffleBotHandleCommand(sender client_manager.WaffleClient, message packets.Message) {
-	publicCommand := message.Target[0] == '#'
+func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClient, message base_packet_structures.Message) {
+	/*
 
-	var command string
-	var arguments []string
+		publicCommand := message.Target[0] == '#'
 
-	splitMessage := strings.Split(message.Message, " ")
+		var command string
+		var arguments []string
 
-	if len(splitMessage) == 0 {
-		return
-	}
+		splitMessage := strings.Split(message.Message, " ")
 
-	command = splitMessage[0]
-	arguments = splitMessage[1:]
+		if len(splitMessage) == 0 {
+			return
+		}
 
-	handler, exists := commandHandlers[command]
+		command = splitMessage[0]
+		arguments = splitMessage[1:]
 
-	if !exists {
-		return
-	}
+		handler, exists := commandHandlers[command]
 
-	result := handler(sender, arguments)
+		if !exists {
+			return
+		}
 
-	for _, messageString := range result {
-		if publicCommand {
-			if message.Target == "#multiplayer" {
-				if client.currentMultiLobby != nil {
-					client.currentMultiLobby.MultiChannel.SendMessage(WaffleBot, messageString, message.Target)
+		result := handler(sender, arguments)
+
+		for _, messageString := range result {
+			if publicCommand {
+				if message.Target == "#multiplayer" {
+					if client.currentMultiLobby != nil {
+						client.currentMultiLobby.MultiChannel.SendMessage(WaffleBot, messageString, message.Target)
+					}
+				} else {
+					channel, exists := chat.GetChannelByName(message.Target)
+
+					if exists {
+						channel.SendMessage(WaffleBotInstance, messageString, message.Target)
+					}
 				}
 			} else {
-				channel, exists := chat.GetChannelByName(message.Target)
-
-				if exists {
-					channel.SendMessage(WaffleBot, messageString, message.Target)
-				}
+				packets.BanchoSendIrcMessage(sender.GetPacketQueue(), base_packet_structures.Message{
+					Sender:  "WaffleBot",
+					Message: messageString,
+					Target:  message.Target,
+				})
 			}
-		} else {
-			packets.BanchoSendIrcMessage(sender.GetPacketQueue(), packets.Message{
-				Sender:  "WaffleBot",
-				Message: messageString,
-				Target:  message.Target,
-			})
 		}
-	}
+
+	*/
 }

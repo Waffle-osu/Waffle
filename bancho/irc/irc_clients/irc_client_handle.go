@@ -1,6 +1,6 @@
 package irc_clients
 
-import "Waffle/irc/irc_messages"
+import "Waffle/bancho/irc/irc_messages"
 
 func (client *IrcClient) ProcessMessage(message irc_messages.Message) {
 
