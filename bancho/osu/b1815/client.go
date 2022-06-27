@@ -9,6 +9,7 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
+	"Waffle/helpers/serialization"
 	"net"
 	"sync"
 	"time"
@@ -42,14 +43,14 @@ type Client struct {
 	joinedChannels map[string]*chat.Channel
 	awayMessage    string
 
-	spectators       map[int32]client_manager.WaffleClient
+	spectators       map[int32]osu.OsuClient
 	spectatorMutex   sync.Mutex
 	spectatingClient osu.OsuClient
 
 	isInLobby         bool
 	currentMultiLobby *lobby.MultiplayerLobby
 
-	PacketQueue chan packets.BanchoPacket
+	PacketQueue chan []byte
 
 	UserData    database.User
 	ClientData  ClientInformation
@@ -72,10 +73,10 @@ func (client *Client) CleanupClient(reason string) {
 	helpers.Logger.Printf("[Bancho@Client] Cleaning up %s; Reason: %s\n", client.UserData.Username, reason)
 
 	if client.spectatingClient != nil {
-		client.spectatingClient.InformSpectatorLeft(client)
+		client.spectatingClient.BanchoSpectatorLeft(client.GetUserId())
 	}
 
-	client.spectators = map[int32]client_manager.WaffleClient{}
+	client.spectators = map[int32]osu.OsuClient{}
 
 	if client.isInLobby {
 		lobby.PartLobby(client)
@@ -86,7 +87,7 @@ func (client *Client) CleanupClient(reason string) {
 	}
 
 	client_manager.UnregisterClient(client)
-	client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
+	client_manager.BroadcastPacketOsu(func(packetQueue chan serialization.BanchoPacket) {
 		packets.BanchoSendHandleOsuQuit(packetQueue, int32(client.UserData.UserID))
 	})
 

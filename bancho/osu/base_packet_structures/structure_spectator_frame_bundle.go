@@ -28,14 +28,14 @@ func ReadSpectatorFrameBundle(reader io.Reader) SpectatorFrameBundle {
 	return frameBundle
 }
 
-func (frameBundle *SpectatorFrameBundle) WriteSpectatorFrameBundle(writer io.Writer) {
+func (frameBundle SpectatorFrameBundle) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, frameBundle.FrameCount)
 
 	for i := 0; i != int(frameBundle.FrameCount); i++ {
-		frameBundle.Frames[i].WriteSpectatorFrame(writer)
+		frameBundle.Frames[i].Write(writer)
 	}
 
 	binary.Write(writer, binary.LittleEndian, frameBundle.ReplayAction)
 
-	frameBundle.ScoreFrame.WriteScoreFrame(writer)
+	frameBundle.ScoreFrame.Write(writer)
 }

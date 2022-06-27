@@ -1,7 +1,7 @@
 package base_packet_structures
 
 import (
-	"Waffle/helpers"
+	"Waffle/helpers/serialization"
 	"encoding/binary"
 	"io"
 )
@@ -29,12 +29,12 @@ func ReadBeatmapInfo(reader io.Reader) BeatmapInfo {
 	binary.Read(reader, binary.LittleEndian, &beatmapInfo.OsuRank)
 	binary.Read(reader, binary.LittleEndian, &beatmapInfo.CatchRank)
 	binary.Read(reader, binary.LittleEndian, &beatmapInfo.TaikoRank)
-	beatmapInfo.BeatmapChecksum = string(helpers.ReadBanchoString(reader))
+	beatmapInfo.BeatmapChecksum = string(serialization.ReadBanchoString(reader))
 
 	return beatmapInfo
 }
 
-func (beatmapInfo *BeatmapInfo) WriteBeatmapInfo(writer io.Writer) {
+func (beatmapInfo BeatmapInfo) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, beatmapInfo.InfoId)
 	binary.Write(writer, binary.LittleEndian, beatmapInfo.BeatmapId)
 	binary.Write(writer, binary.LittleEndian, beatmapInfo.BeatmapSetId)
@@ -43,5 +43,5 @@ func (beatmapInfo *BeatmapInfo) WriteBeatmapInfo(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, beatmapInfo.OsuRank)
 	binary.Write(writer, binary.LittleEndian, beatmapInfo.CatchRank)
 	binary.Write(writer, binary.LittleEndian, beatmapInfo.TaikoRank)
-	binary.Write(writer, binary.LittleEndian, helpers.WriteBanchoString(beatmapInfo.BeatmapChecksum))
+	binary.Write(writer, binary.LittleEndian, serialization.WriteBanchoString(beatmapInfo.BeatmapChecksum))
 }

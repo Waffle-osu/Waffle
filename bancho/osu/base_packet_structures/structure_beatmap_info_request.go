@@ -1,7 +1,7 @@
 package base_packet_structures
 
 import (
-	"Waffle/helpers"
+	"Waffle/helpers/serialization"
 	"encoding/binary"
 	"io"
 )
@@ -19,7 +19,7 @@ func ReadBeatmapInfoRequest(reader io.Reader) BeatmapInfoRequest {
 	binary.Read(reader, binary.LittleEndian, &filenameCount)
 
 	for i := 0; i != int(filenameCount); i++ {
-		infoRequest.Filenames = append(infoRequest.Filenames, string(helpers.ReadBanchoString(reader)))
+		infoRequest.Filenames = append(infoRequest.Filenames, string(serialization.ReadBanchoString(reader)))
 	}
 
 	idCount := int32(0)
@@ -37,11 +37,11 @@ func ReadBeatmapInfoRequest(reader io.Reader) BeatmapInfoRequest {
 	return infoRequest
 }
 
-func (infoRequest *BeatmapInfoRequest) WriteBeatmapInfoRequest(writer io.Writer) {
+func (infoRequest BeatmapInfoRequest) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, int32(len(infoRequest.Filenames)))
 
 	for i := 0; i != len(infoRequest.Filenames); i++ {
-		binary.Write(writer, binary.LittleEndian, helpers.WriteBanchoString(infoRequest.Filenames[i]))
+		binary.Write(writer, binary.LittleEndian, serialization.WriteBanchoString(infoRequest.Filenames[i]))
 	}
 
 	binary.Write(writer, binary.LittleEndian, int32(len(infoRequest.BeatmapIds)))

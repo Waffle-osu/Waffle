@@ -1,7 +1,7 @@
 package packets
 
 import (
-	"Waffle/helpers"
+	"Waffle/helpers/serialization"
 	"bytes"
 	"encoding/binary"
 )
@@ -10,7 +10,7 @@ func BanchoSendChannelAvailable(packetQueue chan BanchoPacket, channelName strin
 	buf := new(bytes.Buffer)
 
 	//Write Data
-	binary.Write(buf, binary.LittleEndian, helpers.WriteBanchoString(channelName))
+	binary.Write(buf, binary.LittleEndian, serialization.WriteBanchoString(channelName))
 
 	packetBytes := buf.Bytes()
 	packetLength := len(packetBytes)

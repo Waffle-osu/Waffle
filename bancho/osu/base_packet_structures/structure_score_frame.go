@@ -43,7 +43,7 @@ func ReadScoreFrame(reader io.Reader) ScoreFrame {
 	return scoreFrame
 }
 
-func (scoreFrame *ScoreFrame) WriteScoreFrame(writer io.Writer) {
+func (scoreFrame ScoreFrame) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, scoreFrame.Time)
 	binary.Write(writer, binary.LittleEndian, scoreFrame.Id)
 	binary.Write(writer, binary.LittleEndian, scoreFrame.Count300)

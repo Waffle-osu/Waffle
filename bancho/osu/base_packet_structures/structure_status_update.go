@@ -1,7 +1,7 @@
 package base_packet_structures
 
 import (
-	"Waffle/helpers"
+	"Waffle/helpers/serialization"
 	"encoding/binary"
 	"io"
 )
@@ -19,8 +19,8 @@ func ReadStatusUpdate(reader io.Reader) StatusUpdate {
 	statusUpdate := StatusUpdate{}
 
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.Status)
-	statusUpdate.StatusText = string(helpers.ReadBanchoString(reader))
-	statusUpdate.BeatmapChecksum = string(helpers.ReadBanchoString(reader))
+	statusUpdate.StatusText = string(serialization.ReadBanchoString(reader))
+	statusUpdate.BeatmapChecksum = string(serialization.ReadBanchoString(reader))
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.CurrentMods)
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.Playmode)
 	binary.Read(reader, binary.LittleEndian, &statusUpdate.BeatmapId)
@@ -28,10 +28,10 @@ func ReadStatusUpdate(reader io.Reader) StatusUpdate {
 	return statusUpdate
 }
 
-func (statusUpdate *StatusUpdate) WriteStatusUpdate(writer io.Writer) {
+func (statusUpdate StatusUpdate) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, statusUpdate.Status)
-	binary.Write(writer, binary.LittleEndian, helpers.WriteBanchoString(statusUpdate.StatusText))
-	binary.Write(writer, binary.LittleEndian, helpers.WriteBanchoString(statusUpdate.BeatmapChecksum))
+	binary.Write(writer, binary.LittleEndian, serialization.WriteBanchoString(statusUpdate.StatusText))
+	binary.Write(writer, binary.LittleEndian, serialization.WriteBanchoString(statusUpdate.BeatmapChecksum))
 	binary.Write(writer, binary.LittleEndian, statusUpdate.CurrentMods)
 	binary.Write(writer, binary.LittleEndian, statusUpdate.Playmode)
 	binary.Write(writer, binary.LittleEndian, statusUpdate.BeatmapId)

@@ -25,7 +25,7 @@ func ReadSpectatorFrame(reader io.Reader) SpectatorFrame {
 	return frame
 }
 
-func (frame *SpectatorFrame) WriteSpectatorFrame(writer io.Writer) {
+func (frame SpectatorFrame) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, frame.ButtonState)
 	binary.Write(writer, binary.LittleEndian, frame.ButtonStateCompatByte)
 	binary.Write(writer, binary.LittleEndian, frame.MouseX)

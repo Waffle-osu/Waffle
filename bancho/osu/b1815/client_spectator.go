@@ -6,11 +6,11 @@ import (
 )
 
 // BroadcastToSpectators broadcasts a packet to all the people spectating `client`
-func (client *Client) BroadcastToSpectators(packetFunction func(chan packets.BanchoPacket)) {
+func (client *Client) BroadcastToSpectators(packetFunction func(client osu.OsuClient)) {
 	client.spectatorMutex.Lock()
 
 	for _, spectator := range client.spectators {
-		packetFunction(spectator.GetPacketQueue())
+		packetFunction(spectator)
 	}
 
 	client.spectatorMutex.Unlock()
@@ -23,15 +23,15 @@ func (client *Client) InformSpectatorJoin(spectatingClient osu.OsuClient) {
 	client.spectators[spectatingClient.GetUserId()] = spectatingClient
 
 	for _, spectator := range client.spectators {
-		packets.BanchoSendFellowSpectatorJoined(spectatingClient.GetPacketQueue(), spectator.GetUserId())
+		spectator.BanchoFellowSpectatorJoined(spectator.GetUserId())
 	}
 
 	packets.BanchoSendSpectatorJoin(client.PacketQueue, spectatingClient.GetUserId())
 
 	client.spectatorMutex.Unlock()
 
-	client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
-		packets.BanchoSendFellowSpectatorJoined(packetQueue, spectatingClient.GetUserId())
+	client.BroadcastToSpectators(func(client osu.OsuClient) {
+		client.BanchoFellowSpectatorJoined(spectatingClient.GetUserId())
 	})
 }
 
@@ -45,14 +45,14 @@ func (client *Client) InformSpectatorLeft(spectatingClient osu.OsuClient) {
 
 	client.spectatorMutex.Unlock()
 
-	client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
-		packets.BanchoSendFellowSpectatorLeft(packetQueue, spectatingClient.GetUserId())
+	client.BroadcastToSpectators(func(client osu.OsuClient) {
+		client.BanchoFellowSpectatorLeft(spectatingClient.GetUserId())
 	})
 }
 
 // InformSpectatorCantSpectate is called by a spectator, informing that it doesn't own the beatmap that is being played
 func (client *Client) InformSpectatorCantSpectate(spectateClient osu.OsuClient) {
-	client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
-		packets.BanchoSendSpectatorCantSpectate(packetQueue, spectateClient.GetUserId())
+	client.BroadcastToSpectators(func(client osu.OsuClient) {
+		client.BanchoSpectatorCantSpectate(spectateClient.GetUserId())
 	})
 }

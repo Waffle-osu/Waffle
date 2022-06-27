@@ -10,8 +10,8 @@ type OsuClientPacketsInterface interface {
 	BanchoBeatmapInfoReply(infoReply base_packet_structures.BeatmapInfoReply)
 	BanchoChannelAvailableAutojoin(channel string)
 	BanchoChannelAvailable(channel string)
-	BanchoChannelAvailableJoinSuccess(channel string)
-	BanchoChannelAvailableRevoked(channel string)
+	BanchoChannelJoinSuccess(channel string)
+	BanchoChannelRevoked(channel string)
 
 	BanchoFellowSpectatorJoined(userId int32)
 	BanchoFellowSpectatorLeft(userId int32)

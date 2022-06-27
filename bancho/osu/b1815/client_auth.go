@@ -7,6 +7,7 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
+	"Waffle/helpers/serialization"
 	"bufio"
 	"fmt"
 	"net"
@@ -90,7 +91,7 @@ func HandleNewClient(connection net.Conn) {
 	userData, readErrData := textReader.ReadString('\n')
 
 	//Create a packet queue
-	packetQueue := make(chan packets.BanchoPacket, 128)
+	packetQueue := make(chan serialization.BanchoPacket, 128)
 
 	if readErrUsername != nil || readErrPassword != nil || readErrData != nil {
 		helpers.Logger.Printf("[Bancho@Auth] Failed to read initial user data\n")
@@ -323,7 +324,7 @@ func HandleNewClient(connection net.Conn) {
 }
 
 // SendOffPacketsAndClose sends off any remaining packets in the packet queue
-func SendOffPacketsAndClose(connection net.Conn, packetQueue chan packets.BanchoPacket) {
+func SendOffPacketsAndClose(connection net.Conn, packetQueue chan serialization.BanchoPacket) {
 	for len(packetQueue) != 0 {
 		connection.Write((<-packetQueue).GetBytes())
 	}

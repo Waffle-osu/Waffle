@@ -1,13 +1,12 @@
 package lobby
 
 import (
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
+	"Waffle/helpers/serialization"
 )
 
 type LobbyClient interface {
-	GetPacketQueue() chan packets.BanchoPacket
 	GetUserId() int32
 	GetUserData() database.User
 	GetUserPrivileges() int32

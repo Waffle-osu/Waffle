@@ -9,6 +9,7 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
+	"Waffle/helpers/serialization"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -44,7 +45,7 @@ func (client *Client) HandleIncoming() {
 		readIndex := 0
 
 		for readIndex < read {
-			read, packet, failedRead := packets.ReadBanchoPacketHeader(packetBuffer)
+			read, packet, failedRead := serialization.ReadBanchoPacketHeader(packetBuffer)
 
 			readIndex += read
 
@@ -62,16 +63,16 @@ func (client *Client) HandleIncoming() {
 
 			switch packet.PacketId {
 			//The client is informing us about its new status
-			case packets.OsuSendUserStatus:
+			case serialization.OsuSendUserStatus:
 				statusUpdate := base_packet_structures.ReadStatusUpdate(packetDataReader)
 
 				client.Status = statusUpdate
 
-				client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
+				client_manager.BroadcastPacketOsu(func(packetQueue chan serialization.BanchoPacket) {
 					packets.BanchoSendOsuUpdate(packetQueue, client.GetRelevantUserStats(), client.Status)
 				})
 			//The client is informing us, that it wants to know its own updated stats
-			case packets.OsuRequestStatusUpdate:
+			case serialization.OsuRequestStatusUpdate:
 				//Retrieve stats
 				statGetResultOsu, osuStats := database.UserStatsFromDatabase(client.UserData.UserID, 0)
 				statGetResultTaiko, taikoStats := database.UserStatsFromDatabase(client.UserData.UserID, 1)
@@ -94,7 +95,7 @@ func (client *Client) HandleIncoming() {
 				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.GetRelevantUserStats(), client.GetClientTimezone())
 				packets.BanchoSendOsuUpdate(client.PacketQueue, client.GetRelevantUserStats(), client.Status)
 			//The Client is requesting more information about certain clients
-			case packets.OsuUserStatsRequest:
+			case serialization.OsuUserStatsRequest:
 				var listLength int16
 
 				binary.Read(packetDataReader, binary.LittleEndian, &listLength)
@@ -116,7 +117,7 @@ func (client *Client) HandleIncoming() {
 					break
 				}
 			//The client is sending a message into a channel
-			case packets.OsuSendIrcMessage:
+			case serialization.OsuSendIrcMessage:
 				message := base_packet_structures.ReadMessage(packetDataReader)
 
 				//Reroute if it's for #multiplayer
@@ -140,7 +141,7 @@ func (client *Client) HandleIncoming() {
 					database.ChatInsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
 				}
 				//The client is sending a private message to someone
-			case packets.OsuSendIrcMessagePrivate:
+			case serialization.OsuSendIrcMessagePrivate:
 				message := base_packet_structures.ReadMessage(packetDataReader)
 				//Assign a sender, as the client doesn't seem to send itself as the sender
 				message.Sender = client.UserData.Username
@@ -166,11 +167,11 @@ func (client *Client) HandleIncoming() {
 					database.ChatInsertNewMessage(uint64(client.GetUserId()), strconv.FormatInt(int64(targetClient.GetUserId()), 10), message.Message)
 				}
 			//The client nicely informs the server that its leaving
-			case packets.OsuExit:
+			case serialization.OsuExit:
 				client.CleanupClient("Player Exited")
 				return
 			//The client informs that it wants to start spectating someone
-			case packets.OsuStartSpectating:
+			case serialization.OsuStartSpectating:
 				var spectatorId int32
 
 				binary.Read(packetDataReader, binary.LittleEndian, &spectatorId)
@@ -183,54 +184,54 @@ func (client *Client) HandleIncoming() {
 					break
 				}
 
-				toSpectate.InformSpectatorJoin(client)
+				toSpectate.BanchoSpectatorJoined(client.GetUserId())
 
 				//Stop spectating old client if there is one
 				if client.spectatingClient != nil {
-					client.spectatingClient.InformSpectatorLeft(client)
+					client.spectatingClient.BanchoSpectatorLeft(client.GetUserId())
 				}
 
 				client.spectatingClient = toSpectate
 			//The client informs the server that it wants to stop spectating the current user
-			case packets.OsuStopSpectating:
+			case serialization.OsuStopSpectating:
 				if client.spectatingClient == nil {
 					break
 				}
 
-				client.spectatingClient.InformSpectatorLeft(client)
+				client.spectatingClient.BanchoSpectatorLeft(client.GetUserId())
 				client.spectatingClient = nil
 			//The client is sending replay frames for spectators, this is only done if it knows it has spectators
-			case packets.OsuSpectateFrames:
+			case serialization.OsuSpectateFrames:
 				frameBundle := base_packet_structures.ReadSpectatorFrameBundle(packetDataReader)
 
 				//Send the frames to all spectators
-				client.BroadcastToSpectators(func(packetQueue chan packets.BanchoPacket) {
+				client.BroadcastToSpectators(func(packetQueue chan serialization.BanchoPacket) {
 					packets.BanchoSendSpectateFrames(packetQueue, frameBundle)
 				})
 			//The client informs the server that it's missing the map which the client its spectating is playing
-			case packets.OsuCantSpectate:
+			case serialization.OsuCantSpectate:
 				if client.spectatingClient != nil {
-					client.spectatingClient.InformSpectatorCantSpectate(client)
+					client.spectatingClient.BanchoSpectatorCantSpectate(client.GetUserId())
 				}
 			//The client informs the server about an error which had occurred
-			case packets.OsuErrorReport:
-				errorString := string(helpers.ReadBanchoString(packetDataReader))
+			case serialization.OsuErrorReport:
+				errorString := string(serialization.ReadBanchoString(packetDataReader))
 
 				helpers.Logger.Printf("[Bancho@Handling] %s Encountered an error!! Error Details:\n%s", client.UserData.Username, errorString)
 			//This is the response to a BanchoPing
-			case packets.OsuPong:
+			case serialization.OsuPong:
 				client.lastReceive = time.Now()
 			//The client has joined the lobby
-			case packets.OsuLobbyJoin:
+			case serialization.OsuLobbyJoin:
 				lobby.JoinLobby(client)
 				client.isInLobby = true
 			//The client has left the lobby
-			case packets.OsuLobbyPart:
+			case serialization.OsuLobbyPart:
 				lobby.PartLobby(client)
 				client.isInLobby = false
 			//The client is requesting to join a chat channel
-			case packets.OsuChannelJoin:
-				channelName := string(helpers.ReadBanchoString(packetDataReader))
+			case serialization.OsuChannelJoin:
+				channelName := string(serialization.ReadBanchoString(packetDataReader))
 
 				channel, exists := chat.GetChannelByName(channelName)
 
@@ -246,8 +247,8 @@ func (client *Client) HandleIncoming() {
 					packets.BanchoSendChannelRevoked(client.PacketQueue, channelName)
 				}
 			//The client is requesting to leave a chat channel
-			case packets.OsuChannelLeave:
-				channelName := string(helpers.ReadBanchoString(packetDataReader))
+			case serialization.OsuChannelLeave:
+				channelName := string(serialization.ReadBanchoString(packetDataReader))
 
 				//Search for the channel
 				channel, exists := client.joinedChannels[channelName]
@@ -257,12 +258,12 @@ func (client *Client) HandleIncoming() {
 					delete(client.joinedChannels, channelName)
 				}
 			//The client is creating a multiplayer match
-			case packets.OsuMatchCreate:
+			case serialization.OsuMatchCreate:
 				match := base_packet_structures.ReadMultiplayerMatch(packetDataReader)
 
 				lobby.CreateNewMultiMatch(match, client)
 			//The client is looking to join a multiplayer match
-			case packets.OsuMatchJoin:
+			case serialization.OsuMatchJoin:
 				matchJoin := base_packet_structures.ReadMatchJoin(packetDataReader)
 
 				foundMatch := lobby.GetMultiMatchById(uint16(matchJoin.MatchId))
@@ -274,10 +275,10 @@ func (client *Client) HandleIncoming() {
 					packets.BanchoSendMatchJoinFail(client.PacketQueue)
 				}
 			//The client wants to leave the current multiplayer match
-			case packets.OsuMatchPart:
+			case serialization.OsuMatchPart:
 				client.LeaveCurrentMatch()
 			//The client wants to change in which multiplayer slot its in
-			case packets.OsuMatchChangeSlot:
+			case serialization.OsuMatchChangeSlot:
 				if client.currentMultiLobby != nil {
 					var newSlot int32
 
@@ -286,12 +287,12 @@ func (client *Client) HandleIncoming() {
 					client.currentMultiLobby.TryChangeSlot(client, int(newSlot))
 				}
 			//The client wants to change sides
-			case packets.OsuMatchChangeTeam:
+			case serialization.OsuMatchChangeTeam:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.ChangeTeam(client)
 				}
 			//The client wants to transfer its host status onto someone else
-			case packets.OsuMatchTransferHost:
+			case serialization.OsuMatchTransferHost:
 				if client.currentMultiLobby != nil {
 					var newHost int32
 
@@ -300,23 +301,23 @@ func (client *Client) HandleIncoming() {
 					client.currentMultiLobby.TransferHost(client, int(newHost))
 				}
 			//The client informs the server it has pressed the ready button
-			case packets.OsuMatchReady:
+			case serialization.OsuMatchReady:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.ReadyUp(client)
 				}
 			//The client informs the server it has pressed the not ready button
-			case packets.OsuMatchNotReady:
+			case serialization.OsuMatchNotReady:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.Unready(client)
 				}
 			//The client informs the server it has made some changes to the settings of the match
-			case packets.OsuMatchChangeSettings:
+			case serialization.OsuMatchChangeSettings:
 				if client.currentMultiLobby != nil {
 					newMatch := base_packet_structures.ReadMultiplayerMatch(packetDataReader)
 					client.currentMultiLobby.ChangeSettings(client, newMatch)
 				}
 			//The client informs the server that it has changed the mods in the match
-			case packets.OsuMatchChangeMods:
+			case serialization.OsuMatchChangeMods:
 				if client.currentMultiLobby != nil {
 					var newMods int32
 
@@ -325,7 +326,7 @@ func (client *Client) HandleIncoming() {
 					client.currentMultiLobby.ChangeMods(client, newMods)
 				}
 			//The client informs the server that it has tried to lock a slot in the multi lobby
-			case packets.OsuMatchLock:
+			case serialization.OsuMatchLock:
 				if client.currentMultiLobby != nil {
 					var slot int32
 
@@ -334,49 +335,49 @@ func (client *Client) HandleIncoming() {
 					client.currentMultiLobby.LockSlot(client, int(slot))
 				}
 			//The client informs the server that it's missing the beatmap to be played
-			case packets.OsuMatchNoBeatmap:
+			case serialization.OsuMatchNoBeatmap:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformNoBeatmap(client)
 				}
 			//The client informs the server that it now has the beatmap that is to be played
-			case packets.OsuMatchHasBeatmap:
+			case serialization.OsuMatchHasBeatmap:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformGotBeatmap(client)
 				}
 			//The client informs the server that it has completed playing the map
-			case packets.OsuMatchComplete:
+			case serialization.OsuMatchComplete:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformCompletion(client)
 				}
 			//The client informs the server that it has loaded into the game successfully
-			case packets.OsuMatchLoadComplete:
+			case serialization.OsuMatchLoadComplete:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformLoadComplete(client)
 				}
 			//The client informs the server of its new score
-			case packets.OsuMatchScoreUpdate:
+			case serialization.OsuMatchScoreUpdate:
 				if client.currentMultiLobby != nil {
 					scoreFrame := base_packet_structures.ReadScoreFrame(packetDataReader)
 
 					client.currentMultiLobby.InformScoreUpdate(client, scoreFrame)
 				}
 			//The client has requested to skip the beginning break
-			case packets.OsuMatchSkipRequest:
+			case serialization.OsuMatchSkipRequest:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformPressedSkip(client)
 				}
 			//The client has failed the map
-			case packets.OsuMatchFailed:
+			case serialization.OsuMatchFailed:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformFailed(client)
 				}
 			//The client has pressed start game
-			case packets.OsuMatchStart:
+			case serialization.OsuMatchStart:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.StartGame(client)
 				}
 			//The client is looking to add a friend to their friends list
-			case packets.OsuFriendsAdd:
+			case serialization.OsuFriendsAdd:
 				var friendId int32
 
 				binary.Read(packetDataReader, binary.LittleEndian, &friendId)
@@ -390,7 +391,7 @@ func (client *Client) HandleIncoming() {
 				//Save in database
 				go database.FriendsAddFriend(client.UserData.UserID, uint64(friendId))
 			//The client is looking to remove a friend from their friends list
-			case packets.OsuFriendsRemove:
+			case serialization.OsuFriendsRemove:
 				var friendId int32
 
 				binary.Read(packetDataReader, binary.LittleEndian, &friendId)
@@ -403,7 +404,7 @@ func (client *Client) HandleIncoming() {
 
 				go database.FriendsRemoveFriend(client.UserData.UserID, uint64(friendId))
 			//The client is setting their away message
-			case packets.OsuSetIrcAwayMessage:
+			case serialization.OsuSetIrcAwayMessage:
 				awayMessage := base_packet_structures.ReadMessage(packetDataReader)
 
 				client.awayMessage = awayMessage.Message
@@ -422,12 +423,12 @@ func (client *Client) HandleIncoming() {
 						Target:  client.UserData.Username,
 					})
 				}
-			case packets.OsuBeatmapInfoRequest:
+			case serialization.OsuBeatmapInfoRequest:
 				infoRequest := base_packet_structures.ReadBeatmapInfoRequest(packetDataReader)
 
 				client.HandleBeatmapInfoRequest(infoRequest)
 			default:
-				helpers.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
+				helpers.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, serialization.GetPacketName(packet.PacketId), packet.PacketSize)
 			}
 		}
 	}
@@ -437,7 +438,7 @@ func (client *Client) HandleIncoming() {
 func (client *Client) SendOutgoing() {
 	for packet := range client.PacketQueue {
 		if packet.PacketId != 8 {
-			helpers.Logger.Printf("[Bancho@Handling] Sending %s to %s\n", packets.GetPacketName(packet.PacketId), client.UserData.Username)
+			helpers.Logger.Printf("[Bancho@Handling] Sending %s to %s\n", serialization.GetPacketName(packet.PacketId), client.UserData.Username)
 		}
 
 		sendBytes := packet.GetBytes()

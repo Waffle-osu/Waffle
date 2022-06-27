@@ -29,9 +29,9 @@ func ReadOsuStats(reader io.Reader) OsuStats {
 	return stats
 }
 
-func (stats *OsuStats) WriteOsuStats(writer io.Writer) {
+func (stats OsuStats) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, stats.UserId)
-	stats.Status.WriteStatusUpdate(writer)
+	stats.Status.Write(writer)
 	binary.Write(writer, binary.LittleEndian, stats.RankedScore)
 	binary.Write(writer, binary.LittleEndian, stats.Accuracy)
 	binary.Write(writer, binary.LittleEndian, stats.Playcount)

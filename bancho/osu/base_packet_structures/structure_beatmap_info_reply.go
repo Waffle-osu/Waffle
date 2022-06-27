@@ -23,10 +23,10 @@ func ReadBeatmapInfoReply(reader io.Reader) BeatmapInfoReply {
 	return infoReply
 }
 
-func (infoReply *BeatmapInfoReply) WriteBeatmapInfoReply(writer io.Writer) {
+func (infoReply BeatmapInfoReply) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, int32(len(infoReply.BeatmapInfos)))
 
 	for i := 0; i != len(infoReply.BeatmapInfos); i++ {
-		infoReply.BeatmapInfos[i].WriteBeatmapInfo(writer)
+		infoReply.BeatmapInfos[i].Write(writer)
 	}
 }

@@ -1,7 +1,7 @@
 package base_packet_structures
 
 import (
-	"Waffle/helpers"
+	"Waffle/helpers/serialization"
 	"encoding/binary"
 	"io"
 )
@@ -56,11 +56,11 @@ func ReadMultiplayerMatch(reader io.Reader) MultiplayerMatch {
 	binary.Read(reader, binary.LittleEndian, &match.InProgress)
 	binary.Read(reader, binary.LittleEndian, &match.MatchType)
 	binary.Read(reader, binary.LittleEndian, &match.ActiveMods)
-	match.GameName = string(helpers.ReadBanchoString(reader))
-	match.GamePassword = string(helpers.ReadBanchoString(reader))
-	match.BeatmapName = string(helpers.ReadBanchoString(reader))
+	match.GameName = string(serialization.ReadBanchoString(reader))
+	match.GamePassword = string(serialization.ReadBanchoString(reader))
+	match.BeatmapName = string(serialization.ReadBanchoString(reader))
 	binary.Read(reader, binary.LittleEndian, &match.BeatmapId)
-	match.BeatmapChecksum = string(helpers.ReadBanchoString(reader))
+	match.BeatmapChecksum = string(serialization.ReadBanchoString(reader))
 	binary.Read(reader, binary.LittleEndian, &match.SlotStatus)
 	binary.Read(reader, binary.LittleEndian, &match.SlotTeam)
 
@@ -78,16 +78,16 @@ func ReadMultiplayerMatch(reader io.Reader) MultiplayerMatch {
 	return match
 }
 
-func (match *MultiplayerMatch) WriteMultiplayerMatch(writer io.Writer) {
+func (match MultiplayerMatch) Write(writer io.Writer) {
 	binary.Write(writer, binary.LittleEndian, match.MatchId)
 	binary.Write(writer, binary.LittleEndian, match.InProgress)
 	binary.Write(writer, binary.LittleEndian, match.MatchType)
 	binary.Write(writer, binary.LittleEndian, match.ActiveMods)
-	binary.Write(writer, binary.LittleEndian, helpers.WriteBanchoString(match.GameName))
-	binary.Write(writer, binary.LittleEndian, helpers.WriteBanchoString(match.GamePassword))
-	binary.Write(writer, binary.LittleEndian, helpers.WriteBanchoString(match.BeatmapName))
+	binary.Write(writer, binary.LittleEndian, serialization.WriteBanchoString(match.GameName))
+	binary.Write(writer, binary.LittleEndian, serialization.WriteBanchoString(match.GamePassword))
+	binary.Write(writer, binary.LittleEndian, serialization.WriteBanchoString(match.BeatmapName))
 	binary.Write(writer, binary.LittleEndian, match.BeatmapId)
-	binary.Write(writer, binary.LittleEndian, helpers.WriteBanchoString(match.BeatmapChecksum))
+	binary.Write(writer, binary.LittleEndian, serialization.WriteBanchoString(match.BeatmapChecksum))
 	binary.Write(writer, binary.LittleEndian, match.SlotStatus)
 	binary.Write(writer, binary.LittleEndian, match.SlotTeam)
 

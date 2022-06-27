@@ -28,7 +28,7 @@ func BanchoSendUserPresence(packetQueue chan BanchoPacket, user database.User, s
 		Rank:            int32(stats.Rank),
 	}
 
-	presence.WriteUserPresence(buf)
+	presence.Write(buf)
 
 	packetBytes := buf.Bytes()
 	packetLength := len(packetBytes)

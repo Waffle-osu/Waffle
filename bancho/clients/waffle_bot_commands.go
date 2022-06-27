@@ -77,7 +77,7 @@ func WaffleBotCommandAnnounce(sender client_manager.WaffleClient, args []string)
 			packets.BanchoSendGetAttention(targetClient.GetPacketQueue())
 		}
 	} else {
-		client_manager.BroadcastPacket(func(packetQueue chan packets.BanchoPacket) {
+		client_manager.BroadcastPacketOsu(func(packetQueue chan packets.BanchoPacket) {
 			totalString := strings.Join(args[1:], " ")
 
 			packets.BanchoSendAnnounce(packetQueue, totalString)
