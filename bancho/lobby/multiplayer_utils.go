@@ -1,6 +1,8 @@
 package lobby
 
-import "Waffle/bancho/packets"
+import (
+	"Waffle/bancho/osu/base_packet_structures"
+)
 
 // GetSlotFromUserId is a utility function to get a slot from a players ID
 func (multiLobby *MultiplayerLobby) GetSlotFromUserId(userId int32) int {
@@ -18,7 +20,7 @@ func (multiLobby *MultiplayerLobby) GetOpenSlotCount() int {
 	count := 0
 
 	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotStatus[i] != packets.MultiplayerMatchSlotStatusLocked {
+		if multiLobby.MatchInformation.SlotStatus[i] != base_packet_structures.MultiplayerMatchSlotStatusLocked {
 			count++
 		}
 	}
@@ -29,7 +31,7 @@ func (multiLobby *MultiplayerLobby) GetOpenSlotCount() int {
 // HaveAllPlayersSkipped is a utility function which checks if everyone skipped
 func (multiLobby *MultiplayerLobby) HaveAllPlayersSkipped() bool {
 	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusPlaying && !multiLobby.PlayerSkipRequested[i] {
+		if multiLobby.MatchInformation.SlotStatus[i] == base_packet_structures.MultiplayerMatchSlotStatusPlaying && !multiLobby.PlayerSkipRequested[i] {
 			return false
 		}
 	}
@@ -68,7 +70,7 @@ func (multiLobby *MultiplayerLobby) GetUsedUpSlots() int {
 	count := 0
 
 	for i := 0; i != 8; i++ {
-		if (multiLobby.MatchInformation.SlotStatus[i] & packets.MultiplayerMatchSlotStatusHasPlayer) > 0 {
+		if (multiLobby.MatchInformation.SlotStatus[i] & base_packet_structures.MultiplayerMatchSlotStatusHasPlayer) > 0 {
 			count++
 		}
 	}

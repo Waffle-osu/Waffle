@@ -2,7 +2,7 @@ package web
 
 import (
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/packets"
+	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
 	"crypto/md5"
@@ -703,7 +703,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		foundClient := client_manager.GetClientById(userId)
 
 		if foundClient != nil {
-			infoRequest := packets.BeatmapInfoRequest{}
+			infoRequest := base_packet_structures.BeatmapInfoRequest{}
 
 			infoRequest.BeatmapIds = []int32{
 				scoreBeatmap.BeatmapsetId,

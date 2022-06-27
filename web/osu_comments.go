@@ -1,7 +1,7 @@
 package web
 
 import (
-	"Waffle/bancho/packets"
+	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/database"
 	"fmt"
 	"net/http"

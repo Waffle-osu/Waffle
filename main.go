@@ -5,12 +5,13 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/clients"
+	"Waffle/bancho/irc"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
+	"Waffle/bancho/osu/b1815"
 	"Waffle/config"
 	"Waffle/database"
 	"Waffle/helpers"
-	"Waffle/irc"
 	"Waffle/web"
 	"crypto/md5"
 	"encoding/hex"
@@ -48,7 +49,7 @@ func main() {
 	lobby.InitializeLobby()                  //Initializes the multi lobby
 	clients.WaffleBotInitializeCommands()    //Initializes Chat Commands
 	misc.InitializeStatistics()              //Initializes Statistics
-	clients.InitializeCompatibilityLists()   //Initializes Client Compatibility lists
+	b1815.InitializeCompatibilityLists()     //Initializes Client Compatibility lists
 	config.ReadConfiguration()               //Initializes all Configurable things
 	database.Initialize()
 

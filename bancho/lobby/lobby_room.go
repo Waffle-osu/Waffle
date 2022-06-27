@@ -2,7 +2,8 @@ package lobby
 
 import (
 	"Waffle/bancho/chat"
-	"Waffle/bancho/packets"
+	"Waffle/bancho/osu/b1815/packets"
+	"Waffle/bancho/osu/base_packet_structures"
 	"sync"
 )
 
@@ -92,7 +93,7 @@ func BroadcastToLobby(packetFunction func(chan packets.BanchoPacket)) {
 }
 
 // CreateNewMultiMatch is responsible for creating a new Multiplayer Match
-func CreateNewMultiMatch(match packets.MultiplayerMatch, host LobbyClient) {
+func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host LobbyClient) {
 	multiMutex.Lock()
 
 	for i := 0; i != 65536; i++ {

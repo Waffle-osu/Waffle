@@ -3,7 +3,7 @@ package clients
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/packets"
+	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/database"
 	"Waffle/helpers"
 	"sync"
@@ -57,7 +57,7 @@ func CreateWaffleBot() {
 		return
 	}
 
-	botClient := Client{
+	botClient := client_manager.WaffleClient{
 		//We don't need a connection because this is a local client
 		connection:      nil,
 		continueRunning: true,

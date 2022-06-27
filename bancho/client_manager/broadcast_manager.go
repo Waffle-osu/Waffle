@@ -1,6 +1,6 @@
 package client_manager
 
-import "Waffle/bancho/packets"
+import "Waffle/bancho/osu/b1815/packets"
 
 //BroadcastPacket broadcasts a packet to everyone online
 func BroadcastPacket(packetFunction func(packetQueue chan packets.BanchoPacket)) {

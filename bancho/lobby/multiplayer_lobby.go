@@ -2,20 +2,21 @@ package lobby
 
 import (
 	"Waffle/bancho/chat"
-	"Waffle/bancho/packets"
+	"Waffle/bancho/osu/b1815/packets"
+	"Waffle/bancho/osu/base_packet_structures"
 	"sync"
 )
 
 type MultiplayerLobby struct {
 	MultiChannel        *chat.Channel
-	MatchInformation    packets.MultiplayerMatch
+	MatchInformation    base_packet_structures.MultiplayerMatch
 	MatchHost           LobbyClient
 	MultiClients        [8]LobbyClient
 	PlayersLoaded       [8]bool
 	PlayerSkipRequested [8]bool
 	PlayerCompleted     [8]bool
 	PlayerFailed        [8]bool
-	LastScoreFrames     [8]packets.ScoreFrame
+	LastScoreFrames     [8]base_packet_structures.ScoreFrame
 	MatchInfoMutex      sync.Mutex
 	InProgress          bool
 }
@@ -40,7 +41,7 @@ func (multiLobby *MultiplayerLobby) Join(client LobbyClient, password string) bo
 
 	//Search for an Empty spot
 	for i := 0; i != 8; i++ {
-		if multiLobby.MatchInformation.SlotStatus[i] == packets.MultiplayerMatchSlotStatusOpen {
+		if multiLobby.MatchInformation.SlotStatus[i] == base_packet_structures.MultiplayerMatchSlotStatusOpen {
 			//Set the slot to them as well as join #multiplayer
 			multiLobby.SetSlot(int32(i), client)
 			multiLobby.MultiChannel.Join(client)
@@ -66,15 +67,15 @@ func (multiLobby *MultiplayerLobby) SetSlot(slot int32, client LobbyClient) {
 	if client != nil {
 		//Set slot nformation
 		multiLobby.MatchInformation.SlotUserId[slot] = client.GetUserId()
-		multiLobby.MatchInformation.SlotStatus[slot] = packets.MultiplayerMatchSlotStatusNotReady
+		multiLobby.MatchInformation.SlotStatus[slot] = base_packet_structures.MultiplayerMatchSlotStatusNotReady
 		multiLobby.MultiClients[slot] = client
 
 		//Set teams, if necessary
-		if multiLobby.MatchInformation.MatchTeamType == packets.MultiplayerMatchTypeTagTeamVs || multiLobby.MatchInformation.MatchTeamType == packets.MultiplayerMatchTypeTeamVs {
+		if multiLobby.MatchInformation.MatchTeamType == base_packet_structures.MultiplayerMatchTypeTagTeamVs || multiLobby.MatchInformation.MatchTeamType == base_packet_structures.MultiplayerMatchTypeTeamVs {
 			if slot%2 == 0 {
-				multiLobby.MatchInformation.SlotTeam[slot] = packets.MultiplayerSlotTeamRed
+				multiLobby.MatchInformation.SlotTeam[slot] = base_packet_structures.MultiplayerSlotTeamRed
 			} else {
-				multiLobby.MatchInformation.SlotTeam[slot] = packets.MultiplayerSlotTeamBlue
+				multiLobby.MatchInformation.SlotTeam[slot] = base_packet_structures.MultiplayerSlotTeamBlue
 			}
 		}
 	} else {
@@ -82,12 +83,12 @@ func (multiLobby *MultiplayerLobby) SetSlot(slot int32, client LobbyClient) {
 		multiLobby.MatchInformation.SlotUserId[slot] = -1
 
 		//If it's not locked, make it open
-		if multiLobby.MatchInformation.SlotStatus[slot] != packets.MultiplayerMatchSlotStatusLocked {
-			multiLobby.MatchInformation.SlotStatus[slot] = packets.MultiplayerMatchSlotStatusOpen
+		if multiLobby.MatchInformation.SlotStatus[slot] != base_packet_structures.MultiplayerMatchSlotStatusLocked {
+			multiLobby.MatchInformation.SlotStatus[slot] = base_packet_structures.MultiplayerMatchSlotStatusOpen
 		}
 
 		//Set team to neutral and make there be no client in that spot
-		multiLobby.MatchInformation.SlotTeam[slot] = packets.MultiplayerSlotTeamNeutral
+		multiLobby.MatchInformation.SlotTeam[slot] = base_packet_structures.MultiplayerSlotTeamNeutral
 		multiLobby.MultiClients[slot] = nil
 	}
 }
@@ -191,7 +192,7 @@ func (multiLobby *MultiplayerLobby) TryChangeSlot(client LobbyClient, slotId int
 	multiLobby.MatchInfoMutex.Lock()
 
 	//Refuse if the slot is occupied or locked
-	if multiLobby.MatchInformation.SlotStatus[slotId] == packets.MultiplayerMatchSlotStatusLocked || (multiLobby.MatchInformation.SlotStatus[slotId]&packets.MultiplayerMatchSlotStatusHasPlayer) > 0 {
+	if multiLobby.MatchInformation.SlotStatus[slotId] == base_packet_structures.MultiplayerMatchSlotStatusLocked || (multiLobby.MatchInformation.SlotStatus[slotId]&base_packet_structures.MultiplayerMatchSlotStatusHasPlayer) > 0 {
 		return
 	}
 
@@ -213,12 +214,12 @@ func (multiLobby *MultiplayerLobby) ChangeTeam(client LobbyClient) {
 	}
 
 	//Flip colors
-	if multiLobby.MatchInformation.SlotTeam[clientSlot] == packets.MultiplayerSlotTeamRed {
-		multiLobby.MatchInformation.SlotTeam[clientSlot] = packets.MultiplayerSlotTeamBlue
-	} else if multiLobby.MatchInformation.SlotTeam[clientSlot] == packets.MultiplayerSlotTeamBlue {
-		multiLobby.MatchInformation.SlotTeam[clientSlot] = packets.MultiplayerSlotTeamRed
+	if multiLobby.MatchInformation.SlotTeam[clientSlot] == base_packet_structures.MultiplayerSlotTeamRed {
+		multiLobby.MatchInformation.SlotTeam[clientSlot] = base_packet_structures.MultiplayerSlotTeamBlue
+	} else if multiLobby.MatchInformation.SlotTeam[clientSlot] == base_packet_structures.MultiplayerSlotTeamBlue {
+		multiLobby.MatchInformation.SlotTeam[clientSlot] = base_packet_structures.MultiplayerSlotTeamRed
 	} else {
-		multiLobby.MatchInformation.SlotTeam[clientSlot] = packets.MultiplayerSlotTeamRed
+		multiLobby.MatchInformation.SlotTeam[clientSlot] = base_packet_structures.MultiplayerSlotTeamRed
 	}
 
 	//Tell everyone
@@ -259,7 +260,7 @@ func (multiLobby *MultiplayerLobby) ReadyUp(client LobbyClient) {
 	}
 
 	//Set them to be ready and tell everyone they're ready
-	multiLobby.MatchInformation.SlotStatus[clientSlot] = packets.MultiplayerMatchSlotStatusReady
+	multiLobby.MatchInformation.SlotStatus[clientSlot] = base_packet_structures.MultiplayerMatchSlotStatusReady
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
@@ -276,14 +277,14 @@ func (multiLobby *MultiplayerLobby) Unready(client LobbyClient) {
 	}
 
 	//Set them to be not ready and tell everyone
-	multiLobby.MatchInformation.SlotStatus[clientSlot] = packets.MultiplayerMatchSlotStatusNotReady
+	multiLobby.MatchInformation.SlotStatus[clientSlot] = base_packet_structures.MultiplayerMatchSlotStatusNotReady
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
 }
 
 // ChangeSettings gets called when the host of the lobby changes some settings
-func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSettings packets.MultiplayerMatch) {
+func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSettings base_packet_structures.MultiplayerMatch) {
 	multiLobby.MatchInfoMutex.Lock()
 
 	if multiLobby.MatchHost != client {
@@ -326,7 +327,7 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 	}
 
 	//If we lock a slot with a player inside, we kick them
-	if (multiLobby.MatchInformation.SlotStatus[slotId] & packets.MultiplayerMatchSlotStatusHasPlayer) > 0 {
+	if (multiLobby.MatchInformation.SlotStatus[slotId] & base_packet_structures.MultiplayerMatchSlotStatusHasPlayer) > 0 {
 		droppedClient := multiLobby.MultiClients[slotId]
 
 		multiLobby.MatchInfoMutex.Unlock()
@@ -338,8 +339,8 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 	}
 
 	//If it's locked already, make it open
-	if multiLobby.MatchInformation.SlotStatus[slotId] == packets.MultiplayerMatchSlotStatusLocked {
-		multiLobby.MatchInformation.SlotStatus[slotId] = packets.MultiplayerMatchSlotStatusOpen
+	if multiLobby.MatchInformation.SlotStatus[slotId] == base_packet_structures.MultiplayerMatchSlotStatusLocked {
+		multiLobby.MatchInformation.SlotStatus[slotId] = base_packet_structures.MultiplayerMatchSlotStatusOpen
 
 		multiLobby.UpdateMatch()
 		multiLobby.MatchInfoMutex.Unlock()
@@ -348,8 +349,8 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 	}
 
 	//Don't allow all slots to be locked
-	if multiLobby.GetOpenSlotCount() > 2 && multiLobby.MatchInformation.SlotStatus[slotId] == packets.MultiplayerMatchSlotStatusOpen {
-		multiLobby.MatchInformation.SlotStatus[slotId] = packets.MultiplayerMatchSlotStatusLocked
+	if multiLobby.GetOpenSlotCount() > 2 && multiLobby.MatchInformation.SlotStatus[slotId] == base_packet_structures.MultiplayerMatchSlotStatusOpen {
+		multiLobby.MatchInformation.SlotStatus[slotId] = base_packet_structures.MultiplayerMatchSlotStatusLocked
 	}
 
 	multiLobby.UpdateMatch()
@@ -368,7 +369,7 @@ func (multiLobby *MultiplayerLobby) InformNoBeatmap(client LobbyClient) {
 	}
 
 	//Mark them as missing the map and tell everyone
-	multiLobby.MatchInformation.SlotStatus[slot] = packets.MultiplayerMatchSlotStatusMissingMap
+	multiLobby.MatchInformation.SlotStatus[slot] = base_packet_structures.MultiplayerMatchSlotStatusMissingMap
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
@@ -385,7 +386,7 @@ func (multiLobby *MultiplayerLobby) InformGotBeatmap(client LobbyClient) {
 	}
 
 	//Set them to be not ready and tell everyone
-	multiLobby.MatchInformation.SlotStatus[slot] = packets.MultiplayerMatchSlotStatusNotReady
+	multiLobby.MatchInformation.SlotStatus[slot] = base_packet_structures.MultiplayerMatchSlotStatusNotReady
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
@@ -417,7 +418,7 @@ func (multiLobby *MultiplayerLobby) InformLoadComplete(client LobbyClient) {
 }
 
 // InformScoreUpdate this happens every time a player hits a circle or gets a slidertick or whatever
-func (multiLobby *MultiplayerLobby) InformScoreUpdate(client LobbyClient, scoreFrame packets.ScoreFrame) {
+func (multiLobby *MultiplayerLobby) InformScoreUpdate(client LobbyClient, scoreFrame base_packet_structures.ScoreFrame) {
 	multiLobby.MatchInfoMutex.Lock()
 
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
@@ -467,7 +468,7 @@ func (multiLobby *MultiplayerLobby) InformCompletion(client LobbyClient) {
 			multiLobby.PlayerFailed[i] = false
 
 			if multiLobby.MultiClients[i] != nil {
-				multiLobby.MatchInformation.SlotStatus[i] = packets.MultiplayerMatchSlotStatusNotReady
+				multiLobby.MatchInformation.SlotStatus[i] = base_packet_structures.MultiplayerMatchSlotStatusNotReady
 
 				packets.BanchoSendMatchComplete(multiLobby.MultiClients[i].GetPacketQueue())
 			}
@@ -549,7 +550,7 @@ func (multiLobby *MultiplayerLobby) StartGame(client LobbyClient) {
 	//Tell everyone to start
 	for i := 0; i != 8; i++ {
 		if multiLobby.MultiClients[i] != nil {
-			multiLobby.MatchInformation.SlotStatus[i] = packets.MultiplayerMatchSlotStatusPlaying
+			multiLobby.MatchInformation.SlotStatus[i] = base_packet_structures.MultiplayerMatchSlotStatusPlaying
 
 			packets.BanchoSendMatchStart(multiLobby.MultiClients[i].GetPacketQueue(), multiLobby.MatchInformation)
 		}

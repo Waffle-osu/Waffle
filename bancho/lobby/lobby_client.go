@@ -1,7 +1,8 @@
 package lobby
 
 import (
-	"Waffle/bancho/packets"
+	"Waffle/bancho/osu/b1815/packets"
+	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 )
 
@@ -13,7 +14,7 @@ type LobbyClient interface {
 	SendChatMessage(sender string, content string, channel string)
 	GetUsername() string
 	GetRelevantUserStats() database.UserStats
-	GetUserStatus() packets.StatusUpdate
+	GetUserStatus() base_packet_structures.StatusUpdate
 
 	LeaveCurrentMatch()
 	JoinMatch(match *MultiplayerLobby, password string)

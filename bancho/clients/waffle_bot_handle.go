@@ -2,7 +2,7 @@ package clients
 
 import (
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/packets"
+	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/helpers"
 	"bytes"
 	"encoding/binary"
