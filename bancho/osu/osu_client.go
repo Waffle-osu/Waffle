@@ -21,9 +21,7 @@ type OsuClient interface {
 	GetAwayMessage() string
 	// } client_manager.WaffleClient
 
-	InformSpectatorJoin(client OsuClient)
-	InformSpectatorLeft(client OsuClient)
-	InformSpectatorCantSpectate(client OsuClient)
-
 	HandleBeatmapInfoRequest(infoRequest base_packet_structures.BeatmapInfoRequest)
+
+	OsuClientPacketsInterface
 }
