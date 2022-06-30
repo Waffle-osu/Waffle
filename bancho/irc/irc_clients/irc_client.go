@@ -1,10 +1,15 @@
 package irc_clients
 
 import (
+	"Waffle/bancho/chat"
 	"Waffle/bancho/irc/irc_messages"
+	"Waffle/bancho/lobby"
 	"Waffle/database"
+	"Waffle/helpers"
 	"bufio"
 	"net"
+	"sync"
+	"time"
 )
 
 var MOTD []string = []string{"",
@@ -16,11 +21,27 @@ var MOTD []string = []string{"",
 	"                                 ",
 }
 
+const (
+	ReceiveTimeout = 30
+	PingTimeout    = 30
+)
+
 type IrcClient struct {
 	connection      net.Conn
 	reader          *bufio.Reader
 	continueRunning bool
 	packetQueue     chan irc_messages.Message
+
+	lastReceive time.Time
+	lastPing    time.Time
+
+	joinedChannels map[string]*chat.Channel
+	awayMessage    string
+
+	currentMultiLobby *lobby.MultiplayerLobby
+
+	clean      bool
+	cleanMutex sync.Mutex
 
 	//Name used to address you on IRC
 	//Must be unique across the network
@@ -40,4 +61,37 @@ type IrcClient struct {
 	Password string
 
 	UserData database.User
+}
+
+func (client *IrcClient) CleanupClient(reason string) {
+	client.cleanMutex.Lock()
+
+	if client.clean {
+		return
+	}
+
+	helpers.Logger.Printf("[IRC@IrcClient] Cleaning up %s; Reason: %s", client.Username, reason)
+
+	if client.currentMultiLobby != nil {
+		//TODO: implement lobbyclient
+		//client.currentMultiLobby.Part(client)
+		client.currentMultiLobby = nil
+	}
+
+	//client_manager.UnregisterClient(client)
+
+	//for _, channel := range client.joinedChannels {
+	//	channel.Leave(client)
+	//}
+
+	client.connection.Close()
+
+	client.clean = true
+
+	client.cleanMutex.Unlock()
+}
+
+func (client *IrcClient) Cut() {
+	client.continueRunning = false
+	client.connection.Close()
 }

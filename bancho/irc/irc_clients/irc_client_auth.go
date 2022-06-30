@@ -1,6 +1,7 @@
 package irc_clients
 
 import (
+	"Waffle/bancho/client_manager"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/database"
 	"Waffle/helpers"
@@ -9,6 +10,7 @@ import (
 	"encoding/hex"
 	"net"
 	"strings"
+	"time"
 )
 
 func HandleNewIrcClient(connection net.Conn) {
@@ -77,6 +79,24 @@ func HandleNewIrcClient(connection net.Conn) {
 
 	ircClient.UserData = foundUser
 
+	if ircClient.UserData.Banned == 1 {
+		ircClient.packetQueue <- irc_messages.IrcSendPasswordMismatch("Login Error. Banned.")
+		ircClient.packetQueue <- irc_messages.IrcSendBannedFromChan("You're banned!", "#osu")
+
+		ircClient.SendOffMessagesAndClose()
+		return
+	}
+
+	foundUsernameClient := client_manager.GetClientByName(ircClient.Username)
+
+	if foundUsernameClient != nil {
+		ircClient.packetQueue <- irc_messages.IrcSendPasswordMismatch("Login Error. Duplicate Usernames")
+		ircClient.packetQueue <- irc_messages.IrcSendNicknameInUse(ircClient.Username, "Nickname already registered on server!")
+
+		ircClient.SendOffMessagesAndClose()
+		return
+	}
+
 	ircClient.packetQueue <- irc_messages.IrcSendTopic("#osu", "beyley is cute")
 	ircClient.packetQueue <- irc_messages.IrcSendMotdBegin()
 
@@ -86,11 +106,13 @@ func HandleNewIrcClient(connection net.Conn) {
 
 	ircClient.packetQueue <- irc_messages.IrcSendMotdEnd()
 
-	for message := range ircClient.packetQueue {
-		formatted, _ := message.FormatMessage(ircClient.Username)
+	ircClient.lastPing = time.Now()
+	ircClient.lastReceive = time.Now()
+	ircClient.continueRunning = true
 
-		connection.Write([]byte(formatted))
-	}
+	go ircClient.HandleIncoming()
+	go ircClient.SendOutgoing()
+	go ircClient.MaintainClient()
 }
 
 func (client *IrcClient) SendOffMessagesAndClose() {
