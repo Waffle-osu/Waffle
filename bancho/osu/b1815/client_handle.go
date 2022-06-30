@@ -5,7 +5,6 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
@@ -68,32 +67,31 @@ func (client *Client) HandleIncoming() {
 
 				client.Status = statusUpdate
 
-				client_manager.BroadcastPacketOsu(func(packetQueue chan serialization.BanchoPacket) {
-					packets.BanchoSendOsuUpdate(packetQueue, client.GetRelevantUserStats(), client.Status)
+				client_manager.BroadcastPacketOsu(func(broadcastClient client_manager.WaffleClient) {
+					broadcastClient.BanchoOsuUpdate(client.GetRelevantUserStats(), client.GetUserStatus())
 				})
+
 			//The client is informing us, that it wants to know its own updated stats
 			case serialization.OsuRequestStatusUpdate:
 				//Retrieve stats
 				statGetResultOsu, osuStats := database.UserStatsFromDatabase(client.UserData.UserID, 0)
 				statGetResultTaiko, taikoStats := database.UserStatsFromDatabase(client.UserData.UserID, 1)
 				statGetResultCatch, catchStats := database.UserStatsFromDatabase(client.UserData.UserID, 2)
-				statGetResultMania, maniaStats := database.UserStatsFromDatabase(client.UserData.UserID, 3)
 
-				if statGetResultOsu == -1 || statGetResultTaiko == -1 || statGetResultCatch == -1 || statGetResultMania == -1 {
-					packets.BanchoSendAnnounce(client.PacketQueue, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
+				if statGetResultOsu == -1 || statGetResultTaiko == -1 || statGetResultCatch == -1 {
+					client.BanchoAnnounce("A weird server-side fuckup occured, your stats don't exist yet your user does...")
 					return
-				} else if statGetResultOsu == -2 || statGetResultTaiko == -2 || statGetResultCatch == -2 || statGetResultMania == -2 {
-					packets.BanchoSendAnnounce(client.PacketQueue, "A weird server-side fuckup occured, stats could not be loaded...")
+				} else if statGetResultOsu == -2 || statGetResultTaiko == -2 || statGetResultCatch == -2 {
+					client.BanchoAnnounce("A weird server-side fuckup occured, stats could not be loaded...")
 					return
 				}
 
 				client.OsuStats = osuStats
 				client.TaikoStats = taikoStats
 				client.CatchStats = catchStats
-				client.ManiaStats = maniaStats
 
-				packets.BanchoSendUserPresence(client.PacketQueue, client.UserData, client.GetRelevantUserStats(), client.GetClientTimezone())
-				packets.BanchoSendOsuUpdate(client.PacketQueue, client.GetRelevantUserStats(), client.Status)
+				client.BanchoPresence(client.UserData, client.GetRelevantUserStats(), client.GetClientTimezone())
+				client.BanchoOsuUpdate(client.GetRelevantUserStats(), client.Status)
 			//The Client is requesting more information about certain clients
 			case serialization.OsuUserStatsRequest:
 				var listLength int16
@@ -113,7 +111,7 @@ func (client *Client) HandleIncoming() {
 					}
 
 					//Send information about the client requested
-					packets.BanchoSendOsuUpdate(client.PacketQueue, user.GetRelevantUserStats(), user.GetUserStatus())
+					client.BanchoOsuUpdate(user.GetRelevantUserStats(), client.GetUserStatus())
 					break
 				}
 			//The client is sending a message into a channel
@@ -151,13 +149,13 @@ func (client *Client) HandleIncoming() {
 
 				//If we found the client, only then send a message
 				if targetClient != nil {
-					packets.BanchoSendIrcMessage(targetClient.GetPacketQueue(), message)
+					targetClient.BanchoIrcMessage(message)
 
 					awayMessage := targetClient.GetAwayMessage()
 
 					//If the user is marked as away, tell the sender
 					if awayMessage != "" {
-						packets.BanchoSendIrcMessage(client.PacketQueue, base_packet_structures.Message{
+						client.BanchoIrcMessage(base_packet_structures.Message{
 							Sender:  targetClient.GetUserData().Username,
 							Message: fmt.Sprintf("/me is away! %s", awayMessage),
 							Target:  client.GetUserData().Username,
@@ -205,8 +203,8 @@ func (client *Client) HandleIncoming() {
 				frameBundle := base_packet_structures.ReadSpectatorFrameBundle(packetDataReader)
 
 				//Send the frames to all spectators
-				client.BroadcastToSpectators(func(packetQueue chan serialization.BanchoPacket) {
-					packets.BanchoSendSpectateFrames(packetQueue, frameBundle)
+				client.BroadcastToSpectators(func(client client_manager.WaffleClient) {
+					client.BanchoSpectateFrames(frameBundle)
 				})
 			//The client informs the server that it's missing the map which the client its spectating is playing
 			case serialization.OsuCantSpectate:
@@ -238,13 +236,14 @@ func (client *Client) HandleIncoming() {
 				//If the channel exists, attempt to join
 				if exists {
 					if channel.Join(client) {
-						packets.BanchoSendChannelJoinSuccess(client.PacketQueue, channelName)
+						client.BanchoChannelJoinSuccess(channelName)
+
 						client.joinedChannels[channel.Name] = channel
 					} else {
-						packets.BanchoSendChannelRevoked(client.PacketQueue, channelName)
+						client.BanchoChannelRevoked(channelName)
 					}
 				} else {
-					packets.BanchoSendChannelRevoked(client.PacketQueue, channelName)
+					client.BanchoChannelRevoked(channelName)
 				}
 			//The client is requesting to leave a chat channel
 			case serialization.OsuChannelLeave:
@@ -272,7 +271,7 @@ func (client *Client) HandleIncoming() {
 				if foundMatch != nil {
 					client.JoinMatch(foundMatch, matchJoin.Password)
 				} else {
-					packets.BanchoSendMatchJoinFail(client.PacketQueue)
+					client.BanchoMatchJoinFail()
 				}
 			//The client wants to leave the current multiplayer match
 			case serialization.OsuMatchPart:
@@ -411,13 +410,13 @@ func (client *Client) HandleIncoming() {
 
 				//Setting it empty resets it
 				if awayMessage.Message == "" {
-					packets.BanchoSendIrcMessage(client.PacketQueue, base_packet_structures.Message{
+					client.BanchoIrcMessage(base_packet_structures.Message{
 						Sender:  "WaffleBot",
 						Message: "You're no longer marked as away!",
 						Target:  client.UserData.Username,
 					})
 				} else {
-					packets.BanchoSendIrcMessage(client.PacketQueue, base_packet_structures.Message{
+					client.BanchoIrcMessage(base_packet_structures.Message{
 						Sender:  "WaffleBot",
 						Message: fmt.Sprintf("You're now marked as away: %s", awayMessage.Message),
 						Target:  client.UserData.Username,
@@ -437,19 +436,15 @@ func (client *Client) HandleIncoming() {
 // SendOutgoing is looping over the packet queue and waiting for new packets, and sends them off as they come in
 func (client *Client) SendOutgoing() {
 	for packet := range client.PacketQueue {
-		if packet.PacketId != 8 {
-			helpers.Logger.Printf("[Bancho@Handling] Sending %s to %s\n", serialization.GetPacketName(packet.PacketId), client.UserData.Username)
-		}
-
-		sendBytes := packet.GetBytes()
+		sendBytes := len(packet)
 
 		go func() {
 			misc.StatsSendLock.Lock()
-			misc.StatsBytesSent += uint64(len(sendBytes))
+			misc.StatsBytesSent += uint64(sendBytes)
 			misc.StatsSendLock.Unlock()
 		}()
 
-		client.connection.Write(packet.GetBytes())
+		client.connection.Write(packet)
 	}
 }
 
@@ -467,7 +462,7 @@ func (client *Client) MaintainClient() {
 		}
 
 		if lastPingUnix+PingTimeout <= unixNow {
-			packets.BanchoSendPing(client.PacketQueue)
+			client.BanchoPing()
 
 			client.lastPing = time.Now()
 		}

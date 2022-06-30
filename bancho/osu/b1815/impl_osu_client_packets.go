@@ -1,6 +1,7 @@
 package b1815
 
 import (
+	"Waffle/bancho/client_manager"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers/serialization"
@@ -42,10 +43,14 @@ func (client *Client) BanchoFellowSpectatorLeft(userId int32) {
 
 func (client *Client) BanchoSpectatorJoined(userId int32) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorJoined, userId)
+
+	client.InformSpectatorJoin(client_manager.GetClientById(userId))
 }
 
 func (client *Client) BanchoSpectatorLeft(userId int32) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorLeft, userId)
+
+	client.InformSpectatorLeft(client_manager.GetClientById(userId))
 }
 
 func (client *Client) BanchoFriendsList(friendsList []database.FriendEntry) {
@@ -132,7 +137,7 @@ func (client *Client) BanchoMatchPlayerSkipped(slotId int32) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoMatchPlayerSkipped, slotId)
 }
 
-func (client *Client) BanchoMatchPlayerScoreUpdate(scoreFrame base_packet_structures.ScoreFrame) {
+func (client *Client) BanchoMatchScoreUpdate(scoreFrame base_packet_structures.ScoreFrame) {
 	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoMatchScoreUpdate, scoreFrame)
 }
 
@@ -145,7 +150,17 @@ func (client *Client) BanchoMatchTransferHost() {
 }
 
 func (client *Client) BanchoOsuUpdate(user database.UserStats, status base_packet_structures.StatusUpdate) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoHandleOsuUpdate, status)
+	stats := base_packet_structures.OsuStats{
+		UserId:      int32(user.UserID),
+		Status:      status,
+		RankedScore: int64(user.RankedScore),
+		Accuracy:    user.Accuracy,
+		Playcount:   int32(user.Playcount),
+		TotalScore:  int64(user.TotalScore),
+		Rank:        int32(user.Rank),
+	}
+
+	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoHandleOsuUpdate, stats)
 }
 
 func (client *Client) BanchoPresence(user database.User, stats database.UserStats, timezone int32) {
@@ -175,4 +190,6 @@ func (client *Client) BanchoSpectateFrames(frames base_packet_structures.Spectat
 
 func (client *Client) BanchoSpectatorCantSpectate(userId int32) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorCantSpectate, userId)
+
+	client.InformSpectatorCantSpectate(client_manager.GetClientById(userId))
 }

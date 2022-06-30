@@ -2,7 +2,6 @@ package lobby
 
 import (
 	"Waffle/bancho/chat"
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/bancho/osu/base_packet_structures"
 	"sync"
 )
@@ -41,8 +40,8 @@ func JoinLobby(client LobbyClient) {
 
 	//Inform everyone in the lobby that they joined
 	for _, lobbyUser := range clientsById {
-		packets.BanchoSendLobbyJoin(client.GetPacketQueue(), lobbyUser.GetUserId())
-		packets.BanchoSendLobbyJoin(lobbyUser.GetPacketQueue(), client.GetUserId())
+		client.BanchoLobbyJoin(lobbyUser.GetUserId())
+		lobbyUser.BanchoLobbyJoin(client.GetUserId())
 	}
 
 	UnlockClientList()
@@ -51,7 +50,7 @@ func JoinLobby(client LobbyClient) {
 
 	//Tell the new client of all the multiplayer matches that are going on
 	for _, multiLobby := range multiLobbiesById {
-		packets.BanchoSendMatchNew(client.GetPacketQueue(), multiLobby.MatchInformation)
+		client.BanchoMatchNew(multiLobby.MatchInformation)
 	}
 
 	multiMutex.Unlock()
@@ -71,7 +70,7 @@ func PartLobby(client LobbyClient) {
 	delete(clientsByName, client.GetUserData().Username)
 
 	for _, lobbyUser := range clientsById {
-		packets.BanchoSendLobbyPart(lobbyUser.GetPacketQueue(), client.GetUserId())
+		lobbyUser.BanchoLobbyLeft(client.GetUserId())
 	}
 
 	UnlockClientList()
@@ -82,11 +81,11 @@ func PartLobby(client LobbyClient) {
 }
 
 // BroadcastToLobby broadcasts a packet to everyone in the lobby
-func BroadcastToLobby(packetFunction func(chan packets.BanchoPacket)) {
+func BroadcastToLobby(packetFunction func(LobbyClient)) {
 	LockClientList()
 
 	for _, lobbyUser := range clientsById {
-		packetFunction(lobbyUser.GetPacketQueue())
+		packetFunction(lobbyUser)
 	}
 
 	UnlockClientList()
@@ -130,8 +129,8 @@ func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host Lob
 	multiLobbiesById[match.MatchId] = multiLobby
 
 	//Tell everyone in the lobby that a new match has just been created
-	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
-		packets.BanchoSendMatchNew(packetQueue, multiLobby.MatchInformation)
+	BroadcastToLobby(func(client LobbyClient) {
+		client.BanchoMatchNew(multiLobby.MatchInformation)
 	})
 
 	multiMutex.Unlock()
@@ -151,8 +150,8 @@ func RemoveMultiMatch(matchId uint16) {
 	delete(multiLobbiesById, matchId)
 
 	//Tell everyone in the lobby that the match no longer exists
-	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
-		packets.BanchoSendMatchDisband(packetQueue, int32(matchId))
+	BroadcastToLobby(func(client LobbyClient) {
+		client.BanchoMatchDisband(int32(matchId))
 	})
 
 	multiMutex.Unlock()

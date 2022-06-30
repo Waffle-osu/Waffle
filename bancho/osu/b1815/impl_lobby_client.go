@@ -2,7 +2,6 @@ package b1815
 
 import (
 	"Waffle/bancho/lobby"
-	"Waffle/bancho/osu/b1815/packets"
 )
 
 // LeaveCurrentMatch makes the client leave the current match
@@ -20,9 +19,9 @@ func (client *Client) JoinMatch(match *lobby.MultiplayerLobby, password string) 
 	if match.Join(client, password) {
 		client.currentMultiLobby = match
 
-		packets.BanchoSendMatchJoinSuccess(client.PacketQueue, match.MatchInformation)
-		packets.BanchoSendChannelAvailableAutojoin(client.PacketQueue, "#multiplayer")
+		client.BanchoMatchJoinSuccess(match.MatchInformation)
+		client.BanchoChannelAvailableAutojoin("#multiplayer")
 	} else {
-		packets.BanchoSendMatchJoinFail(client.PacketQueue)
+		client.BanchoMatchJoinFail()
 	}
 }

@@ -4,19 +4,16 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/lobby"
-	"Waffle/bancho/osu"
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
-	"Waffle/helpers/serialization"
 	"net"
 	"sync"
 	"time"
 )
 
 const (
-	// ReceiveTimeout 48 Seconds
+	// ReceiveTimeout 16 Seconds
 	ReceiveTimeout = 16
 	// PingTimeout 8 Seconds
 	PingTimeout = 8
@@ -43,9 +40,9 @@ type Client struct {
 	joinedChannels map[string]*chat.Channel
 	awayMessage    string
 
-	spectators       map[int32]osu.OsuClient
+	spectators       map[int32]client_manager.WaffleClient
 	spectatorMutex   sync.Mutex
-	spectatingClient osu.OsuClient
+	spectatingClient client_manager.WaffleClient
 
 	isInLobby         bool
 	currentMultiLobby *lobby.MultiplayerLobby
@@ -76,7 +73,7 @@ func (client *Client) CleanupClient(reason string) {
 		client.spectatingClient.BanchoSpectatorLeft(client.GetUserId())
 	}
 
-	client.spectators = map[int32]osu.OsuClient{}
+	client.spectators = map[int32]client_manager.WaffleClient{}
 
 	if client.isInLobby {
 		lobby.PartLobby(client)
@@ -87,8 +84,8 @@ func (client *Client) CleanupClient(reason string) {
 	}
 
 	client_manager.UnregisterClient(client)
-	client_manager.BroadcastPacketOsu(func(packetQueue chan serialization.BanchoPacket) {
-		packets.BanchoSendHandleOsuQuit(packetQueue, int32(client.UserData.UserID))
+	client_manager.BroadcastPacketOsu(func(broadcastClient client_manager.WaffleClient) {
+		broadcastClient.BanchoHandleOsuQuit(client.GetUserId())
 	})
 
 	for _, channel := range client.joinedChannels {

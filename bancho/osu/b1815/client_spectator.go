@@ -1,12 +1,11 @@
 package b1815
 
 import (
-	"Waffle/bancho/osu"
-	"Waffle/bancho/osu/b1815/packets"
+	"Waffle/bancho/client_manager"
 )
 
 // BroadcastToSpectators broadcasts a packet to all the people spectating `client`
-func (client *Client) BroadcastToSpectators(packetFunction func(client osu.OsuClient)) {
+func (client *Client) BroadcastToSpectators(packetFunction func(client client_manager.WaffleClient)) {
 	client.spectatorMutex.Lock()
 
 	for _, spectator := range client.spectators {
@@ -17,7 +16,7 @@ func (client *Client) BroadcastToSpectators(packetFunction func(client osu.OsuCl
 }
 
 // InformSpectatorJoin is called by a new spectator, informing this client that its now being watched
-func (client *Client) InformSpectatorJoin(spectatingClient osu.OsuClient) {
+func (client *Client) InformSpectatorJoin(spectatingClient client_manager.WaffleClient) {
 	client.spectatorMutex.Lock()
 
 	client.spectators[spectatingClient.GetUserId()] = spectatingClient
@@ -26,33 +25,29 @@ func (client *Client) InformSpectatorJoin(spectatingClient osu.OsuClient) {
 		spectator.BanchoFellowSpectatorJoined(spectator.GetUserId())
 	}
 
-	packets.BanchoSendSpectatorJoin(client.PacketQueue, spectatingClient.GetUserId())
-
 	client.spectatorMutex.Unlock()
 
-	client.BroadcastToSpectators(func(client osu.OsuClient) {
+	client.BroadcastToSpectators(func(client client_manager.WaffleClient) {
 		client.BanchoFellowSpectatorJoined(spectatingClient.GetUserId())
 	})
 }
 
 // InformSpectatorLeft is called by a spectator, informing that it has stopped watching
-func (client *Client) InformSpectatorLeft(spectatingClient osu.OsuClient) {
+func (client *Client) InformSpectatorLeft(spectatingClient client_manager.WaffleClient) {
 	client.spectatorMutex.Lock()
 
 	delete(client.spectators, spectatingClient.GetUserId())
 
-	packets.BanchoSendSpectatorLeft(client.PacketQueue, spectatingClient.GetUserId())
-
 	client.spectatorMutex.Unlock()
 
-	client.BroadcastToSpectators(func(client osu.OsuClient) {
+	client.BroadcastToSpectators(func(client client_manager.WaffleClient) {
 		client.BanchoFellowSpectatorLeft(spectatingClient.GetUserId())
 	})
 }
 
 // InformSpectatorCantSpectate is called by a spectator, informing that it doesn't own the beatmap that is being played
-func (client *Client) InformSpectatorCantSpectate(spectateClient osu.OsuClient) {
-	client.BroadcastToSpectators(func(client osu.OsuClient) {
-		client.BanchoSpectatorCantSpectate(spectateClient.GetUserId())
+func (client *Client) InformSpectatorCantSpectate(spectatingClient client_manager.WaffleClient) {
+	client.BroadcastToSpectators(func(client client_manager.WaffleClient) {
+		client.BanchoSpectatorCantSpectate(spectatingClient.GetUserId())
 	})
 }

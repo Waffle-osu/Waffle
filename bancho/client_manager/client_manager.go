@@ -1,7 +1,6 @@
 package client_manager
 
 import (
-	"Waffle/bancho/osu"
 	"sync"
 )
 

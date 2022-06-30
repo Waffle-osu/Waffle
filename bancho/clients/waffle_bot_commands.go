@@ -1,20 +1,6 @@
 package clients
 
-import (
-	"Waffle/bancho/chat"
-	"Waffle/bancho/client_manager"
-	"Waffle/bancho/lobby"
-	"Waffle/bancho/misc"
-	"Waffle/bancho/osu/b1815/packets"
-	"Waffle/database"
-	"fmt"
-	"math"
-	"math/rand"
-	"runtime"
-	"strconv"
-	"strings"
-	"time"
-)
+/*
 
 func WaffleBotCommandTemplate(sender client_manager.WaffleClient, args []string) []string {
 	return []string{}
@@ -401,3 +387,5 @@ func WaffleBotCommandLeaderboards(sender client_manager.WaffleClient, args []str
 
 	return returnResults
 }
+
+*/

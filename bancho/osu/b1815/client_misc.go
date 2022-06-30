@@ -1,7 +1,6 @@
 package b1815
 
 import (
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"fmt"
@@ -204,7 +203,7 @@ FROM (
 			}
 
 			//send off
-			packets.BanchoSendBeatmapInfoReply(client.PacketQueue, infoReply)
+			client.BanchoBeatmapInfoReply(infoReply)
 
 			//make sure to close the connection
 			databaseQuery.Close()

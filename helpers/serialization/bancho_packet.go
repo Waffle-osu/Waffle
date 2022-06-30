@@ -93,6 +93,46 @@ const (
 	BanchoHeaderSize int32 = 7
 )
 
+const (
+	OsuStatusIdle         uint8 = 0
+	OsuStatusAfk          uint8 = 1
+	OsuStatusPlaying      uint8 = 2
+	OsuStatusEditing      uint8 = 3
+	OsuStatusModding      uint8 = 4
+	OsuStatusMultiplayer  uint8 = 5
+	OsuStatusWatching     uint8 = 6
+	OsuStatusUnknown      uint8 = 7
+	OsuStatusTesting      uint8 = 8
+	OsuStatusSubmitting   uint8 = 9
+	OsuStatusPaused       uint8 = 10
+	OsuStatusLobby        uint8 = 11
+	OsuStatusMultiplaying uint8 = 12
+	OsuStatusOsuDirect    uint8 = 13
+)
+
+const (
+	OsuGamemodeOsu   uint8 = 0
+	OsuGamemodeTaiko uint8 = 1
+	OsuGamemodeCatch uint8 = 2
+	OsuGamemodeMania uint8 = 3
+)
+
+const (
+	InvalidLogin          int32 = -1
+	InvalidVersion        int32 = -2
+	UserBanned            int32 = -3
+	UnactivatedAccount    int32 = -4
+	ServersideError       int32 = -5
+	UnauthorizedTestBuild int32 = -6
+)
+
+const (
+	UserPermissionsRegular   = 1
+	UserPermissionsBAT       = 2
+	UserPermissionsSupporter = 4
+	UserPermissionsFriend    = 8
+)
+
 type BanchoPacket struct {
 	PacketId          uint16
 	PacketCompression int8

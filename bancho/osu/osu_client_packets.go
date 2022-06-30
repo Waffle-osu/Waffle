@@ -41,7 +41,7 @@ type OsuClientPacketsInterface interface {
 	BanchoMatchUpdate(match base_packet_structures.MultiplayerMatch)
 	BanchoMatchPlayerFailed(slotId int32)
 	BanchoMatchPlayerSkipped(slotId int32)
-	BanchoMatchPlayerScoreUpdate(scoreFrame base_packet_structures.ScoreFrame)
+	BanchoMatchScoreUpdate(scoreFrame base_packet_structures.ScoreFrame)
 	BanchoMatchSkip()
 	BanchoMatchTransferHost()
 

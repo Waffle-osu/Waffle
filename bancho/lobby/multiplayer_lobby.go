@@ -2,7 +2,6 @@ package lobby
 
 import (
 	"Waffle/bancho/chat"
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/bancho/osu/base_packet_structures"
 	"sync"
 )
@@ -35,7 +34,7 @@ func (multiLobby *MultiplayerLobby) Join(client LobbyClient, password string) bo
 	//Inform everyone of the client, just in case they don't know them yet
 	for n := 0; n != 8; n++ {
 		if multiLobby.MultiClients[n] != nil {
-			packets.BanchoSendOsuUpdate(multiLobby.MultiClients[n].GetPacketQueue(), client.GetRelevantUserStats(), client.GetUserStatus())
+			multiLobby.MultiClients[n].BanchoOsuUpdate(client.GetRelevantUserStats(), client.GetUserStatus())
 		}
 	}
 
@@ -111,13 +110,13 @@ func (multiLobby *MultiplayerLobby) MoveSlot(oldSlot int, newSlot int) {
 func (multiLobby *MultiplayerLobby) UpdateMatch() {
 	for i := 0; i != 8; i++ {
 		if multiLobby.MultiClients[i] != nil {
-			packets.BanchoSendMatchUpdate(multiLobby.MultiClients[i].GetPacketQueue(), multiLobby.MatchInformation)
+			multiLobby.MultiClients[i].BanchoMatchUpdate(multiLobby.MatchInformation)
 		}
 	}
 
 	//Distribute in multiLobby as well
-	BroadcastToLobby(func(packetQueue chan packets.BanchoPacket) {
-		packets.BanchoSendMatchUpdate(packetQueue, multiLobby.MatchInformation)
+	BroadcastToLobby(func(client LobbyClient) {
+		client.BanchoMatchUpdate(multiLobby.MatchInformation)
 	})
 }
 
@@ -141,7 +140,8 @@ func (multiLobby *MultiplayerLobby) Part(client LobbyClient) {
 	}
 
 	//Make them leave #multiplayer
-	packets.BanchoSendChannelRevoked(client.GetPacketQueue(), "#multiplayer")
+	client.BanchoChannelRevoked("#multiplayer")
+
 	multiLobby.MultiChannel.Leave(client)
 
 	//If there's nobody inside, disband
@@ -179,7 +179,8 @@ func (multiLobby *MultiplayerLobby) HandleHostLeave(slot int) {
 			}
 
 			//Tell the new client they're host now
-			packets.BanchoSendMatchTransferHost(multiLobby.MatchHost.GetPacketQueue())
+			multiLobby.MatchHost.BanchoMatchTransferHost()
+
 			multiLobby.MatchInformation.HostId = multiLobby.MatchHost.GetUserId()
 		}
 	}
@@ -241,7 +242,7 @@ func (multiLobby *MultiplayerLobby) TransferHost(client LobbyClient, slotId int)
 	multiLobby.MatchInformation.HostId = multiLobby.MatchHost.GetUserId()
 
 	//Tell them about it
-	packets.BanchoSendMatchTransferHost(multiLobby.MatchHost.GetPacketQueue())
+	multiLobby.MatchHost.BanchoMatchTransferHost()
 
 	//Tell everyone
 	multiLobby.UpdateMatch()
@@ -333,7 +334,7 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 		multiLobby.MatchInfoMutex.Unlock()
 
 		droppedClient.LeaveCurrentMatch()
-		packets.BanchoSendMatchUpdate(droppedClient.GetPacketQueue(), multiLobby.MatchInformation)
+		droppedClient.BanchoMatchUpdate(multiLobby.MatchInformation)
 
 		multiLobby.MatchInfoMutex.Lock()
 	}
@@ -409,7 +410,7 @@ func (multiLobby *MultiplayerLobby) InformLoadComplete(client LobbyClient) {
 	if multiLobby.HaveAllPlayersLoaded() {
 		for i := 0; i != 8; i++ {
 			if multiLobby.MultiClients[i] != nil {
-				packets.BanchoSendMatchAllPlayersLoaded(multiLobby.MultiClients[i].GetPacketQueue())
+				multiLobby.MultiClients[i].BanchoMatchAllPlayersLoaded()
 			}
 		}
 	}
@@ -435,7 +436,7 @@ func (multiLobby *MultiplayerLobby) InformScoreUpdate(client LobbyClient, scoreF
 	//Tell everyone about their new score
 	for i := 0; i != 8; i++ {
 		if multiLobby.MultiClients[i] != nil {
-			packets.BanchoSendMatchScoreUpdate(multiLobby.MultiClients[i].GetPacketQueue(), scoreFrame)
+			multiLobby.MultiClients[i].BanchoMatchScoreUpdate(scoreFrame)
 		}
 	}
 
@@ -470,7 +471,7 @@ func (multiLobby *MultiplayerLobby) InformCompletion(client LobbyClient) {
 			if multiLobby.MultiClients[i] != nil {
 				multiLobby.MatchInformation.SlotStatus[i] = base_packet_structures.MultiplayerMatchSlotStatusNotReady
 
-				packets.BanchoSendMatchComplete(multiLobby.MultiClients[i].GetPacketQueue())
+				multiLobby.MultiClients[i].BanchoMatchComplete()
 			}
 		}
 	}
@@ -497,7 +498,7 @@ func (multiLobby *MultiplayerLobby) InformPressedSkip(client LobbyClient) {
 	//Tell everyone that they skipped
 	for i := 0; i != 8; i++ {
 		if multiLobby.MultiClients[i] != nil {
-			packets.BanchoSendMatchPlayerSkipped(multiLobby.MultiClients[i].GetPacketQueue(), int32(slot))
+			multiLobby.MultiClients[i].BanchoMatchPlayerSkipped(int32(slot))
 		}
 	}
 
@@ -505,7 +506,7 @@ func (multiLobby *MultiplayerLobby) InformPressedSkip(client LobbyClient) {
 	if multiLobby.HaveAllPlayersSkipped() {
 		for i := 0; i != 8; i++ {
 			if multiLobby.MultiClients[i] != nil {
-				packets.BanchoSendMatchSkip(multiLobby.MultiClients[i].GetPacketQueue())
+				multiLobby.MultiClients[i].BanchoMatchSkip()
 			}
 		}
 	}
@@ -529,7 +530,7 @@ func (multiLobby *MultiplayerLobby) InformFailed(client LobbyClient) {
 	//Tell everyone they failed
 	for i := 0; i != 8; i++ {
 		if multiLobby.MultiClients[i] != nil {
-			packets.BanchoSendMatchPlayerFailed(multiLobby.MultiClients[i].GetPacketQueue(), int32(slot))
+			multiLobby.MultiClients[i].BanchoMatchPlayerFailed(int32(slot))
 		}
 	}
 
@@ -552,7 +553,7 @@ func (multiLobby *MultiplayerLobby) StartGame(client LobbyClient) {
 		if multiLobby.MultiClients[i] != nil {
 			multiLobby.MatchInformation.SlotStatus[i] = base_packet_structures.MultiplayerMatchSlotStatusPlaying
 
-			packets.BanchoSendMatchStart(multiLobby.MultiClients[i].GetPacketQueue(), multiLobby.MatchInformation)
+			multiLobby.MultiClients[i].BanchoMatchStart(multiLobby.MatchInformation)
 		}
 	}
 

@@ -1,7 +1,6 @@
 package b1815
 
 import (
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/bancho/osu/base_packet_structures"
 )
 
@@ -13,7 +12,11 @@ func (client *Client) GetUserPrivileges() int32 {
 // SendChatMessage directly sends a chat message to the user
 //TODO@(Furball): maybe remove this in favor of just getting the packet queue and sending it that way?
 func (client *Client) SendChatMessage(sender string, content string, channel string) {
-	packets.BanchoSendIrcMessage(client.PacketQueue, base_packet_structures.Message{Sender: sender, Message: content, Target: channel})
+	client.BanchoIrcMessage(base_packet_structures.Message{
+		Sender:  sender,
+		Target:  channel,
+		Message: content,
+	})
 }
 
 // GetUsername gets the clients username

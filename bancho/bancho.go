@@ -1,7 +1,7 @@
 package bancho
 
 import (
-	"Waffle/bancho/clients"
+	"Waffle/bancho/osu/b1815"
 	"Waffle/config"
 	"Waffle/helpers"
 	"net"
@@ -27,6 +27,6 @@ func RunBancho() {
 		}
 
 		//Handle new connection
-		go clients.HandleNewClient(conn)
+		go b1815.HandleNewClient(conn)
 	}
 }

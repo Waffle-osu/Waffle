@@ -3,12 +3,13 @@ package b1815
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
 	"Waffle/helpers/serialization"
 	"bufio"
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"net"
 	"strconv"
@@ -91,7 +92,7 @@ func HandleNewClient(connection net.Conn) {
 	userData, readErrData := textReader.ReadString('\n')
 
 	//Create a packet queue
-	packetQueue := make(chan serialization.BanchoPacket, 128)
+	packetQueue := make(chan []byte, 128)
 
 	if readErrUsername != nil || readErrPassword != nil || readErrData != nil {
 		helpers.Logger.Printf("[Bancho@Auth] Failed to read initial user data\n")
@@ -113,7 +114,8 @@ func HandleNewClient(connection net.Conn) {
 
 	//b1816 sends 4 components there, version|timezone|allow_city|security_parts
 	if len(userDataSplit) != 4 {
-		packets.BanchoSendLoginReply(packetQueue, packets.InvalidVersion)
+		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.InvalidVersion)
+
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
@@ -125,7 +127,8 @@ func HandleNewClient(connection net.Conn) {
 	timezone, convErr := strconv.Atoi(userDataSplit[1])
 
 	if convErr != nil {
-		packets.BanchoSendLoginReply(packetQueue, packets.InvalidVersion)
+		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.InvalidVersion)
+
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
@@ -144,26 +147,26 @@ func HandleNewClient(connection net.Conn) {
 
 	//No User Found
 	if fetchResult == -1 {
-		packets.BanchoSendLoginReply(packetQueue, packets.InvalidLogin)
+		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.InvalidLogin)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	} else if fetchResult == -2 {
 		//Server failed to fetch the user
-		packets.BanchoSendLoginReply(packetQueue, packets.ServersideError)
+		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.ServersideError)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
 	//Invalid Password
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		packets.BanchoSendLoginReply(packetQueue, packets.InvalidLogin)
+		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.InvalidLogin)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
 	//Banned
 	if user.Banned == 1 {
-		packets.BanchoSendLoginReply(packetQueue, packets.UserBanned)
+		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.UserBanned)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
@@ -173,7 +176,8 @@ func HandleNewClient(connection net.Conn) {
 
 	if duplicateClient != nil {
 		go func() {
-			packets.BanchoSendAnnounce(duplicateClient.GetPacketQueue(), "Disconnecting because of another client conneting to your Account.")
+			packetQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, "Disconnecting because of another client conneting to your Account.")
+
 			duplicateClient.CleanupClient("Duplicate Client")
 
 			//we wait for 2 seconds before cutting off the connection
@@ -183,7 +187,7 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Send successful login reply
-	packets.BanchoSendLoginReply(packetQueue, int32(user.UserID))
+	packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, int32(user.UserID))
 
 	//Retrieve stats
 	statGetResultOsu, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
@@ -192,11 +196,13 @@ func HandleNewClient(connection net.Conn) {
 	statGetResultMania, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
 
 	if statGetResultOsu == -1 || statGetResultTaiko == -1 || statGetResultCatch == -1 || statGetResultMania == -1 {
-		packets.BanchoSendAnnounce(packetQueue, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
+		packetQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
+
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	} else if statGetResultOsu == -2 || statGetResultTaiko == -2 || statGetResultCatch == -2 || statGetResultMania == -2 {
-		packets.BanchoSendAnnounce(packetQueue, "A weird server-side fuckup occured, stats could not be loaded...")
+		packetQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, "A weird server-side fuckup occured, stats could not be loaded...")
+
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
@@ -205,11 +211,19 @@ func HandleNewClient(connection net.Conn) {
 	friendsResult, friendsList := database.FriendsGetFriendsList(user.UserID)
 
 	if friendsResult != 0 {
-		packets.BanchoSendAnnounce(packetQueue, "Friend List failed to load!")
+		packetQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, "Friend List failed to load!")
 	}
 
 	//Send Friends list to client
-	packets.BanchoSendFriendsList(packetQueue, friendsList)
+	buf := new(bytes.Buffer)
+
+	binary.Write(buf, binary.LittleEndian, int16(len(friendsList)))
+
+	for _, friend := range friendsList {
+		binary.Write(buf, binary.LittleEndian, int32(friend.User2))
+	}
+
+	packetQueue <- serialization.SendSerializableBytes(serialization.BanchoFriendsList, buf.Bytes())
 
 	//Construct Client object
 	client := Client{
@@ -232,8 +246,8 @@ func HandleNewClient(connection net.Conn) {
 			BeatmapChecksum: "",
 			BeatmapId:       -1,
 			CurrentMods:     0,
-			Playmode:        packets.OsuGamemodeOsu,
-			Status:          packets.OsuStatusIdle,
+			Playmode:        serialization.OsuGamemodeOsu,
+			Status:          serialization.OsuStatusIdle,
 			StatusText:      user.Username + " has just logged in!",
 		},
 		FriendsList: friendsList,
@@ -250,10 +264,33 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Send Protocol negotiation aswell as information about itself
-	packets.BanchoSendProtocolNegotiation(client.PacketQueue)
-	packets.BanchoSendLoginPermissions(client.PacketQueue, user.Privileges|packets.UserPermissionsSupporter)
-	packets.BanchoSendUserPresence(client.PacketQueue, user, osuStats, clientInfo.Timezone)
-	packets.BanchoSendOsuUpdate(client.PacketQueue, osuStats, client.Status)
+	presence := base_packet_structures.UserPresence{
+		UserId:          int32(user.UserID),
+		Username:        user.Username,
+		AvatarExtension: 0,
+		Timezone:        uint8(timezone),
+		Country:         uint8(user.Country),
+		City:            "",
+		Permissions:     uint8(user.Privileges),
+		Longitude:       0,
+		Latitude:        0,
+		Rank:            int32(osuStats.Rank),
+	}
+
+	stats := base_packet_structures.OsuStats{
+		UserId:      int32(user.UserID),
+		Status:      client.Status,
+		RankedScore: int64(osuStats.RankedScore),
+		Accuracy:    osuStats.Accuracy,
+		Playcount:   int32(osuStats.Playcount),
+		TotalScore:  int64(osuStats.TotalScore),
+		Rank:        int32(osuStats.Rank),
+	}
+
+	packetQueue <- serialization.SendSerializableInt(serialization.BanchoProtocolNegotiation, 7)
+	packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginPermissions, user.Privileges|serialization.UserPermissionsSupporter)
+	packetQueue <- serialization.SendSerializable(serialization.BanchoUserPresence, presence)
+	packetQueue <- serialization.SendSerializable(serialization.BanchoHandleOsuUpdate, stats)
 
 	client_manager.LockClientList()
 
@@ -265,12 +302,12 @@ func HandleNewClient(connection net.Conn) {
 		}
 
 		//Inform client of our own existence
-		packets.BanchoSendUserPresence(currentClient.GetPacketQueue(), user, osuStats, clientInfo.Timezone)
-		packets.BanchoSendOsuUpdate(currentClient.GetPacketQueue(), osuStats, client.Status)
+		currentClient.BanchoPresence(user, osuStats, clientInfo.Timezone)
+		currentClient.BanchoOsuUpdate(osuStats, client.Status)
 
 		//Inform new client of the other client's existence
-		packets.BanchoSendUserPresence(client.PacketQueue, currentClient.GetUserData(), currentClient.GetRelevantUserStats(), currentClient.GetClientTimezone())
-		packets.BanchoSendOsuUpdate(client.PacketQueue, currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
+		client.BanchoPresence(currentClient.GetUserData(), currentClient.GetRelevantUserStats(), currentClient.GetClientTimezone())
+		client.BanchoOsuUpdate(currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
 	}
 
 	//Register client in the client manager
@@ -286,13 +323,14 @@ func HandleNewClient(connection net.Conn) {
 
 		if channel.Autojoin {
 			if channel.Join(&client) {
-				packets.BanchoSendChannelJoinSuccess(client.PacketQueue, channel.Name)
+				client.BanchoChannelJoinSuccess(channel.Name)
+
 				client.joinedChannels[channel.Name] = channel
 			} else {
-				packets.BanchoSendChannelRevoked(client.PacketQueue, channel.Name)
+				client.BanchoChannelRevoked(channel.Name)
 			}
 		} else {
-			packets.BanchoSendChannelAvailable(client.PacketQueue, channel.Name)
+			client.BanchoChannelAvailable(channel.Name)
 		}
 	}
 
@@ -300,17 +338,17 @@ func HandleNewClient(connection net.Conn) {
 	working, recorded := guaranteedWorkingVersion[clientInfo.Version]
 
 	if !recorded {
-		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s has not yet been tested and may not work as intended! Unforseen problems may occur, report them to Furball if you can, depending on version it could be fixed.", clientInfo.Version))
+		client.BanchoAnnounce(fmt.Sprintf("The osu! version %s has not yet been tested and may not work as intended! Unforseen problems may occur, report them to Furball if you can, depending on version it could be fixed.", clientInfo.Version))
 	} else if !working {
-		packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The osu! version %s is tested and has been found to not work properly on Waffle! Your experience may not be the best.", clientInfo.Version))
+		client.BanchoAnnounce(fmt.Sprintf("The osu! version %s is tested and has been found to not work properly on Waffle! Your experience may not be the best.", clientInfo.Version))
 
 		issues, hasKnownIssues := knownIssuesList[clientInfo.Version]
 
 		if hasKnownIssues {
-			packets.BanchoSendAnnounce(client.PacketQueue, fmt.Sprintf("The Client you're running on has these known issues:  %s", issues))
+			client.BanchoAnnounce(fmt.Sprintf("The Client you're running on has these known issues:  %s", issues))
 		}
 	} else {
-		packets.BanchoSendAnnounce(client.PacketQueue, "Welcome to Waffle!")
+		client.BanchoAnnounce("Welcome to Waffle!")
 	}
 
 	//Log some things
@@ -324,9 +362,9 @@ func HandleNewClient(connection net.Conn) {
 }
 
 // SendOffPacketsAndClose sends off any remaining packets in the packet queue
-func SendOffPacketsAndClose(connection net.Conn, packetQueue chan serialization.BanchoPacket) {
+func SendOffPacketsAndClose(connection net.Conn, packetQueue chan []byte) {
 	for len(packetQueue) != 0 {
-		connection.Write((<-packetQueue).GetBytes())
+		connection.Write((<-packetQueue))
 	}
 
 	connection.Close()

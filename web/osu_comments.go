@@ -1,8 +1,8 @@
 package web
 
 import (
-	"Waffle/bancho/osu/b1815/packets"
 	"Waffle/database"
+	"Waffle/helpers/serialization"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -207,12 +207,12 @@ ORDER BY time ASC
 		}
 
 		//check if its a osu!supporter sending the comment
-		if (databaseUser.Privileges & packets.UserPermissionsSupporter) > 0 {
+		if (databaseUser.Privileges & serialization.UserPermissionsSupporter) > 0 {
 			formatString = "subscriber"
 		}
 
 		//check if its a BAT sending the comment
-		if (databaseUser.Privileges & packets.UserPermissionsBAT) > 0 {
+		if (databaseUser.Privileges & serialization.UserPermissionsBAT) > 0 {
 			formatString = "bat"
 		}
 

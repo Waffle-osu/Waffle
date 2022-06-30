@@ -3,7 +3,6 @@ package lobby
 import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
-	"Waffle/helpers/serialization"
 )
 
 type LobbyClient interface {
@@ -18,4 +17,23 @@ type LobbyClient interface {
 	LeaveCurrentMatch()
 	JoinMatch(match *MultiplayerLobby, password string)
 	GetAwayMessage() string
+
+	BanchoLobbyJoin(userId int32)
+	BanchoLobbyLeft(userId int32)
+
+	BanchoMatchNew(match base_packet_structures.MultiplayerMatch)
+	BanchoMatchUpdate(match base_packet_structures.MultiplayerMatch)
+	BanchoMatchStart(match base_packet_structures.MultiplayerMatch)
+	BanchoMatchDisband(matchId int32)
+	BanchoMatchTransferHost()
+	BanchoMatchAllPlayersLoaded()
+	BanchoMatchComplete()
+	BanchoMatchSkip()
+	BanchoMatchPlayerSkipped(slot int32)
+	BanchoMatchPlayerFailed(slot int32)
+	BanchoMatchScoreUpdate(scoreFrame base_packet_structures.ScoreFrame)
+
+	BanchoOsuUpdate(stats database.UserStats, update base_packet_structures.StatusUpdate)
+
+	BanchoChannelRevoked(channel string)
 }

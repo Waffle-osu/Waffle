@@ -18,4 +18,16 @@ type WaffleClient interface {
 	GetAwayMessage() string
 
 	BanchoHandleOsuQuit(userId int32)
+
+	BanchoSpectatorJoined(userId int32)
+	BanchoSpectatorLeft(userId int32)
+	BanchoFellowSpectatorJoined(userId int32)
+	BanchoFellowSpectatorLeft(userId int32)
+	BanchoSpectatorCantSpectate(userId int32)
+	BanchoSpectateFrames(frameBundle base_packet_structures.SpectatorFrameBundle)
+
+	BanchoIrcMessage(message base_packet_structures.Message)
+
+	BanchoOsuUpdate(stats database.UserStats, update base_packet_structures.StatusUpdate)
+	BanchoPresence(user database.User, stats database.UserStats, timezone int32)
 }
