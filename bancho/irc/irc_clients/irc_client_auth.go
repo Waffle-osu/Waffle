@@ -9,20 +9,18 @@ import (
 	"encoding/hex"
 	"net"
 	"strings"
-	"time"
 )
 
 func HandleNewIrcClient(connection net.Conn) {
-	authBegin := time.Now()
-
 	textReader := bufio.NewReader(connection)
 
 	ircClient := IrcClient{
-		connection: connection,
-		reader:     textReader,
+		connection:  connection,
+		reader:      textReader,
+		packetQueue: make(chan irc_messages.Message, 128),
 	}
 
-	for ircClient.Username == "" && ircClient.Password == "" && time.Since(authBegin).Seconds() < 32 {
+	for ircClient.Username == "" || ircClient.Password == "" {
 		line, err := textReader.ReadString('\n')
 
 		if err != nil {
@@ -55,17 +53,54 @@ func HandleNewIrcClient(connection net.Conn) {
 	userId, authResult := database.AuthenticateUser(ircClient.Username, passwordHashedString)
 
 	if !authResult {
-		//do things
+		ircClient.packetQueue <- irc_messages.IrcSendBannedFromChan("Cannot join channel (+b)", "#osu")
+
+		ircClient.SendOffMessagesAndClose()
 		return
 	}
 
 	queryResult, foundUser := database.UserFromDatabaseById(uint64(userId))
 
-	if queryResult != 0 {
-		//do things
+	if queryResult == -1 {
+		ircClient.packetQueue <- irc_messages.IrcSendBannedFromChan("Authentication Failed, Invalid login.", "#osu")
 
+		ircClient.SendOffMessagesAndClose()
+		return
+	}
+
+	if queryResult == -2 {
+		ircClient.packetQueue <- irc_messages.IrcSendBannedFromChan("Authentication Failed, Server Error.", "#osu")
+
+		ircClient.SendOffMessagesAndClose()
 		return
 	}
 
 	ircClient.UserData = foundUser
+
+	//ircClient.packetQueue <- irc_messages.IrcSendWelcome("Welcome to Waffle!")
+
+	ircClient.packetQueue <- irc_messages.IrcSendTopic("#osu", "beyley is cute")
+	ircClient.packetQueue <- irc_messages.IrcSendMotdBegin()
+
+	for _, value := range MOTD {
+		ircClient.packetQueue <- irc_messages.IrcSendMotd(value)
+	}
+
+	ircClient.packetQueue <- irc_messages.IrcSendMotdEnd()
+
+	for message := range ircClient.packetQueue {
+		formatted, _ := message.FormatMessage(ircClient.Username)
+
+		connection.Write([]byte(formatted))
+	}
+}
+
+func (client *IrcClient) SendOffMessagesAndClose() {
+	for len(client.packetQueue) != 0 {
+		formatted, _ := (<-client.packetQueue).FormatMessage(client.Username)
+
+		client.connection.Write([]byte(formatted))
+	}
+
+	client.connection.Close()
 }

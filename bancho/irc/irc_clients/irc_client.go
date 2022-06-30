@@ -1,23 +1,26 @@
 package irc_clients
 
 import (
+	"Waffle/bancho/irc/irc_messages"
 	"Waffle/database"
 	"bufio"
 	"net"
 )
 
-var MOTD string = "" +
-	" _       __      __________     __" +
-	"| |     / /___ _/ __/ __/ /__  / /" +
-	"| | /| / / __ `/ /_/ /_/ / _ \\/ / " +
-	"| |/ |/ / /_/ / __/ __/ /  __/_/  " +
-	"|__/|__/\\__,_/_/ /_/ /_/\\___(_)   " +
-	"                                 "
+var MOTD []string = []string{"",
+	" _       __      __________     __",
+	"| |     / /___ _/ __/ __/ /__  / /",
+	"| | /| / / __ `/ /_/ /_/ / _ \\/ / ",
+	"| |/ |/ / /_/ / __/ __/ /  __/_/  ",
+	"|__/|__/\\__,_/_/ /_/ /_/\\___(_)   ",
+	"                                 ",
+}
 
 type IrcClient struct {
 	connection      net.Conn
 	reader          *bufio.Reader
 	continueRunning bool
+	packetQueue     chan irc_messages.Message
 
 	//Name used to address you on IRC
 	//Must be unique across the network
