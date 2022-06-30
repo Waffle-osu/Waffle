@@ -53,7 +53,7 @@ func HandleNewIrcClient(connection net.Conn) {
 	userId, authResult := database.AuthenticateUser(ircClient.Username, passwordHashedString)
 
 	if !authResult {
-		ircClient.packetQueue <- irc_messages.IrcSendBannedFromChan("Cannot join channel (+b)", "#osu")
+		ircClient.packetQueue <- irc_messages.IrcSendPasswordMismatch("Invalid Login!")
 
 		ircClient.SendOffMessagesAndClose()
 		return
@@ -62,22 +62,20 @@ func HandleNewIrcClient(connection net.Conn) {
 	queryResult, foundUser := database.UserFromDatabaseById(uint64(userId))
 
 	if queryResult == -1 {
-		ircClient.packetQueue <- irc_messages.IrcSendBannedFromChan("Authentication Failed, Invalid login.", "#osu")
+		ircClient.packetQueue <- irc_messages.IrcSendPasswordMismatch("Invalid Login!")
 
 		ircClient.SendOffMessagesAndClose()
 		return
 	}
 
 	if queryResult == -2 {
-		ircClient.packetQueue <- irc_messages.IrcSendBannedFromChan("Authentication Failed, Server Error.", "#osu")
+		ircClient.packetQueue <- irc_messages.IrcSendPasswordMismatch("Server Error.")
 
 		ircClient.SendOffMessagesAndClose()
 		return
 	}
 
 	ircClient.UserData = foundUser
-
-	//ircClient.packetQueue <- irc_messages.IrcSendWelcome("Welcome to Waffle!")
 
 	ircClient.packetQueue <- irc_messages.IrcSendTopic("#osu", "beyley is cute")
 	ircClient.packetQueue <- irc_messages.IrcSendMotdBegin()
