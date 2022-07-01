@@ -1,6 +1,7 @@
 package irc_clients
 
 import (
+	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/database"
@@ -10,6 +11,7 @@ import (
 	"encoding/hex"
 	"net"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -17,9 +19,11 @@ func HandleNewIrcClient(connection net.Conn) {
 	textReader := bufio.NewReader(connection)
 
 	ircClient := IrcClient{
-		connection:  connection,
-		reader:      textReader,
-		packetQueue: make(chan irc_messages.Message, 128),
+		connection:     connection,
+		reader:         textReader,
+		packetQueue:    make(chan irc_messages.Message, 128),
+		joinedChannels: make(map[string]*chat.Channel),
+		cleanMutex:     sync.Mutex{},
 	}
 
 	for ircClient.Username == "" || ircClient.Password == "" {

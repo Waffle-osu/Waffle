@@ -80,9 +80,9 @@ func (client *IrcClient) CleanupClient(reason string) {
 
 	//client_manager.UnregisterClient(client)
 
-	//for _, channel := range client.joinedChannels {
-	//	channel.Leave(client)
-	//}
+	for _, channel := range client.joinedChannels {
+		channel.Leave(client)
+	}
 
 	client.connection.Close()
 

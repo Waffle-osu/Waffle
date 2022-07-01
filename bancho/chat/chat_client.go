@@ -1,5 +1,7 @@
 package chat
 
+import "Waffle/common"
+
 // ChatClient defines an Interface of what we need from client.Client to be able to send messages
 type ChatClient interface {
 	GetUserPrivileges() int32
@@ -7,4 +9,6 @@ type ChatClient interface {
 	GetUsername() string
 	GetUserId() int32
 	GetAwayMessage() string
+	InformChannelJoin(chatClient ChatClient, channel *Channel)
+	GetClientType() common.ClientType
 }

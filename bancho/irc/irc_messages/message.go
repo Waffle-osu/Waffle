@@ -8,11 +8,12 @@ import (
 type IRCCode int32
 
 type Message struct {
-	Source     string
-	Command    string
-	NumCommand IRCCode
-	Params     []string
-	Trailing   string
+	Source       string
+	Command      string
+	NumCommand   IRCCode
+	Params       []string
+	Trailing     string
+	SkipUsername bool
 }
 
 const (
@@ -86,7 +87,7 @@ const (
 	RplVersion         IRCCode = 351
 	RplWhoReply        IRCCode = 352
 	RplEndOfWho        IRCCode = 315
-	RplNamReply        IRCCode = 353
+	RplNameReply       IRCCode = 353
 	RplEndOfNames      IRCCode = 366
 	RplLinks           IRCCode = 364
 	RplEndOfLinks      IRCCode = 365
@@ -186,7 +187,27 @@ func (message Message) FormatMessage(username string) (formatted string, formatE
 		return "", "Either Parameters or Trailing has to be set!"
 	}
 
-	returnString := fmt.Sprintf(":irc.waffle.nya %03d %s", message.NumCommand, username)
+	source := "irc.waffle.nya"
+
+	if message.Source != "" {
+		source = message.Source
+	}
+
+	returnString := ""
+
+	if message.Command == "" {
+		returnString += fmt.Sprintf(":%s %03d", source, message.NumCommand)
+
+		if !message.SkipUsername {
+			returnString = fmt.Sprintf("%s %s", returnString, username)
+		}
+	} else {
+		returnString = fmt.Sprintf(":%s %s", source, message.Command)
+
+		if !message.SkipUsername {
+			returnString = fmt.Sprintf("%s %s", returnString, username)
+		}
+	}
 
 	if len(message.Params) != 0 {
 		returnString = fmt.Sprintf("%s %s", returnString, strings.Join(message.Params, " "))

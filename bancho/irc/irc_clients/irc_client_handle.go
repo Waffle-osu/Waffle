@@ -2,8 +2,10 @@ package irc_clients
 
 import (
 	"Waffle/bancho/chat"
+	"Waffle/bancho/client_manager"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/bancho/misc"
+	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/helpers"
 	"strings"
 	"time"
@@ -38,37 +40,39 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message) {
 
 			if !exists {
 				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("No such channel!", channel)
+				return
 			}
 
-			//success := foundChannel.Join(client)
-			success := true
+			success := foundChannel.Join(client)
 
 			if success {
+				client.joinedChannels[foundChannel.Name] = foundChannel
+
 				client.packetQueue <- irc_messages.IrcSendTopic(channel, foundChannel.Description)
 
-				nameLines := []string{}
-
-				nameString := ""
-
-				for _, client := range foundChannel.Clients {
-					userPrefix := ""
-
-					if client.GetUserPrivileges() > chat.PrivilegesNormal {
-						userPrefix = "@"
-					}
-
-					nameString += userPrefix + strings.ReplaceAll(client.GetUsername(), " ", "_") + " "
-
-					if len(nameString) > 255 {
-						nameLines = append(nameLines, nameString)
-						nameString = ""
-					}
-
-					//TODO finish this
-				}
-
+				client.SendChannelNames(foundChannel)
 			} else {
 				client.packetQueue <- irc_messages.IrcSendBannedFromChan("Joining channel failed.", channel)
+			}
+		}
+	case "PRIVMSG":
+		if len(message.Params) != 0 {
+			foundChannel, exists := client.joinedChannels[message.Params[0]]
+
+			if exists {
+				foundChannel.SendMessage(client, message.Trailing, message.Params[0])
+			} else {
+				foundClient := client_manager.GetClientByName(message.Params[0])
+
+				if foundClient != nil {
+					foundClient.BanchoIrcMessage(base_packet_structures.Message{
+						Sender:  client.Username,
+						Target:  message.Params[0],
+						Message: message.Trailing,
+					})
+				} else {
+					client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it. No user under such Username could be found either.", message.Params[0])
+				}
 			}
 		}
 	}
@@ -81,6 +85,8 @@ func (client *IrcClient) HandleIncoming() {
 		if err != nil {
 			return
 		}
+
+		client.lastReceive = time.Now()
 
 		helpers.Logger.Printf("[IRC@Debug] %s", line)
 

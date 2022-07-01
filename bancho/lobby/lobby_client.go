@@ -1,7 +1,9 @@
 package lobby
 
 import (
+	"Waffle/bancho/chat"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/common"
 	"Waffle/database"
 )
 
@@ -17,6 +19,9 @@ type LobbyClient interface {
 	LeaveCurrentMatch()
 	JoinMatch(match *MultiplayerLobby, password string)
 	GetAwayMessage() string
+
+	InformChannelJoin(chatClient chat.ChatClient, channel *chat.Channel)
+	GetClientType() common.ClientType
 
 	BanchoLobbyJoin(userId int32)
 	BanchoLobbyLeft(userId int32)

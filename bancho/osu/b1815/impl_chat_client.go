@@ -1,7 +1,9 @@
 package b1815
 
 import (
+	"Waffle/bancho/chat"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/common"
 )
 
 // GetUserPrivileges returns the users privileges
@@ -27,4 +29,12 @@ func (client *Client) GetUsername() string {
 // GetAwayMessage gets the away message the user has set, if any
 func (client *Client) GetAwayMessage() string {
 	return client.awayMessage
+}
+
+func (client *Client) InformChannelJoin(chatClient chat.ChatClient, channel *chat.Channel) {
+
+}
+
+func (client *Client) GetClientType() common.ClientType {
+	return common.ClientTypeOsu1816
 }

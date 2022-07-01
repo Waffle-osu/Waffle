@@ -29,10 +29,14 @@ func (channel *Channel) Join(client ChatClient) bool {
 			channel.ClientMutex.Unlock()
 			return true
 		}
+
+		chatUser.InformChannelJoin(client, channel)
 	}
 
 	channel.Clients = append(channel.Clients, client)
 	channel.ClientMutex.Unlock()
+
+	client.InformChannelJoin(client, channel)
 
 	return true
 }
