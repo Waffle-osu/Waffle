@@ -2,6 +2,7 @@ package irc_clients
 
 import (
 	"Waffle/bancho/chat"
+	"Waffle/bancho/client_manager"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/bancho/lobby"
 	"Waffle/database"
@@ -78,7 +79,7 @@ func (client *IrcClient) CleanupClient(reason string) {
 		client.currentMultiLobby = nil
 	}
 
-	//client_manager.UnregisterClient(client)
+	client_manager.UnregisterClient(client)
 
 	for _, channel := range client.joinedChannels {
 		channel.Leave(client)

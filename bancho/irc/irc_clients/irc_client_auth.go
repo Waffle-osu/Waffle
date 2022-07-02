@@ -5,12 +5,10 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/database"
-	"Waffle/helpers"
 	"bufio"
 	"crypto/md5"
 	"encoding/hex"
 	"net"
-	"strings"
 	"sync"
 	"time"
 )
@@ -33,22 +31,9 @@ func HandleNewIrcClient(connection net.Conn) {
 			return
 		}
 
-		helpers.Logger.Printf("[IRC@Debug] %s", line)
-
 		message := irc_messages.ParseMessage(line)
 
-		if len(message.Source) != 0 {
-			helpers.Logger.Printf("[IRC@Debug] -- Source: %s", message.Source)
-		}
-
-		helpers.Logger.Printf("[IRC@Debug] -- Command: %s", message.Command)
-		helpers.Logger.Printf("[IRC@Debug] -- Params: %s", strings.Join(message.Params, ", "))
-
-		if len(message.Trailing) != 0 {
-			helpers.Logger.Printf("[IRC@Debug] -- Trailing: %s", message.Trailing)
-		}
-
-		ircClient.ProcessMessage(message)
+		ircClient.ProcessMessage(message, line)
 	}
 
 	//TODO: irc tokens
@@ -82,6 +67,7 @@ func HandleNewIrcClient(connection net.Conn) {
 	}
 
 	ircClient.UserData = foundUser
+	ircClient.UserData.UserID = 0
 
 	if ircClient.UserData.Banned == 1 {
 		ircClient.packetQueue <- irc_messages.IrcSendPasswordMismatch("Login Error. Banned.")
@@ -109,6 +95,8 @@ func HandleNewIrcClient(connection net.Conn) {
 	}
 
 	ircClient.packetQueue <- irc_messages.IrcSendMotdEnd()
+
+	client_manager.RegisterClient(&ircClient)
 
 	ircClient.lastPing = time.Now()
 	ircClient.lastReceive = time.Now()

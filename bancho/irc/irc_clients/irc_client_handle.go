@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (client *IrcClient) ProcessMessage(message irc_messages.Message) {
+func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine string) {
 	switch message.Command {
 	case "NICK":
 		client.Nickname = strings.Join(message.Params, " ")
@@ -75,6 +75,60 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message) {
 				}
 			}
 		}
+	case "WHO":
+		query := message.Params[0]
+
+		channelQuery := query[0] == '#'
+
+		if channelQuery {
+			foundChannel, exists := client.joinedChannels[query]
+
+			if exists {
+				for _, channelClient := range foundChannel.Clients {
+					isAway := channelClient.GetAwayMessage() == ""
+
+					client.packetQueue <- irc_messages.IrcSendWhoReply(query, channelClient.GetUsername(), isAway, channelClient.GetUserPrivileges())
+				}
+			} else {
+				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it. No user under such Username could be found either.", message.Params[0])
+			}
+		} else {
+			var foundClient client_manager.WaffleClient = nil
+
+			//Regular Username query
+			if foundClient == nil {
+				foundClient = client_manager.GetClientByName(query)
+			}
+
+			//Try again but replace _ by space
+			if foundClient == nil {
+				foundClient = client_manager.GetClientByName(strings.ReplaceAll(query, "_", " "))
+			}
+
+			if foundClient == nil {
+				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it. No user under such Username could be found either.", message.Params[0])
+			} else {
+				isAway := foundClient.GetAwayMessage() == ""
+
+				client.packetQueue <- irc_messages.IrcSendWhoReply(query, foundClient.GetUserData().Username, isAway, foundClient.GetUserData().Privileges)
+			}
+		}
+
+		client.packetQueue <- irc_messages.IrcSendEndOfWho(query)
+	case "CAP":
+	default:
+		helpers.Logger.Printf("[IRC@Debug] UNHANDLED COMMAND: %s", rawLine)
+
+		if len(message.Source) != 0 {
+			helpers.Logger.Printf("[IRC@Debug] -- Source: %s", message.Source)
+		}
+
+		helpers.Logger.Printf("[IRC@Debug] -- Command: %s", message.Command)
+		helpers.Logger.Printf("[IRC@Debug] -- Params: %s", strings.Join(message.Params, ", "))
+
+		if len(message.Trailing) != 0 {
+			helpers.Logger.Printf("[IRC@Debug] -- Trailing: %s", message.Trailing)
+		}
 	}
 }
 
@@ -88,22 +142,9 @@ func (client *IrcClient) HandleIncoming() {
 
 		client.lastReceive = time.Now()
 
-		helpers.Logger.Printf("[IRC@Debug] %s", line)
-
 		message := irc_messages.ParseMessage(line)
 
-		if len(message.Source) != 0 {
-			helpers.Logger.Printf("[IRC@Debug] -- Source: %s", message.Source)
-		}
-
-		helpers.Logger.Printf("[IRC@Debug] -- Command: %s", message.Command)
-		helpers.Logger.Printf("[IRC@Debug] -- Params: %s", strings.Join(message.Params, ", "))
-
-		if len(message.Trailing) != 0 {
-			helpers.Logger.Printf("[IRC@Debug] -- Trailing: %s", message.Trailing)
-		}
-
-		client.ProcessMessage(message)
+		client.ProcessMessage(message, line)
 	}
 }
 
