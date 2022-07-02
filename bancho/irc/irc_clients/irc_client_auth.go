@@ -67,7 +67,6 @@ func HandleNewIrcClient(connection net.Conn) {
 	}
 
 	ircClient.UserData = foundUser
-	ircClient.UserData.UserID = 0
 
 	if ircClient.UserData.Banned == 1 {
 		ircClient.packetQueue <- irc_messages.IrcSendPasswordMismatch("Login Error. Banned.")
