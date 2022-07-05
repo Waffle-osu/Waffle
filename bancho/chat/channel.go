@@ -29,14 +29,16 @@ func (channel *Channel) Join(client ChatClient) bool {
 			channel.ClientMutex.Unlock()
 			return true
 		}
-
-		chatUser.InformChannelJoin(client, channel)
 	}
 
 	channel.Clients = append(channel.Clients, client)
 	channel.ClientMutex.Unlock()
 
 	client.InformChannelJoin(client, channel)
+
+	for _, chatUser := range channel.Clients {
+		chatUser.InformChannelJoin(client, channel)
+	}
 
 	return true
 }
@@ -53,6 +55,12 @@ func (channel *Channel) Leave(client ChatClient) {
 	}
 
 	channel.ClientMutex.Unlock()
+
+	for _, chatUser := range channel.Clients {
+		chatUser.InformChannelPart(client, channel)
+	}
+
+	client.InformChannelPart(client, channel)
 }
 
 //SendMessage sends a message to the channel, `sendingClient` is the sender

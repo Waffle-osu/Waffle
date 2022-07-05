@@ -35,6 +35,10 @@ func (client *Client) InformChannelJoin(chatClient chat.ChatClient, channel *cha
 
 }
 
+func (client *Client) InformChannelPart(chatClient chat.ChatClient, channel *chat.Channel) {
+
+}
+
 func (client *Client) GetClientType() common.ClientType {
 	return common.ClientTypeOsu1816
 }

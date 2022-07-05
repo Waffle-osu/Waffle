@@ -62,6 +62,40 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				client.packetQueue <- irc_messages.IrcSendBannedFromChan("Joining channel failed.", channel)
 			}
 		}
+	case "PART":
+		channels := []string{}
+
+		for _, requestedChannel := range message.Params {
+			channels = append(channels, strings.Split(requestedChannel, ",")...)
+		}
+
+		for _, channel := range channels {
+			joinedChannel, exists := client.joinedChannels[channel]
+
+			if exists {
+				joinedChannel.Leave(client)
+			} else {
+				client.packetQueue <- irc_messages.IrcSendNotOnChannel(channel)
+			}
+		}
+	case "NAMES":
+		channels := []string{}
+
+		for _, requestedChannel := range message.Params {
+			channels = append(channels, strings.Split(requestedChannel, ",")...)
+		}
+
+		for _, channel := range channels {
+			foundChannel, exists := chat.GetChannelByName(channel)
+
+			if exists {
+				client.SendChannelNames(foundChannel)
+			} else {
+				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("No such channel!", channel)
+			}
+		}
+	case "QUIT":
+		client.CleanupClient(message.Trailing)
 	case "PRIVMSG":
 		if len(message.Params) != 0 {
 			foundChannel, exists := client.joinedChannels[message.Params[0]]

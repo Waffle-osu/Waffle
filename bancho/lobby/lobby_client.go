@@ -21,6 +21,7 @@ type LobbyClient interface {
 	GetAwayMessage() string
 
 	InformChannelJoin(chatClient chat.ChatClient, channel *chat.Channel)
+	InformChannelPart(chatClient chat.ChatClient, channel *chat.Channel)
 	GetClientType() common.ClientType
 
 	BanchoLobbyJoin(userId int32)

@@ -27,7 +27,11 @@ func (client *IrcClient) GetAwayMessage() string {
 }
 
 func (client *IrcClient) InformChannelJoin(chatClient chat.ChatClient, channel *chat.Channel) {
-	client.packetQueue <- irc_messages.IrcSendJoin(client.Username, channel.Name)
+	client.packetQueue <- irc_messages.IrcSendJoin(chatClient.GetUsername(), channel.Name)
+}
+
+func (client *IrcClient) InformChannelPart(chatClient chat.ChatClient, channel *chat.Channel) {
+	client.packetQueue <- irc_messages.IrcSendPart(chatClient.GetUsername(), channel.Name)
 }
 
 func (client *IrcClient) GetClientType() common.ClientType {

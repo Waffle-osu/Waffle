@@ -10,5 +10,6 @@ type ChatClient interface {
 	GetUserId() int32
 	GetAwayMessage() string
 	InformChannelJoin(chatClient ChatClient, channel *Channel)
+	InformChannelPart(chatClient ChatClient, channel *Channel)
 	GetClientType() common.ClientType
 }

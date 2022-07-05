@@ -17,6 +17,16 @@ func IrcSendNoSuchChannel(message string, channel string) Message {
 	}
 }
 
+func IrcSendNotOnChannel(channel string) Message {
+	return Message{
+		NumCommand: ErrNotOnChannel,
+		Params: []string{
+			channel,
+		},
+		Trailing: "You're not on that channel!",
+	}
+}
+
 func IrcSendNicknameInUse(username string, message string) Message {
 	return Message{
 		NumCommand: ErrNicknameInUse,
