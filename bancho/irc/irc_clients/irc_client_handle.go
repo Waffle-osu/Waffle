@@ -7,6 +7,7 @@ import (
 	"Waffle/bancho/misc"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/helpers"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -150,6 +151,51 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				client.packetQueue <- irc_messages.IrcSendEndOfWhoIs(username)
 			}
 		}
+	case "LIST":
+		client.packetQueue <- irc_messages.IrcSendListStart()
+
+		if len(message.Params) == 0 {
+			for _, channel := range chat.GetAvailableChannels() {
+				if (channel.ReadPrivileges & client.GetUserPrivileges()) <= 0 {
+					continue
+				}
+
+				client.packetQueue <- irc_messages.IrcSendListReply(channel)
+			}
+		} else {
+			joinedQuery := strings.Join(message.Params, " ")
+
+			if strings.Contains(joinedQuery, "#") {
+				requestedChannels := strings.Split(joinedQuery, ",")
+
+				for _, requestedChannel := range requestedChannels {
+					foundChannel, exists := chat.GetChannelByName(requestedChannel)
+
+					if (foundChannel.ReadPrivileges & client.GetUserPrivileges()) <= 0 {
+						continue
+					}
+
+					if exists {
+						client.packetQueue <- irc_messages.IrcSendListReply(foundChannel)
+					}
+				}
+			} else {
+				for _, channel := range chat.GetAvailableChannels() {
+					if (channel.ReadPrivileges & client.GetUserPrivileges()) <= 0 {
+						continue
+					}
+
+					client.packetQueue <- irc_messages.IrcSendListReply(channel)
+				}
+			}
+		}
+
+		client.packetQueue <- irc_messages.IrcSendListEnd()
+	case "PING":
+		token := message.Params[0]
+
+		client.packetQueue <- irc_messages.IrcSendPong(token)
+	case "PONG":
 	case "CAP":
 	default:
 		helpers.Logger.Printf("[IRC@Debug] UNHANDLED COMMAND: %s", rawLine)
@@ -212,7 +258,9 @@ func (client *IrcClient) MaintainClient() {
 		}
 
 		if lastPingUnix+PingTimeout <= unixNow {
-			//client.BanchoPing()
+			client.lastPingToken = fmt.Sprintf("irc.waffle.nya@%d", time.Now().Unix())
+
+			client.packetQueue <- irc_messages.IrcSendPing(client.lastPingToken)
 
 			client.lastPing = time.Now()
 		}

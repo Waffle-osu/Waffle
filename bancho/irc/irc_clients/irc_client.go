@@ -43,6 +43,8 @@ type IrcClient struct {
 
 	currentMultiLobby *lobby.MultiplayerLobby
 
+	lastPingToken string
+
 	clean      bool
 	cleanMutex sync.Mutex
 
