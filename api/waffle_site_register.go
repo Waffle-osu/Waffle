@@ -1,4 +1,4 @@
-package waffle_api
+package api
 
 import (
 	"Waffle/database"

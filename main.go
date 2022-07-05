@@ -12,7 +12,6 @@ import (
 	"Waffle/config"
 	"Waffle/database"
 	"Waffle/helpers"
-	"Waffle/web"
 	"crypto/md5"
 	"encoding/hex"
 	"os"
@@ -106,7 +105,7 @@ func main() {
 	clients.CreateWaffleBot() //Creates WaffleBot
 
 	go bancho.RunBancho()
-	go web.RunOsuWeb()
+	go RunWeb()
 	go irc.RunIrcSSL()
 	go irc.RunIrc()
 
