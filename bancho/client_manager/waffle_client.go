@@ -14,6 +14,7 @@ type WaffleClient interface {
 	GetUserData() database.User
 	GetClientTimezone() int32
 	GetIdleTimes() (lastReceive time.Time, logonTime time.Time)
+	GetFormattedJoinedChannels() string
 
 	CleanupClient(reason string)
 	Cut()

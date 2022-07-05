@@ -98,3 +98,15 @@ func (client *IrcClient) BanchoPresence(user database.User, stats database.UserS
 func (client *IrcClient) GetIdleTimes() (lastRecieve time.Time, logon time.Time) {
 	return client.lastReceive, client.logonTime
 }
+
+func (client *IrcClient) GetFormattedJoinedChannels() string {
+	channelString := ""
+
+	for _, value := range client.joinedChannels {
+		if value.ReadPrivileges == 0 {
+			channelString += value.Name + " "
+		}
+	}
+
+	return channelString
+}

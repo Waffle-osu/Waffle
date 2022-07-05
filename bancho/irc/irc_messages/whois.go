@@ -1,7 +1,6 @@
 package irc_messages
 
 import (
-	"Waffle/bancho/chat"
 	"strconv"
 	"time"
 )
@@ -40,15 +39,7 @@ func IrcSendWhoIsOperator(username string) Message {
 	}
 }
 
-func IrcSendWhoIsChannels(username string, channels map[string]*chat.Channel) Message {
-	channelString := ""
-
-	for _, value := range channels {
-		if value.ReadPrivileges == 0 {
-			channelString += value.Name + " "
-		}
-	}
-
+func IrcSendWhoIsChannels(username string, channelString string) Message {
 	return Message{
 		NumCommand: RplWhoIsChannels,
 		Params: []string{
