@@ -48,7 +48,7 @@ func (client *IrcClient) SendWhoIs(checkClient client_manager.WaffleClient) {
 	lastRecieve, logonTime := checkClient.GetIdleTimes()
 
 	client.packetQueue <- irc_messages.IrcSendWhoIsUser(checkClient.GetUserData().Username)
-	client.packetQueue <- irc_messages.IrcSendWhoIsChannels(checkClient.GetUserData().Username, checkClient.joinedChannels)
+	client.packetQueue <- irc_messages.IrcSendWhoIsChannels(checkClient.GetUserData().Username, checkClient.GetFormattedJoinedChannels())
 	client.packetQueue <- irc_messages.IrcSendWhoIsIdle(checkClient.GetUserData().Username, lastRecieve, logonTime)
 	client.packetQueue <- irc_messages.IrcSendWhoIsServer(checkClient.GetUserData().Username)
 
