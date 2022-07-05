@@ -12,7 +12,7 @@ import (
 )
 
 func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine string) {
-	switch message.Command {
+	switch strings.ToUpper(message.Command) {
 	case "NICK":
 		client.Nickname = strings.Join(message.Params, " ")
 
@@ -115,6 +115,41 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		}
 
 		client.packetQueue <- irc_messages.IrcSendEndOfWho(query)
+	case "WHOIS":
+		if len(message.Params) == 2 {
+			server := message.Params[0]
+			username := message.Params[1]
+
+			if server != "irc.waffle.nya" {
+				foundServerClient := client_manager.GetClientByName(server)
+
+				if foundServerClient != nil {
+					foundWhoIsClient := client_manager.GetClientByName(username)
+
+					if foundWhoIsClient != nil {
+						client.SendWhoIs(foundWhoIsClient)
+					} else {
+						client.packetQueue <- irc_messages.IrcSendNoSuchNick(username)
+						client.packetQueue <- irc_messages.IrcSendEndOfWhoIs(username)
+					}
+				} else {
+					client.packetQueue <- irc_messages.IrcSendNoSuchServer(server)
+					client.packetQueue <- irc_messages.IrcSendEndOfWhoIs(username)
+				}
+			}
+
+		} else if len(message.Params) == 1 {
+			username := message.Params[0]
+
+			foundWhoIsClient := client_manager.GetClientByName(username)
+
+			if foundWhoIsClient != nil {
+				client.SendWhoIs(foundWhoIsClient)
+			} else {
+				client.packetQueue <- irc_messages.IrcSendNoSuchNick(username)
+				client.packetQueue <- irc_messages.IrcSendEndOfWhoIs(username)
+			}
+		}
 	case "CAP":
 	default:
 		helpers.Logger.Printf("[IRC@Debug] UNHANDLED COMMAND: %s", rawLine)

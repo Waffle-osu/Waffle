@@ -33,6 +33,8 @@ type IrcClient struct {
 	continueRunning bool
 	packetQueue     chan irc_messages.Message
 
+	logonTime time.Time
+
 	lastReceive time.Time
 	lastPing    time.Time
 

@@ -314,6 +314,8 @@ func HandleNewClient(connection net.Conn) {
 	client_manager.RegisterClient(&client)
 	client_manager.UnlockClientList()
 
+	client.logonTime = time.Now()
+
 	//Join all the channels we need/can
 	for _, channel := range chat.GetAvailableChannels() {
 		//No need to join admin channels, or stuff above our privilege

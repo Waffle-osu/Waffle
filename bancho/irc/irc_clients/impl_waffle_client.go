@@ -5,6 +5,7 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers/serialization"
+	"time"
 )
 
 func (client *IrcClient) GetRelevantUserStats() database.UserStats {
@@ -92,4 +93,8 @@ func (client *IrcClient) BanchoOsuUpdate(stats database.UserStats, update base_p
 
 func (client *IrcClient) BanchoPresence(user database.User, stats database.UserStats, timezone int32) {
 
+}
+
+func (client *IrcClient) GetIdleTimes() (lastRecieve time.Time, logon time.Time) {
+	return client.lastReceive, client.logonTime
 }

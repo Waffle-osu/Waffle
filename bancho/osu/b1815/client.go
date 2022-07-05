@@ -31,6 +31,8 @@ type Client struct {
 	connection      net.Conn
 	continueRunning bool
 
+	logonTime time.Time
+
 	lastReceive time.Time
 	lastPing    time.Time
 

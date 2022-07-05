@@ -10,3 +10,13 @@ func IrcSendNameReply(channelPrefix string, channelName string, names string) Me
 		Trailing: names,
 	}
 }
+
+func IrcSendEndOfNames(channel string, message string) Message {
+	return Message{
+		NumCommand: RplEndOfNames,
+		Params: []string{
+			channel,
+		},
+		Trailing: message,
+	}
+}

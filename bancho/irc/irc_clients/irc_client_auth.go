@@ -99,6 +99,7 @@ func HandleNewIrcClient(connection net.Conn) {
 
 	ircClient.lastPing = time.Now()
 	ircClient.lastReceive = time.Now()
+	ircClient.logonTime = time.Now()
 	ircClient.continueRunning = true
 
 	go ircClient.HandleIncoming()

@@ -3,6 +3,7 @@ package client_manager
 import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
+	"time"
 )
 
 // WaffleClient defines an Interface of what we need from client.Client to be able to manage this client in the ClientLists
@@ -12,6 +13,7 @@ type WaffleClient interface {
 	GetUserStatus() base_packet_structures.StatusUpdate
 	GetUserData() database.User
 	GetClientTimezone() int32
+	GetIdleTimes() (lastReceive time.Time, logonTime time.Time)
 
 	CleanupClient(reason string)
 	Cut()

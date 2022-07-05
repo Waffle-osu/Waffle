@@ -23,6 +23,16 @@ func IrcSendWhoReply(query string, username string, isAway bool, privileges int3
 			username,
 			flags,
 		},
-		Trailing: "0 " + username,	
+		Trailing: "0 " + username,
+	}
+}
+
+func IrcSendEndOfWho(query string) Message {
+	return Message{
+		NumCommand: RplEndOfWho,
+		Params: []string{
+			query,
+		},
+		Trailing: "End of WHO list",
 	}
 }
