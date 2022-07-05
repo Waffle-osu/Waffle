@@ -36,7 +36,13 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 			client.packetQueue <- irc_messages.IrcSendAlreadyRegistered("You may not reregister")
 		}
 	case "JOIN":
-		for _, channel := range message.Params {
+		channels := []string{}
+
+		for _, requestedChannel := range message.Params {
+			channels = append(channels, strings.Split(requestedChannel, ",")...)
+		}
+
+		for _, channel := range channels {
 			foundChannel, exists := chat.GetChannelByName(channel)
 
 			if !exists {

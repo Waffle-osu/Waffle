@@ -9,7 +9,7 @@ func IrcSendPasswordMismatch(message string) Message {
 
 func IrcSendNoSuchChannel(message string, channel string) Message {
 	return Message{
-		NumCommand: ErrBannedFromChan,
+		NumCommand: ErrNoSuchChannel,
 		Params: []string{
 			channel,
 		},
