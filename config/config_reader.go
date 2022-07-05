@@ -3,7 +3,6 @@ package config
 import (
 	"Waffle/helpers"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -196,7 +195,7 @@ func ReadConfiguration() {
 
 		displayAllWarnings()
 
-		fmt.Printf("[Initialization] ----- Keep in mind set to default does not mean it will save in .env -----\n")
+		helpers.Logger.Printf("[Initialization] ----- Keep in mind set to default does not mean it will save in .env -----\n")
 
 		displayAllSetDefaultWarnings()
 	}()
