@@ -2,13 +2,8 @@ package main
 
 import (
 	"Waffle/bancho"
-	"Waffle/bancho/chat"
-	"Waffle/bancho/client_manager"
 	"Waffle/bancho/clients"
 	"Waffle/bancho/irc"
-	"Waffle/bancho/lobby"
-	"Waffle/bancho/misc"
-	"Waffle/bancho/osu/b1815"
 	"Waffle/config"
 	"Waffle/database"
 	"Waffle/helpers"
@@ -42,14 +37,8 @@ func main() {
 	EnsureDirectoryExists("osus")
 	EnsureDirectoryExists("avatars")
 
-	helpers.InitializeLogger()               //Initializes Logging, logs to both console and to a file
-	chat.InitializeChannels()                //Initializes Chat channels
-	client_manager.InitializeClientManager() //Initializes the client manager
-	lobby.InitializeLobby()                  //Initializes the multi lobby
-	clients.WaffleBotInitializeCommands()    //Initializes Chat Commands
-	misc.InitializeStatistics()              //Initializes Statistics
-	b1815.InitializeCompatibilityLists()     //Initializes Client Compatibility lists
-	config.ReadConfiguration()               //Initializes all Configurable things
+	helpers.InitializeLogger() //Initializes Logging, logs to both console and to a file
+	config.ReadConfiguration() //Initializes all Configurable things
 	database.Initialize()
 
 	if len(os.Args) == 3 {

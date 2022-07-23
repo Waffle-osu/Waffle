@@ -20,3 +20,11 @@ func InitializeStatistics() {
 	StatsBytesRecieved = 0
 	StatsBytesSent = 0
 }
+
+func ResetStatistics() {
+	StatsSendLock.Lock()
+	StatsRecvLock.Lock()
+
+	StatsBytesRecieved = 0
+	StatsBytesSent = 0
+}
