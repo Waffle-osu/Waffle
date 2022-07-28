@@ -1,20 +1,20 @@
 package clients
 
+import (
+	"Waffle/bancho/chat"
+	"Waffle/bancho/client_manager"
+	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/database"
+	"Waffle/helpers"
+	"Waffle/helpers/serialization"
+	"sync"
+	"time"
+)
+
 var WaffleBotInstance *WaffleBot
 
 // CreateWaffleBot creates and brings WaffleBot to life
-func CreateWaffleBot() {} /*
-	packetQueue := make(chan packets.BanchoPacket, 32)
-
-	//Most of those are irrelevant cuz we aren't dealing with a real client
-	clientInfo := ClientInformation{
-		Timezone:       0,
-		Version:        "Waffle",
-		AllowCity:      false,
-		OsuClientHash:  "https://github.com/Eeveelution/Waffle",
-		MacAddressHash: "https://github.com/Eeveelution/Waffle",
-	}
-
+func CreateWaffleBot() {
 	fetchResult, user := database.UserFromDatabaseById(1)
 
 	//If this happens, you either removed stuff from the DB or your MySQL stuff is wrong
@@ -47,13 +47,12 @@ func CreateWaffleBot() {} /*
 		return
 	}
 
-	botClient := client_manager.WaffleClient{
-		//We don't need a connection because this is a local client
-		connection:      nil,
+	botClient := WaffleBot{
 		continueRunning: true,
 
 		lastReceive: time.Now(),
 		lastPing:    time.Now(),
+		logonTime:   time.Now(),
 
 		joinedChannels: make(map[string]*chat.Channel),
 		awayMessage:    "",
@@ -65,26 +64,22 @@ func CreateWaffleBot() {} /*
 		isInLobby:         false,
 		currentMultiLobby: nil,
 
-		PacketQueue: packetQueue,
-
-		UserData:   user,
-		ClientData: clientInfo,
-		Status: packets.StatusUpdate{
-			Status:          packets.OsuStatusIdle,
+		UserData: user,
+		Status: base_packet_structures.StatusUpdate{
+			Status:          serialization.OsuStatusIdle,
 			StatusText:      "Welcome to Waffle!",
 			BeatmapChecksum: "No Map",
 			CurrentMods:     0,
-			Playmode:        packets.OsuGamemodeOsu,
+			Playmode:        serialization.OsuGamemodeOsu,
 			BeatmapId:       0,
 		},
-		OsuStats:    osuStats,
-		TaikoStats:  taikoStats,
-		CatchStats:  catchStats,
-		ManiaStats:  maniaStats,
-		FriendsList: []database.FriendEntry{},
+		OsuStats:   osuStats,
+		TaikoStats: taikoStats,
+		CatchStats: catchStats,
+		ManiaStats: maniaStats,
 	}
 
-	WaffleBot = &botClient
+	WaffleBotInstance = &botClient
 
 	client_manager.LockClientList()
 
@@ -95,12 +90,12 @@ func CreateWaffleBot() {} /*
 		}
 
 		//Inform client of our own existence
-		packets.BanchoSendUserPresence(currentClient.GetPacketQueue(), user, osuStats, clientInfo.Timezone)
-		packets.BanchoSendOsuUpdate(currentClient.GetPacketQueue(), osuStats, botClient.Status)
+		currentClient.BanchoPresence(user, osuStats, 0)
+		currentClient.BanchoOsuUpdate(osuStats, botClient.Status)
 
 		//Inform new client of the other client's existence
-		packets.BanchoSendUserPresence(botClient.PacketQueue, currentClient.GetUserData(), currentClient.GetRelevantUserStats(), currentClient.GetClientTimezone())
-		packets.BanchoSendOsuUpdate(botClient.PacketQueue, currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
+		botClient.BanchoPresence(currentClient.GetUserData(), currentClient.GetRelevantUserStats(), currentClient.GetClientTimezone())
+		botClient.BanchoOsuUpdate(currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
 	}
 
 	client_manager.RegisterClient(&botClient)
@@ -111,8 +106,6 @@ func CreateWaffleBot() {} /*
 		channel.Join(&botClient)
 	}
 
-	//Starts Goroutines for handlig WaffleBot
+	//Starts Goroutines for handling WaffleBot
 	go botClient.WaffleBotMaintainClient()
-	go botClient.WaffleBotHandleOutgoing()
 }
-*/

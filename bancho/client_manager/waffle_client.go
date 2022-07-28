@@ -33,4 +33,7 @@ type WaffleClient interface {
 
 	BanchoOsuUpdate(stats database.UserStats, update base_packet_structures.StatusUpdate)
 	BanchoPresence(user database.User, stats database.UserStats, timezone int32)
+
+	BanchoAnnounce(message string)
+	BanchoGetAttention()
 }

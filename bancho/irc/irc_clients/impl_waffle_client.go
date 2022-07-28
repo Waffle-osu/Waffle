@@ -110,3 +110,15 @@ func (client *IrcClient) GetFormattedJoinedChannels() string {
 
 	return channelString
 }
+
+func (ircClient *IrcClient) BanchoAnnounce(message string) {
+	ircClient.BanchoIrcMessage(base_packet_structures.Message{
+		Sender:  "Waffle",
+		Target:  ircClient.Username,
+		Message: message,
+	})
+}
+
+func (ircClient *IrcClient) BanchoGetAttention() {
+
+}

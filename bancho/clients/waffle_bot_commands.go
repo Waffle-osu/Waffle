@@ -1,6 +1,19 @@
 package clients
 
-/*
+import (
+	"Waffle/bancho/chat"
+	"Waffle/bancho/client_manager"
+	"Waffle/bancho/lobby"
+	"Waffle/bancho/misc"
+	"Waffle/database"
+	"fmt"
+	"math"
+	"math/rand"
+	"runtime"
+	"strconv"
+	"strings"
+	"time"
+)
 
 func WaffleBotCommandTemplate(sender client_manager.WaffleClient, args []string) []string {
 	return []string{}
@@ -59,14 +72,14 @@ func WaffleBotCommandAnnounce(sender client_manager.WaffleClient, args []string)
 		if targetClient != nil {
 			totalString := strings.Join(args[index:], " ")
 
-			packets.BanchoSendAnnounce(targetClient.GetPacketQueue(), totalString)
-			packets.BanchoSendGetAttention(targetClient.GetPacketQueue())
+			targetClient.BanchoAnnounce(totalString)
+			targetClient.BanchoGetAttention()
 		}
 	} else {
-		client_manager.BroadcastPacketOsu(func(packetQueue chan packets.BanchoPacket) {
+		client_manager.BroadcastPacketOsu(func(client client_manager.WaffleClient) {
 			totalString := strings.Join(args[1:], " ")
 
-			packets.BanchoSendAnnounce(packetQueue, totalString)
+			client.BanchoAnnounce(totalString)
 		})
 	}
 
@@ -387,5 +400,3 @@ func WaffleBotCommandLeaderboards(sender client_manager.WaffleClient, args []str
 
 	return returnResults
 }
-
-*/

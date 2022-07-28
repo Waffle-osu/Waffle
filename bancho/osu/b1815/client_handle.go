@@ -3,6 +3,7 @@ package b1815
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
+	"Waffle/bancho/clients"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
 	"Waffle/bancho/osu/base_packet_structures"
@@ -125,7 +126,7 @@ func (client *Client) HandleIncoming() {
 
 						if message.Message[0] == '!' {
 							//TODO: wafflebot
-							//go client.WaffleBotHandleCommand(client, message)
+							go clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
 						}
 					}
 					break

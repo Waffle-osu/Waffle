@@ -3,7 +3,6 @@ package main
 import (
 	"Waffle/api"
 	"Waffle/web"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -46,11 +45,6 @@ func RunWeb() {
 	//api
 	ginServer.POST("/api/waffle-login", api.ApiHandleWaffleLogin)
 	ginServer.POST("/api/waffle-site-register", api.ApiHandleWaffleRegister)
-
-	httpServer := &http.Server{
-		Addr: "127.0.0.1:80",
-		Handler: ginServer,
-	}
 
 	ginServer.Run("127.0.0.1:80")
 }
