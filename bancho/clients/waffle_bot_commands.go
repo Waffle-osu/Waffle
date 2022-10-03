@@ -32,6 +32,10 @@ func WaffleBotCommandHelp(sender client_manager.WaffleClient, args []string) []s
 
 // WaffleBotCommandAnnounce !announce (both variants)
 func WaffleBotCommandAnnounce(sender client_manager.WaffleClient, args []string) []string {
+	defer func() {
+		recover()
+	}()
+
 	//Check privileges
 	if (chat.PrivilegesAdmin & sender.GetUserData().Privileges) <= 0 {
 		return []string{
