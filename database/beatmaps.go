@@ -1,4 +1,4 @@
-package database
+ package database
 
 type Beatmap struct {
 	BeatmapId     int32
