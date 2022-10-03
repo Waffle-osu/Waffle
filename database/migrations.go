@@ -17,13 +17,14 @@ var DatabaseVersion int = -1
 func InitializeMigrations() {
 	Migrations = make(map[int]DatabaseMigration)
 
-	Migrations[001] = migrations.CreateDatabaseVersionStruct{}
-	Migrations[002] = migrations.CreateUserTablesStruct{}
-	Migrations[003] = migrations.CreateBeatmapTablesStruct{}
-	Migrations[004] = migrations.CreateScoreTablesStruct{}
-	Migrations[005] = migrations.IrcAndUpdaterTablesStruct{}
-	Migrations[006] = migrations.AchievementTablesStruct{}
-	Migrations[007] = migrations.CreateSiteTokensTablesStruct{}
+	Migrations[1] = migrations.CreateDatabaseVersionStruct{}
+	Migrations[2] = migrations.CreateUserTablesStruct{}
+	Migrations[3] = migrations.CreateBeatmapTablesStruct{}
+	Migrations[4] = migrations.CreateScoreTablesStruct{}
+	Migrations[5] = migrations.IrcAndUpdaterTablesStruct{}
+	Migrations[6] = migrations.AchievementTablesStruct{}
+	Migrations[7] = migrations.CreateSiteTokensTablesStruct{}
+	Migrations[8] = migrations.CreateWaffleBotStruct{}
 }
 
 func InitializeDatabaseVersion() {

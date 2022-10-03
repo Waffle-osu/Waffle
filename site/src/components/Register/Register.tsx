@@ -1,4 +1,5 @@
 import axios from "axios";
+import React from "react";
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { AppProps } from "../../AppState";
@@ -45,10 +46,10 @@ function Register(props: AppProps | EmbeddedRegisterProps) {
         setPassword(change.currentTarget.value)
     }
 
-    let submitRegister = async function(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault()
-
+    let submitRegister = function() {
         let appProps = props as AppProps
+
+        console.log("what")
 
         postRegisterRequest().then((response) => {
             let responseData = response.data
@@ -114,14 +115,14 @@ function Register(props: AppProps | EmbeddedRegisterProps) {
 
                         <br/>
 
-                        <form onSubmit={submitRegister}>
-                            Username:<br/> <input type="text" value={username} onChange={onUsernameChange} className="input-box"></input>
+                        
+                        Username:<br/> <input type="text" value={username} onChange={onUsernameChange} className="input-box"></input>
 
-                            <br/>
+                        <br/>
 
-                            Password:<br/> <input type="password" value={password} onChange={onPasswordChange} className="input-box"></input>
-                            {statusText === "" ? (<><input type="submit" value="Register"/>  </>) : (<><p>{statusText}</p></>)}          
-                        </form>                        
+                        Password:<br/> <input type="password" value={password} onChange={onPasswordChange} className="input-box"></input>
+                        {statusText === "" ? (<><input type="submit" value="Register" onClick={ () => { submitRegister() } }/>  </>) : (<><p>{statusText}</p></>)}          
+                                                
                     </div>
                 </div>
             </div>

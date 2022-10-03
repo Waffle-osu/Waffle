@@ -22,7 +22,7 @@ func (migration CreateSiteTokensTablesStruct) Apply(db *sql.DB) error {
 }
 
 func (migration CreateSiteTokensTablesStruct) Remove(db *sql.DB) error {
-	_, err := db.Query("DROP TABLE waffle.site_tokens")
+	_, err := db.Exec("DROP TABLE waffle.site_tokens")
 
 	return err
 }
