@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"database/sql"
-	"errors"
 )
 
 type CreateBeatmapTablesStruct struct{}
@@ -125,17 +124,22 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 }
 
 func (migration CreateBeatmapTablesStruct) Remove(db *sql.DB) error {
-	_, err1 := db.Query("DROP TABLE waffle.beatmaps")
-	_, err2 := db.Query("DROP TABLE waffle.beatmapsets")
-	_, err3 := db.Query("DROP TABLE waffle.beatmap_ratings")
-	_, err4 := db.Query("DROP TABLE waffle.beatmap_ratings_submissions")
-	_, err5 := db.Query("DROP TABLE waffle.beatmap_offsets")
-	_, err6 := db.Query("DROP TABLE waffle.beatmap_favourites")
-	_, err7 := db.Query("DROP TABLE waffle.beatmap_comments")
+	deletionSql :=
+		`
+		DROP TABLE waffle.beatmaps;
+		@@@@
+		DROP TABLE waffle.beatmapsets;
+		@@@@
+		DROP TABLE waffle.beatmap_ratings;
+		@@@@
+		DROP TABLE waffle.beatmap_ratings_submissions;
+		@@@@
+		DROP TABLE waffle.beatmap_offsets;
+		@@@@
+		DROP TABLE waffle.beatmap_favourites;
+		@@@@
+		DROP TABLE waffle.beatmap_comments;
+	`
 
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
-		return errors.New("Dropping failed!")
-	}
-
-	return nil
+	return MigrationHelperRunSplitSql(deletionSql, db)
 }

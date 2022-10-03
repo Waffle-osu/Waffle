@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"database/sql"
-	"errors"
 )
 
 type CreateScoreTablesStruct struct{}
@@ -62,12 +61,12 @@ func (migration CreateScoreTablesStruct) Apply(db *sql.DB) error {
 }
 
 func (migration CreateScoreTablesStruct) Remove(db *sql.DB) error {
-	_, err1 := db.Query("DROP TABLE waffle.scores")
-	_, err2 := db.Query("DROP TABLE waffle.failtimes")
+	deletionSql :=
+		`
+		DROP TABLE waffle.scores;
+		@@@@
+		DROP TABLE waffle.failtimes;
+	`
 
-	if err1 != nil || err2 != nil {
-		return errors.New("Dropping failed")
-	}
-
-	return nil
+	return MigrationHelperRunSplitSql(deletionSql, db)
 }

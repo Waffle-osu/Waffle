@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"database/sql"
-	"errors"
 )
 
 type IrcAndUpdaterTablesStruct struct{}
@@ -52,12 +51,12 @@ func (migration IrcAndUpdaterTablesStruct) Apply(db *sql.DB) error {
 }
 
 func (migration IrcAndUpdaterTablesStruct) Remove(db *sql.DB) error {
-	_, err1 := db.Query("DROP TABLE waffle.irc_log")
-	_, err2 := db.Query("DROP TABLE waffle.updater_items")
+	deletionSql :=
+		`
+		DROP TABLE waffle.irc_log;
+		@@@@
+		DROP TABLE waffle.updater_items;	
+	`
 
-	if err1 != nil || err2 != nil {
-		return errors.New("Dropping failed")
-	}
-
-	return nil
+	return MigrationHelperRunSplitSql(deletionSql, db)
 }

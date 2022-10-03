@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"database/sql"
-	"errors"
 )
 
 type AchievementTablesStruct struct{}
@@ -31,12 +30,12 @@ func (migration AchievementTablesStruct) Apply(db *sql.DB) error {
 }
 
 func (migration AchievementTablesStruct) Remove(db *sql.DB) error {
-	_, err1 := db.Query("DROP TABLE waffle.osu_achievements")
-	_, err2 := db.Query("DROP TABLE waffle.osu_achieved_achievements")
+	deletionSql :=
+		`
+		DROP TABLE waffle.osu_achievements;
+		@@@@
+		DROP TABLE waffle.osu_achieved_achievements;
+	`
 
-	if err1 != nil || err2 != nil {
-		return errors.New("Dropping failed")
-	}
-
-	return nil
+	return MigrationHelperRunSplitSql(deletionSql, db)
 }

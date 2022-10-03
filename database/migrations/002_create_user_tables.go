@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"database/sql"
-	"errors"
 )
 
 type CreateUserTablesStruct struct{}
@@ -83,14 +82,16 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) error {
 }
 
 func (migration CreateUserTablesStruct) Remove(db *sql.DB) error {
-	_, err1 := db.Query("DROP TABLE waffle.users")
-	_, err2 := db.Query("DROP TABLE waffle.stats")
-	_, err3 := db.Query("DROP TABLE waffle.friends")
-	_, err4 := db.Query("DROP TABLE waffle.screenshots")
+	deletionSql :=
+		`
+		DROP TABLE waffle.users;
+		@@@@
+		DROP TABLE waffle.stats;
+		@@@@
+		DROP TABLE waffle.friends;
+		@@@@
+		DROP TABLE waffle.screenshots;
+	`
 
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		return errors.New("Dropping failed!")
-	}
-
-	return nil
+	return MigrationHelperRunSplitSql(deletionSql, db)
 }
