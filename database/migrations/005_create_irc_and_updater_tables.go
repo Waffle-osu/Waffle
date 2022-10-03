@@ -1,10 +1,13 @@
 package migrations
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type IrcAndUpdaterTablesStruct struct{}
 
-func (migration IrcAndUpdaterTablesStruct) Apply(db *sql.DB) {
+func (migration IrcAndUpdaterTablesStruct) Apply(db *sql.DB) error {
 	creationSql :=
 		`
 		CREATE TABLE waffle.irc_log (
@@ -16,7 +19,7 @@ func (migration IrcAndUpdaterTablesStruct) Apply(db *sql.DB) {
 			
 			PRIMARY KEY (message_id)
 		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 		CREATE TABLE waffle.updater_items (
 			item_id         bigint       NOT NULL AUTO_INCREMENT,
 			server_filename varchar(256) NOT NULL,
@@ -27,8 +30,8 @@ func (migration IrcAndUpdaterTablesStruct) Apply(db *sql.DB) {
 			
 			PRIMARY KEY (item_id, server_filename, client_filename)
 		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-		INSERT INTO waffle.updater_items (server_filename, client_filename, file_hash, item_name, item_action) VALUES (
+@@@@
+		INSERT INTO waffle.updater_items (server_filename, client_filename, file_hash, item_name, item_action) VALUES
 			('osu!.exe'                   , 'osu!.exe'                   , '3623d9f7c693b786564e2d61b1c43af9', 'client_debug', 'none'),
 			('avcodec-51.dll'             , 'avcodec-51.dll'             , 'b22bf1e4ecd4be3d909dc68ccab74eec', 'client_ddls',  'none'),
 			('avformat-52.dll'            , 'avformat-52.dll'            , '2e7a800133625f827cf46aa0bb1af800', 'client_ddls',  'none'),
@@ -42,14 +45,19 @@ func (migration IrcAndUpdaterTablesStruct) Apply(db *sql.DB) {
 			('osu.dll.zip'                , 'osu.dll'                    , '599c14bcfc9c43b88d70d1a9388b33b7', 'client_ddls',  'zip' ),
 			('OsuP2P.dll'                 , 'OsuP2P.dll'                 , '2342bfd835e2e487d040d8ba62eb1a72', 'client_ddls',  'none'),
 			('pthreadGC2.dll'             , 'pthreadGC2.dll'             , 'ce931021e18f385f519e945a8a10548e', 'client_ddls',  'none'),
-			('x3daudio1_1.dll'            , 'x3daudio1_1.dll'            , '121b131eaa369d8f58dacc5c39a77d80', 'client_ddls',  'none')
-		);
+			('x3daudio1_1.dll'            , 'x3daudio1_1.dll'            , '121b131eaa369d8f58dacc5c39a77d80', 'client_ddls',  'none');
 	`
 
-	db.Query(creationSql)
+	return MigrationHelperRunSplitSql(creationSql, db)
 }
 
-func (migration IrcAndUpdaterTablesStruct) Remove(db *sql.DB) {
-	db.Query("DROP TABLE waffle.irc_log")
-	db.Query("DROP TABLE waffle.updater_items")
+func (migration IrcAndUpdaterTablesStruct) Remove(db *sql.DB) error {
+	_, err1 := db.Query("DROP TABLE waffle.irc_log")
+	_, err2 := db.Query("DROP TABLE waffle.updater_items")
+
+	if err1 != nil || err2 != nil {
+		return errors.New("Dropping failed")
+	}
+
+	return nil
 }

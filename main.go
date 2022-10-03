@@ -50,7 +50,9 @@ func main() {
 	misc.InitializeStatistics()              //Initializes Statistics
 	b1815.InitializeCompatibilityLists()     //Initializes Client Compatibility lists
 	config.ReadConfiguration()               //Initializes all Configurable things
-	database.Initialize()
+	database.Initialize()                    //Initializes Database Connection and things
+	database.InitializeMigrations()          //Initializes Database Migrations
+	database.InitializeDatabaseVersion()     //Initializes the Current Database Version
 
 	if len(os.Args) == 3 {
 		switch os.Args[1] {
@@ -60,9 +62,16 @@ func main() {
 			RenameOszs(os.Args[2])
 		case "osu_mover":
 			MoveOsuFiles(os.Args[2])
+		case "migrate":
+			database.RunNecessaryMigrations()
 		}
 
 		return
+	} else if len(os.Args) == 2 {
+		switch os.Args[1] {
+		case "migrate":
+			database.RunNecessaryMigrations()
+		}
 	}
 
 	//Ensure all the updater items exist

@@ -1,10 +1,13 @@
 package migrations
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type CreateScoreTablesStruct struct{}
 
-func (migration CreateScoreTablesStruct) Apply(db *sql.DB) {
+func (migration CreateScoreTablesStruct) Apply(db *sql.DB) error {
 	creationSql :=
 		`
 		CREATE TABLE waffle.scores (
@@ -41,7 +44,7 @@ func (migration CreateScoreTablesStruct) Apply(db *sql.DB) {
 			
 			CONSTRAINT userid_fk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 		CREATE TABLE waffle.failtimes (
 			failtime_id bigint unsigned NOT NULL AUTO_INCREMENT,
 			failtime    int             NOT NULL,
@@ -55,10 +58,16 @@ func (migration CreateScoreTablesStruct) Apply(db *sql.DB) {
 		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 	`
 
-	db.Query(creationSql)
+	return MigrationHelperRunSplitSql(creationSql, db)
 }
 
-func (migration CreateScoreTablesStruct) Remove(db *sql.DB) {
-	db.Query("DROP TABLE waffle.scores")
-	db.Query("DROP TABLE waffle.failtimes")
+func (migration CreateScoreTablesStruct) Remove(db *sql.DB) error {
+	_, err1 := db.Query("DROP TABLE waffle.scores")
+	_, err2 := db.Query("DROP TABLE waffle.failtimes")
+
+	if err1 != nil || err2 != nil {
+		return errors.New("Dropping failed")
+	}
+
+	return nil
 }

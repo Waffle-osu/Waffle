@@ -1,10 +1,13 @@
 package migrations
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type AchievementTablesStruct struct{}
 
-func (migration AchievementTablesStruct) Apply(db *sql.DB) {
+func (migration AchievementTablesStruct) Apply(db *sql.DB) error {
 	creationSql :=
 		`
 		CREATE TABLE waffle.osu_achievements (
@@ -14,7 +17,7 @@ func (migration AchievementTablesStruct) Apply(db *sql.DB) {
 			
 			PRIMARY KEY (achievement_id, name, image)
 		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-		
+@@@@
 		CREATE TABLE waffle.osu_achieved_achievements (
 			user_achievement_id bigint              NOT NULL,
 			achievement_id      int             DEFAULT NULL,
@@ -24,10 +27,16 @@ func (migration AchievementTablesStruct) Apply(db *sql.DB) {
 		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 	`
 
-	db.Query(creationSql)
+	return MigrationHelperRunSplitSql(creationSql, db)
 }
 
-func (migration AchievementTablesStruct) Remove(db *sql.DB) {
-	db.Query("DROP TABLE waffle.osu_achievements")
-	db.Query("DROP TABLE waffle.osu_achieved_achievements")
+func (migration AchievementTablesStruct) Remove(db *sql.DB) error {
+	_, err1 := db.Query("DROP TABLE waffle.osu_achievements")
+	_, err2 := db.Query("DROP TABLE waffle.osu_achieved_achievements")
+
+	if err1 != nil || err2 != nil {
+		return errors.New("Dropping failed")
+	}
+
+	return nil
 }

@@ -1,10 +1,12 @@
 package migrations
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type CreateSiteTokensTablesStruct struct{}
 
-func (migration CreateSiteTokensTablesStruct) Apply(db *sql.DB) {
+func (migration CreateSiteTokensTablesStruct) Apply(db *sql.DB) error {
 	creationSql :=
 		`
 		CREATE TABLE site_tokens (
@@ -16,9 +18,11 @@ func (migration CreateSiteTokensTablesStruct) Apply(db *sql.DB) {
 		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 	`
 
-	db.Query(creationSql)
+	return MigrationHelperRunSplitSql(creationSql, db)
 }
 
-func (migration CreateSiteTokensTablesStruct) Remove(db *sql.DB) {
-	db.Query("DROP TABLE waffle.site_tokens")
+func (migration CreateSiteTokensTablesStruct) Remove(db *sql.DB) error {
+	_, err := db.Query("DROP TABLE waffle.site_tokens")
+
+	return err
 }

@@ -1,10 +1,13 @@
 package migrations
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type CreateBeatmapTablesStruct struct{}
 
-func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) {
+func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 	creationSql :=
 		`
 	CREATE TABLE waffle.beatmaps (
@@ -38,7 +41,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) {
 		KEY setid_index    (beatmap_id) /*!80000 INVISIBLE */,
 		KEY source_index   (beatmap_source)
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.beatmapsets (
 		beatmapset_id  int           NOT NULL AUTO_INCREMENT,
 		creator_id     bigint        NOT NULL,
@@ -59,7 +62,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) {
 		
 		FULLTEXT KEY fulltext_search (artist,title,creator,source,tags)
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.beatmap_ratings (
 		beatmapset_id int    NOT NULL,
 		rating_sum    bigint NOT NULL DEFAULT '0',
@@ -67,7 +70,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) {
 		
 		PRIMARY KEY (beatmapset_id)
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.beatmap_ratings_submissions (
 		submission_id bigint          NOT NULL AUTO_INCREMENT,
 		user_id       bigint unsigned NOT NULL,
@@ -75,7 +78,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) {
 		
 		PRIMARY KEY (submission_id, user_id, beatmapset_id)
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.beatmap_offsets (
 		offset_id  bigint NOT NULL AUTO_INCREMENT,
 		beatmap_id int    NOT NULL,
@@ -83,7 +86,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) {
 		
 		PRIMARY KEY (offset_id, beatmap_id)
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.beatmap_favourites (
 		favourite_id  bigint          NOT NULL AUTO_INCREMENT,
 		beatmapset_id int             NOT NULL,
@@ -95,7 +98,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) {
 		
 		CONSTRAINT userid_pk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.beatmap_comments (
 		comment_id    bigint          NOT NULL AUTO_INCREMENT,
 		user_id       bigint unsigned NOT NULL,
@@ -118,15 +121,21 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) {
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 `
 
-	db.Query(creationSql)
+	return MigrationHelperRunSplitSql(creationSql, db)
 }
 
-func (migration CreateBeatmapTablesStruct) Remove(db *sql.DB) {
-	db.Query("DROP TABLE waffle.beatmaps")
-	db.Query("DROP TABLE waffle.beatmapsets")
-	db.Query("DROP TABLE waffle.beatmap_ratings")
-	db.Query("DROP TABLE waffle.beatmap_ratings_submissions")
-	db.Query("DROP TABLE waffle.beatmap_offsets")
-	db.Query("DROP TABLE waffle.beatmap_favourites")
-	db.Query("DROP TABLE waffle.beatmap_comments")
+func (migration CreateBeatmapTablesStruct) Remove(db *sql.DB) error {
+	_, err1 := db.Query("DROP TABLE waffle.beatmaps")
+	_, err2 := db.Query("DROP TABLE waffle.beatmapsets")
+	_, err3 := db.Query("DROP TABLE waffle.beatmap_ratings")
+	_, err4 := db.Query("DROP TABLE waffle.beatmap_ratings_submissions")
+	_, err5 := db.Query("DROP TABLE waffle.beatmap_offsets")
+	_, err6 := db.Query("DROP TABLE waffle.beatmap_favourites")
+	_, err7 := db.Query("DROP TABLE waffle.beatmap_comments")
+
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
+		return errors.New("Dropping failed!")
+	}
+
+	return nil
 }

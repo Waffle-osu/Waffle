@@ -1,10 +1,13 @@
 package migrations
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type CreateUserTablesStruct struct{}
 
-func (migration CreateUserTablesStruct) Apply(db *sql.DB) {
+func (migration CreateUserTablesStruct) Apply(db *sql.DB) error {
 	creationSql :=
 		`
 	CREATE TABLE waffle.users (
@@ -17,21 +20,21 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) {
 		privileges    INT                   NOT NULL DEFAULT '1',
 		joined_at     DATETIME                       DEFAULT CURRENT_TIMESTAMP,
 
-		PRIMARY KEY (user_id, username)
+		PRIMARY KEY (user_id, username),
 
 		UNIQUE KEY id_UNIQUE       (user_id),
 		UNIQUE KEY username_UNIQUE (username),
 
 		KEY user_INDEX (username, user_id)
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.stats (
 		user_id         bigint  unsigned NOT NULL,
 		mode            tinyint          NOT NULL,
 		ranked_score    bigint  unsigned NOT NULL DEFAULT '0',
 		total_score     bigint  unsigned NOT NULL DEFAULT '0',
-		user_level      double  unsigned NOT NULL DEFAULT '0',
-		accuracy        float   unsigned NOT NULL DEFAULT '0',
+		user_level      double           NOT NULL DEFAULT '0',
+		accuracy        float            NOT NULL DEFAULT '0',
 		playcount       bigint  unsigned NOT NULL DEFAULT '0',
 		count_ssh       bigint  unsigned NOT NULL DEFAULT '0',
 		count_ss        bigint  unsigned NOT NULL DEFAULT '0',
@@ -48,11 +51,11 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) {
 		hitGeki         bigint  unsigned NOT NULL DEFAULT '0',
 		hitKatu         bigint  unsigned NOT NULL DEFAULT '0',
 		replays_watched bigint  unsigned NOT NULL DEFAULT '0',
-		
+	
 		PRIMARY KEY (user_id, mode),
 		CONSTRAINT userid FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE		
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.friends (
 		user_1 bigint unsigned NOT NULL,
 		user_2 bigint unsigned NOT NULL,
@@ -65,7 +68,7 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) {
 		CONSTRAINT user_id2_FK FOREIGN KEY (user_2) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
 		CONSTRAINT user_id_FK FOREIGN KEY (user_1) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+@@@@
 	CREATE TABLE waffle.screenshots (
 		id            bigint       NOT NULL AUTO_INCREMENT,
 		filename      varchar(256) NOT NULL,
@@ -75,12 +78,19 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) {
 		PRIMARY KEY (id)
 	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 `
-	db.Query(creationSql)
+
+	return MigrationHelperRunSplitSql(creationSql, db)
 }
 
-func (migration CreateUserTablesStruct) Remove(db *sql.DB) {
-	db.Query("DROP TABLE waffle.users")
-	db.Query("DROP TABLE waffle.stats")
-	db.Query("DROP TABLE waffle.friends")
-	db.Query("DROP TABLE waffle.screenshots")
+func (migration CreateUserTablesStruct) Remove(db *sql.DB) error {
+	_, err1 := db.Query("DROP TABLE waffle.users")
+	_, err2 := db.Query("DROP TABLE waffle.stats")
+	_, err3 := db.Query("DROP TABLE waffle.friends")
+	_, err4 := db.Query("DROP TABLE waffle.screenshots")
+
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+		return errors.New("Dropping failed!")
+	}
+
+	return nil
 }
