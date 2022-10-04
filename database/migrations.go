@@ -25,6 +25,7 @@ func InitializeMigrations() {
 	Migrations[6] = migrations.AchievementTablesStruct{}
 	Migrations[7] = migrations.CreateSiteTokensTablesStruct{}
 	Migrations[8] = migrations.CreateWaffleBotStruct{}
+	Migrations[9] = migrations.CreateHistoricalTablesStruct{}
 }
 
 func InitializeDatabaseVersion() {

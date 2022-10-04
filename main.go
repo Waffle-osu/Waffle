@@ -12,6 +12,7 @@ import (
 	"Waffle/config"
 	"Waffle/database"
 	"Waffle/helpers"
+	"Waffle/scheduler"
 	"crypto/md5"
 	"encoding/hex"
 	"os"
@@ -53,6 +54,9 @@ func main() {
 	database.Initialize()                    //Initializes Database Connection and things
 	database.InitializeMigrations()          //Initializes Database Migrations
 	database.InitializeDatabaseVersion()     //Initializes the Current Database Version
+	scheduler.InitializeJobScheduler()       //Initializes the Scheduler
+
+	//scheduler.RunScheduler()
 
 	if len(os.Args) == 3 {
 		switch os.Args[1] {

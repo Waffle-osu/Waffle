@@ -13,7 +13,7 @@ var Logger *log.Logger
 func InitializeLogger() {
 	filename := fmt.Sprintf("logs/%d-log.txt", time.Now().Unix())
 
-	file, fileErr := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	file, fileErr := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
 
 	if fileErr != nil {
 		panic(fileErr)
