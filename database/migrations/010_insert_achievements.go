@@ -50,5 +50,10 @@ func (migration MigrationInsertAchievements) Apply(db *sql.DB) error {
 }
 
 func (migration MigrationInsertAchievements) Remove(db *sql.DB) error {
-	return nil
+	sql :=
+		`
+		DELETE FROM waffle.osu_achievements;
+	`
+
+	return MigrationHelperRunSplitSql(sql, db)
 }

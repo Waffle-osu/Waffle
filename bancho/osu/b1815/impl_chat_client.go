@@ -4,6 +4,7 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/common"
+	"Waffle/database"
 )
 
 // GetUserPrivileges returns the users privileges
@@ -49,4 +50,6 @@ func (client *Client) GetSilencedUntilUnix() int64 {
 
 func (client *Client) SetSilencedUntilUnix(untilUnix int64) {
 	client.silencedUntil = untilUnix
+
+	database.Database.Query("UPDATE waffle.users SET silenced_until = ? WHERE user_id = ?", untilUnix, client.UserData.UserID)
 }

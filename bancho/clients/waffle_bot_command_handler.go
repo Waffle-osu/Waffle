@@ -30,6 +30,7 @@ var adminHelpStrings = []string{
 	"!announce target <client username> : <message> :: Sends a Notification to a client",
 	"^^^ That : seperator is important there!!",
 	"!announce all <message> :: Sends a Notification to everyone on the server",
+	"!silence <duration in minutes> <username> :: Silences a user for <duration> minutes",
 }
 
 var commandHandlers map[string]func(client_manager.WaffleClient, []string) []string
@@ -45,6 +46,7 @@ func WaffleBotInitializeCommands() {
 	commandHandlers["!rank"] = WaffleBotCommandRank
 	commandHandlers["!leaderboard"] = WaffleBotCommandLeaderboards
 	commandHandlers["!leaderboards"] = WaffleBotCommandLeaderboards
+	commandHandlers["!silence"] = WaffleBotCommandSilence
 }
 
 func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClient, message base_packet_structures.Message) {

@@ -10,14 +10,15 @@ import (
 )
 
 type User struct {
-	UserID       uint64
-	Username     string
-	Password     string
-	Country      uint16
-	Banned       int8
-	BannedReason string
-	Privileges   int32
-	JoinedAt     string
+	UserID        uint64
+	Username      string
+	Password      string
+	Country       uint16
+	Banned        int8
+	BannedReason  string
+	Privileges    int32
+	JoinedAt      string
+	SilencedUntil uint64
 }
 
 type UserStats struct {
@@ -50,7 +51,7 @@ type UserStats struct {
 func UserFromDatabaseById(id uint64) (int8, User) {
 	returnUser := User{}
 
-	queryResult, queryErr := Database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE user_id = ?", id)
+	queryResult, queryErr := Database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at, silenced_until FROM waffle.users WHERE user_id = ?", id)
 
 	if queryErr != nil {
 		helpers.Logger.Printf("[Database] Failed to Fetch User from Database, MySQL query failed.\n")
@@ -63,7 +64,7 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 	}
 
 	if queryResult.Next() {
-		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt)
+		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt, &returnUser.SilencedUntil)
 
 		queryResult.Close()
 
@@ -85,7 +86,7 @@ func UserFromDatabaseById(id uint64) (int8, User) {
 func UserFromDatabaseByUsername(username string) (int8, User) {
 	returnUser := User{}
 
-	queryResult, queryErr := Database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at FROM waffle.users WHERE username = ?", username)
+	queryResult, queryErr := Database.Query("SELECT user_id, username, password, country, banned, banned_reason, privileges, joined_at, silenced_until FROM waffle.users WHERE username = ?", username)
 
 	if queryErr != nil {
 		helpers.Logger.Printf("[Database] Failed to Fetch User from Database, MySQL query failed.\n")
@@ -99,7 +100,7 @@ func UserFromDatabaseByUsername(username string) (int8, User) {
 
 	//If there is a result
 	if queryResult.Next() {
-		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt)
+		scanErr := queryResult.Scan(&returnUser.UserID, &returnUser.Username, &returnUser.Password, &returnUser.Country, &returnUser.Banned, &returnUser.BannedReason, &returnUser.Privileges, &returnUser.JoinedAt, &returnUser.SilencedUntil)
 
 		queryResult.Close()
 

@@ -98,21 +98,25 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		client.CleanupClient(message.Trailing)
 	case "PRIVMSG":
 		if len(message.Params) != 0 {
-			foundChannel, exists := client.joinedChannels[message.Params[0]]
-
-			if exists {
-				foundChannel.SendMessage(client, message.Trailing, message.Params[0])
+			if time.Now().Unix() < client.silencedUntil {
+				client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", client.silencedUntil-time.Now().Unix()), client.UserData.Username)
 			} else {
-				foundClient := client_manager.GetClientByName(message.Params[0])
+				foundChannel, exists := client.joinedChannels[message.Params[0]]
 
-				if foundClient != nil {
-					foundClient.BanchoIrcMessage(base_packet_structures.Message{
-						Sender:  client.Username,
-						Target:  message.Params[0],
-						Message: message.Trailing,
-					})
+				if exists {
+					foundChannel.SendMessage(client, message.Trailing, message.Params[0])
 				} else {
-					client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it. No user under such Username could be found either.", message.Params[0])
+					foundClient := client_manager.GetClientByName(message.Params[0])
+
+					if foundClient != nil {
+						foundClient.BanchoIrcMessage(base_packet_structures.Message{
+							Sender:  client.Username,
+							Target:  message.Params[0],
+							Message: message.Trailing,
+						})
+					} else {
+						client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it. No user under such Username could be found either.", message.Params[0])
+					}
 				}
 			}
 		}

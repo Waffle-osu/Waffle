@@ -407,3 +407,51 @@ func WaffleBotCommandLeaderboards(sender client_manager.WaffleClient, args []str
 
 	return returnResults
 }
+
+//!silence <duration in minutes> <username>
+func WaffleBotCommandSilence(sender client_manager.WaffleClient, args []string) []string {
+	//Check privileges
+	if (chat.PrivilegesAdmin & sender.GetUserData().Privileges) <= 0 {
+		if (chat.PrivilegesBAT & sender.GetUserData().Privileges) <= 0 {
+			return []string{
+				fmt.Sprintf("%s - you don't have the required privileges to execute !announce", sender.GetUserData().Username),
+			}
+		}
+	}
+
+	if len(args) < 2 {
+		return []string{
+			"Invalid Command Format.",
+		}
+	}
+
+	duration, err := strconv.ParseInt(args[0], 10, 64)
+
+	if err != nil {
+		return []string{
+			"Invalid Command Format.",
+		}
+	}
+
+	constructedUsername := ""
+
+	for i := 1; i != len(args); i++ {
+		constructedUsername += args[i] + " "
+	}
+
+	constructedUsername = strings.TrimSpace(constructedUsername)
+
+	client := client_manager.GetClientByName(constructedUsername)
+
+	if client == nil {
+		return []string{
+			"Client not found!.",
+		}
+	}
+
+	client.SetSilencedUntilUnix(time.Now().Unix() + (duration * 60))
+
+	return []string{
+		fmt.Sprintf("%s is now silenced for %d minutes", constructedUsername, duration),
+	}
+}

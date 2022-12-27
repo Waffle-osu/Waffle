@@ -117,53 +117,62 @@ func (client *Client) HandleIncoming() {
 				}
 			//The client is sending a message into a channel
 			case serialization.OsuSendIrcMessage:
-				message := base_packet_structures.ReadMessage(packetDataReader)
+				if time.Now().Unix() < client.silencedUntil {
+					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", client.silencedUntil-time.Now().Unix()), client.UserData.Username)
+				} else {
 
-				//Reroute if it's for #multiplayer
-				if message.Target == "#multiplayer" {
-					if client.currentMultiLobby != nil {
-						client.currentMultiLobby.MultiChannel.SendMessage(client, message.Message, message.Target)
+					message := base_packet_structures.ReadMessage(packetDataReader)
 
-						if message.Message[0] == '!' {
-							//TODO: wafflebot
-							go clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
+					//Reroute if it's for #multiplayer
+					if message.Target == "#multiplayer" {
+						if client.currentMultiLobby != nil {
+							client.currentMultiLobby.MultiChannel.SendMessage(client, message.Message, message.Target)
+
+							if message.Message[0] == '!' {
+								//TODO: wafflebot
+								go clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
+							}
 						}
+						break
 					}
-					break
-				}
 
-				//Find channel
-				channel, exists := client.joinedChannels[message.Target]
+					//Find channel
+					channel, exists := client.joinedChannels[message.Target]
 
-				if exists {
-					channel.SendMessage(client, message.Message, message.Target)
-					database.ChatInsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
+					if exists {
+						channel.SendMessage(client, message.Message, message.Target)
+						database.ChatInsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
+					}
 				}
 				//The client is sending a private message to someone
 			case serialization.OsuSendIrcMessagePrivate:
-				message := base_packet_structures.ReadMessage(packetDataReader)
-				//Assign a sender, as the client doesn't seem to send itself as the sender
-				message.Sender = client.UserData.Username
+				if time.Now().Unix() < client.silencedUntil {
+					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", client.silencedUntil-time.Now().Unix()), client.UserData.Username)
+				} else {
+					message := base_packet_structures.ReadMessage(packetDataReader)
+					//Assign a sender, as the client doesn't seem to send itself as the sender
+					message.Sender = client.UserData.Username
 
-				//Find the target
-				targetClient := client_manager.GetClientByName(message.Target)
+					//Find the target
+					targetClient := client_manager.GetClientByName(message.Target)
 
-				//If we found the client, only then send a message
-				if targetClient != nil {
-					targetClient.BanchoIrcMessage(message)
+					//If we found the client, only then send a message
+					if targetClient != nil {
+						targetClient.BanchoIrcMessage(message)
 
-					awayMessage := targetClient.GetAwayMessage()
+						awayMessage := targetClient.GetAwayMessage()
 
-					//If the user is marked as away, tell the sender
-					if awayMessage != "" {
-						client.BanchoIrcMessage(base_packet_structures.Message{
-							Sender:  targetClient.GetUserData().Username,
-							Message: fmt.Sprintf("/me is away! %s", awayMessage),
-							Target:  client.GetUserData().Username,
-						})
+						//If the user is marked as away, tell the sender
+						if awayMessage != "" {
+							client.BanchoIrcMessage(base_packet_structures.Message{
+								Sender:  targetClient.GetUserData().Username,
+								Message: fmt.Sprintf("/me is away! %s", awayMessage),
+								Target:  client.GetUserData().Username,
+							})
+						}
+
+						database.ChatInsertNewMessage(uint64(client.GetUserId()), strconv.FormatInt(int64(targetClient.GetUserId()), 10), message.Message)
 					}
-
-					database.ChatInsertNewMessage(uint64(client.GetUserId()), strconv.FormatInt(int64(targetClient.GetUserId()), 10), message.Message)
 				}
 			//The client nicely informs the server that its leaving
 			case serialization.OsuExit:

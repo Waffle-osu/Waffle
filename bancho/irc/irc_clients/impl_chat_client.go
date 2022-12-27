@@ -4,6 +4,7 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/common"
+	"Waffle/database"
 )
 
 func (client *IrcClient) GetUserPrivileges() int32 {
@@ -44,4 +45,6 @@ func (client *IrcClient) GetSilencedUntilUnix() int64 {
 
 func (client *IrcClient) SetSilencedUntilUnix(untilUnix int64) {
 	client.silencedUntil = untilUnix
+
+	database.Database.Query("UPDATE waffle.users SET silenced_until = ? WHERE user_id = ?", untilUnix, client.UserData.UserID)
 }
