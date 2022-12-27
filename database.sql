@@ -38,7 +38,7 @@ CREATE TABLE `beatmap_comments` (
   KEY `score_id_index` (`score_id`,`target`) /*!80000 INVISIBLE */,
   KEY `userid_beatmap_comments_pk_idx` (`user_id`) /*!80000 INVISIBLE */,
   CONSTRAINT `userid_beatmapcomments_pk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -55,7 +55,7 @@ CREATE TABLE `beatmap_favourites` (
   PRIMARY KEY (`favourite_id`,`user_id`,`beatmapset_id`),
   KEY `userid_index` (`user_id`),
   CONSTRAINT `userid_pk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,7 +70,7 @@ CREATE TABLE `beatmap_ratings` (
   `rating_sum` bigint NOT NULL DEFAULT '0',
   `votes` bigint NOT NULL DEFAULT '0',
   PRIMARY KEY (`beatmapset_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -85,7 +85,7 @@ CREATE TABLE `beatmap_ratings_submissions` (
   `user_id` bigint unsigned NOT NULL,
   `beatmapset_id` int NOT NULL,
   PRIMARY KEY (`submission_id`,`user_id`,`beatmapset_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -123,7 +123,7 @@ CREATE TABLE `beatmaps` (
   KEY `filename_index` (`filename`),
   KEY `setid_index` (`beatmap_id`) /*!80000 INVISIBLE */,
   KEY `source_index` (`beatmap_source`)
-) ENGINE=InnoDB AUTO_INCREMENT=3483833 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3483833 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -149,7 +149,7 @@ CREATE TABLE `beatmapsets` (
   KEY `artist_index` (`title`) /*!80000 INVISIBLE */,
   KEY `creator_index` (`creator`),
   FULLTEXT KEY `fulltext_search` (`artist`,`title`,`creator`,`source`,`tags`)
-) ENGINE=InnoDB AUTO_INCREMENT=41895 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41895 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -167,7 +167,7 @@ CREATE TABLE `failtimes` (
   `was_exit` tinyint NOT NULL,
   PRIMARY KEY (`failtime_id`),
   KEY `beatmapid_index` (`beatmap_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -185,7 +185,7 @@ CREATE TABLE `friends` (
   KEY `index_user2` (`user_2`),
   CONSTRAINT `user_id2_FK` FOREIGN KEY (`user_2`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `user_id_FK` FOREIGN KEY (`user_1`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -202,7 +202,7 @@ CREATE TABLE `irc_log` (
   `message` text NOT NULL,
   `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`message_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -242,7 +242,7 @@ CREATE TABLE `scores` (
   KEY `beatmapid_index` (`beatmap_id`),
   KEY `userid_fk_idx` (`user_id`),
   CONSTRAINT `userid_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=85 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=85 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -258,7 +258,7 @@ CREATE TABLE `screenshots` (
   `creation_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` bigint NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -293,7 +293,7 @@ CREATE TABLE `stats` (
   `replays_watched` bigint unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`user_id`,`mode`),
   CONSTRAINT `userid` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -311,7 +311,7 @@ CREATE TABLE `updater_items` (
   `item_name` varchar(256) NOT NULL DEFAULT '',
   `item_action` varchar(8) DEFAULT 'none',
   PRIMARY KEY (`item_id`,`server_filename`,`client_filename`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -334,7 +334,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `id_UNIQUE` (`user_id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
   KEY `user_INDEX` (`username`,`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

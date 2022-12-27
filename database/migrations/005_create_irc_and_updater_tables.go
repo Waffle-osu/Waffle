@@ -17,7 +17,7 @@ func (migration IrcAndUpdaterTablesStruct) Apply(db *sql.DB) error {
 			date       datetime             NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			
 			PRIMARY KEY (message_id)
-		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+		) DEFAULT CHARSET=utf8mb4;
 @@@@
 		CREATE TABLE waffle.updater_items (
 			item_id         bigint       NOT NULL AUTO_INCREMENT,
@@ -28,7 +28,7 @@ func (migration IrcAndUpdaterTablesStruct) Apply(db *sql.DB) error {
 			item_action     varchar(8)            DEFAULT 'none',
 			
 			PRIMARY KEY (item_id, server_filename, client_filename)
-		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+		) DEFAULT CHARSET=utf8mb4;
 @@@@
 		INSERT INTO waffle.updater_items (server_filename, client_filename, file_hash, item_name, item_action) VALUES
 			('osu!.exe'                   , 'osu!.exe'                   , '3623d9f7c693b786564e2d61b1c43af9', 'client_debug', 'none'),

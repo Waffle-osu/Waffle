@@ -15,7 +15,7 @@ func (migration AchievementTablesStruct) Apply(db *sql.DB) error {
 			image          varchar(64)          NOT NULL,
 			
 			PRIMARY KEY (achievement_id, name, image)
-		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+		) DEFAULT CHARSET=utf8mb4;
 @@@@
 		CREATE TABLE waffle.osu_achieved_achievements (
 			user_achievement_id bigint              NOT NULL,
@@ -23,7 +23,7 @@ func (migration AchievementTablesStruct) Apply(db *sql.DB) error {
 			user_id             bigint unsigned DEFAULT NULL,
 			
 			PRIMARY KEY (user_achievement_id)
-		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+		) DEFAULT CHARSET=utf8mb4;
 	`
 
 	return MigrationHelperRunSplitSql(creationSql, db)

@@ -39,7 +39,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 		KEY filename_index (filename),
 		KEY setid_index    (beatmap_id) /*!80000 INVISIBLE */,
 		KEY source_index   (beatmap_source)
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.beatmapsets (
 		beatmapset_id  int           NOT NULL AUTO_INCREMENT,
@@ -60,7 +60,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 		KEY creator_index (creator),
 		
 		FULLTEXT KEY fulltext_search (artist,title,creator,source,tags)
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.beatmap_ratings (
 		beatmapset_id int    NOT NULL,
@@ -68,7 +68,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 		votes         bigint NOT NULL DEFAULT '0',
 		
 		PRIMARY KEY (beatmapset_id)
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.beatmap_ratings_submissions (
 		submission_id bigint          NOT NULL AUTO_INCREMENT,
@@ -76,7 +76,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 		beatmapset_id int             NOT NULL,
 		
 		PRIMARY KEY (submission_id, user_id, beatmapset_id)
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.beatmap_offsets (
 		offset_id  bigint NOT NULL AUTO_INCREMENT,
@@ -84,7 +84,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 		offset     int    NOT NULL DEFAULT '0',
 		
 		PRIMARY KEY (offset_id, beatmap_id)
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.beatmap_favourites (
 		favourite_id  bigint          NOT NULL AUTO_INCREMENT,
@@ -96,7 +96,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 		KEY userid_index (user_id),
 		
 		CONSTRAINT userid_pk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.beatmap_comments (
 		comment_id    bigint          NOT NULL AUTO_INCREMENT,
@@ -117,7 +117,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 		KEY userid_beatmap_comments_pk_idx (user_id)               /*!80000 INVISIBLE */,
 		
 		CONSTRAINT userid_beatmapcomments_pk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 `
 
 	return MigrationHelperRunSplitSql(creationSql, db)

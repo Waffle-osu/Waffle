@@ -42,7 +42,7 @@ func (migration CreateScoreTablesStruct) Apply(db *sql.DB) error {
 			KEY userid_fk_idx         (user_id),
 			
 			CONSTRAINT userid_fk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
-		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+		) DEFAULT CHARSET=utf8mb4;
 @@@@
 		CREATE TABLE waffle.failtimes (
 			failtime_id bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -54,7 +54,7 @@ func (migration CreateScoreTablesStruct) Apply(db *sql.DB) error {
 			PRIMARY KEY (failtime_id),
 			
 			KEY beatmapid_index (beatmap_id)
-		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+		) DEFAULT CHARSET=utf8mb4;
 	`
 
 	return MigrationHelperRunSplitSql(creationSql, db)

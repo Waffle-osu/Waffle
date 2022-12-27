@@ -25,7 +25,7 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) error {
 		UNIQUE KEY username_UNIQUE (username),
 
 		KEY user_INDEX (username, user_id)
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.stats (
 		user_id         bigint  unsigned NOT NULL,
@@ -53,7 +53,7 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) error {
 	
 		PRIMARY KEY (user_id, mode),
 		CONSTRAINT userid FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE		
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.friends (
 		user_1 bigint unsigned NOT NULL,
@@ -66,7 +66,7 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) error {
 		
 		CONSTRAINT user_id2_FK FOREIGN KEY (user_2) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
 		CONSTRAINT user_id_FK FOREIGN KEY (user_1) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 @@@@
 	CREATE TABLE waffle.screenshots (
 		id            bigint       NOT NULL AUTO_INCREMENT,
@@ -75,7 +75,7 @@ func (migration CreateUserTablesStruct) Apply(db *sql.DB) error {
 		user_id       bigint       NOT NULL,
 		
 		PRIMARY KEY (id)
-	) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+	) DEFAULT CHARSET=utf8mb4;
 `
 
 	return MigrationHelperRunSplitSql(creationSql, db)

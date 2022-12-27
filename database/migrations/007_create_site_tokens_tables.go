@@ -15,7 +15,7 @@ func (migration CreateSiteTokensTablesStruct) Apply(db *sql.DB) error {
 			creation_date datetime              NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			
 			PRIMARY KEY (token_id, token_hash)
-		) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+		) DEFAULT CHARSET=utf8mb4;
 	`
 
 	return MigrationHelperRunSplitSql(creationSql, db)
