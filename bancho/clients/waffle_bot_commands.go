@@ -247,39 +247,42 @@ func WaffleBotCommandBanchoStatistics(sender client_manager.WaffleClient, args [
 	}
 }
 
+//!rank <?mode> <username>
 func WaffleBotCommandRank(sender client_manager.WaffleClient, args []string) []string {
 	username := sender.GetUserData().Username
 	mode := int8(0)
 	writtenMode := "osu!"
+	beginUsernameIndex := 1
 
 	if len(args) != 0 {
-		if len(args) == 2 {
-			username = args[0]
-			switch args[1] {
-			case "osu!":
-				mode = 0
-				writtenMode = "osu!"
-			case "osu!taiko":
-				mode = 1
-				writtenMode = "osu!taiko"
-			case "osu!catch":
-				mode = 2
-				writtenMode = "osu!catch"
+		switch args[0] {
+		case "osu!":
+			mode = 0
+			writtenMode = "osu!"
+		case "osu!taiko":
+			mode = 1
+			writtenMode = "osu!taiko"
+		case "osu!catch":
+			mode = 2
+			writtenMode = "osu!catch"
+		default:
+			beginUsernameIndex = 0
+		}
+
+		if len(args) > 1 {
+			constructedUsername := ""
+
+			if len(args) < 2 && beginUsernameIndex == 1 {
+				return []string{
+					"Invalid Command Format.",
+				}
 			}
-		} else {
-			switch args[0] {
-			case "osu!":
-				mode = 0
-				writtenMode = "osu!"
-			case "osu!taiko":
-				mode = 1
-				writtenMode = "osu!taiko"
-			case "osu!catch":
-				mode = 2
-				writtenMode = "osu!catch"
-			default:
-				username = args[0]
+
+			for i := beginUsernameIndex; i != len(args); i++ {
+				constructedUsername += args[i] + " "
 			}
+
+			username = strings.TrimSpace(constructedUsername)
 		}
 	}
 
@@ -291,7 +294,7 @@ func WaffleBotCommandRank(sender client_manager.WaffleClient, args []string) []s
 		}
 	} else if userQueryResult == -1 {
 		return []string{
-			"User not found.",
+			"User not found: " + username,
 		}
 	}
 

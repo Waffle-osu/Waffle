@@ -42,3 +42,11 @@ func (client *Client) InformChannelPart(chatClient chat.ChatClient, channel *cha
 func (client *Client) GetClientType() common.ClientType {
 	return common.ClientTypeOsu1816
 }
+
+func (client *Client) GetSilencedUntilUnix() int64 {
+	return client.silencedUntil
+}
+
+func (client *Client) SetSilencedUntilUnix(untilUnix int64) {
+	client.silencedUntil = untilUnix
+}

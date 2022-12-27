@@ -33,3 +33,11 @@ func (waffleBot *WaffleBot) SendChatMessage(sender string, content string, chann
 		Sender:  sender,
 	})
 }
+
+func (waffleBot *WaffleBot) GetSilencedUntilUnix() int64 {
+	return 0
+}
+
+func (client *WaffleBot) SetSilencedUntilUnix(untilUnix int64) {
+
+}

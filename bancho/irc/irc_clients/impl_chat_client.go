@@ -37,3 +37,11 @@ func (client *IrcClient) InformChannelPart(chatClient chat.ChatClient, channel *
 func (client *IrcClient) GetClientType() common.ClientType {
 	return common.ClientTypeIrc
 }
+
+func (client *IrcClient) GetSilencedUntilUnix() int64 {
+	return client.silencedUntil
+}
+
+func (client *IrcClient) SetSilencedUntilUnix(untilUnix int64) {
+	client.silencedUntil = untilUnix
+}

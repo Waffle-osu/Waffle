@@ -36,4 +36,7 @@ type WaffleClient interface {
 
 	BanchoAnnounce(message string)
 	BanchoGetAttention()
+
+	SetSilencedUntilUnix(untilUnix int64)
+	GetSilencedUntilUnix() int64
 }

@@ -42,4 +42,7 @@ type LobbyClient interface {
 	BanchoOsuUpdate(stats database.UserStats, update base_packet_structures.StatusUpdate)
 
 	BanchoChannelRevoked(channel string)
+
+	SetSilencedUntilUnix(untilUnix int64)
+	GetSilencedUntilUnix() int64
 }

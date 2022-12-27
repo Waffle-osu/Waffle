@@ -12,4 +12,7 @@ type ChatClient interface {
 	InformChannelJoin(chatClient ChatClient, channel *Channel)
 	InformChannelPart(chatClient ChatClient, channel *Channel)
 	GetClientType() common.ClientType
+
+	SetSilencedUntilUnix(untilUnix int64)
+	GetSilencedUntilUnix() int64
 }
