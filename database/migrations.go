@@ -26,9 +26,11 @@ func InitializeMigrations() {
 	Migrations[7] = migrations.CreateSiteTokensTablesStruct{}
 	Migrations[8] = migrations.CreateWaffleBotStruct{}
 	Migrations[9] = migrations.CreateHistoricalTablesStruct{}
+	Migrations[10] = migrations.MigrationInsertAchievements{}
 }
 
 func InitializeDatabaseVersion() {
+	//TODO: make database if it doesnt exist
 	//Check for database version existing, if not then we have to run *everything*
 	databaseStateResult, err := Database.Query("SHOW TABLES LIKE 'database_state'")
 

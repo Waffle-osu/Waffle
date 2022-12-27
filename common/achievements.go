@@ -36,14 +36,15 @@ const (
 	Achievement5000PlaysOsu       = 24
 	Achievement15000PlaysOsu      = 25
 	Achievement25000PlaysOsu      = 26
-	Achievement30000TaikoHits     = 27
-	Achievement300000TaikoHits    = 28
-	Achievement3000000TaikoHits   = 29
+	Achievement50000PlaysOsu      = 27
+	Achievement30000TaikoHits     = 28
+	Achievement300000TaikoHits    = 29
+	Achievement3000000TaikoHits   = 30
 
-	AchievementMakeUpFC                 = 30
-	Achievement5SRanks24Hours           = 31
-	AchievementMostImproved             = 32
-	AchievementNonstopDancerParaparaMAX = 33
+	AchievementMakeUpFC                 = 31
+	Achievement5SRanks24Hours           = 32
+	AchievementMostImproved             = 33
+	AchievementNonstopDancerParaparaMAX = 34
 )
 
 func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, ranking string, playmode int8, maxCombo int32) (queryResult int8, achievements []database.Achievement) {
@@ -236,6 +237,10 @@ func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, rank
 			}
 		case Achievement25000PlaysOsu:
 			if osuStats.Playcount >= 25000 {
+				AchieveAchievement(Achievement25000PlaysOsu)
+			}
+		case Achievement50000PlaysOsu:
+			if osuStats.Playcount >= 50000 {
 				AchieveAchievement(Achievement25000PlaysOsu)
 			}
 		case Achievement30000TaikoHits:

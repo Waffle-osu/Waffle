@@ -71,8 +71,8 @@ const (
 	BanchoChannelAvailable         uint16 = 65
 	BanchoChannelRevoked           uint16 = 66
 	BanchoChannelAvailableAutojoin uint16 = 67
-	OsuBeatmapInfoRequest          uint16 = 68 //TODO: when you got all the maps in the DB you can do this
-	BanchoBeatmapInfoReply         uint16 = 69 //TODO: when you got all the maps in the DB you can do this
+	OsuBeatmapInfoRequest          uint16 = 68
+	BanchoBeatmapInfoReply         uint16 = 69
 	OsuMatchTransferHost           uint16 = 70
 	BanchoLoginPermissions         uint16 = 71
 	BanchoFriendsList              uint16 = 72

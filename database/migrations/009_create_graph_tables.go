@@ -10,7 +10,7 @@ func (migration CreateHistoricalTablesStruct) Apply(db *sql.DB) error {
 	creationSql :=
 		`
 		CREATE TABLE waffle.osu_historical_stats (
-			id BIGINT NOT NULL AUTO_INCREMENT,
+			id              BIGINT            NOT NULL AUTO_INCREMENT,
 			mode            tinyint           NOT NULL,
 			ranked_score    bigint   unsigned NOT NULL DEFAULT '0',
 			total_score     bigint   unsigned NOT NULL DEFAULT '0',
@@ -32,8 +32,9 @@ func (migration CreateHistoricalTablesStruct) Apply(db *sql.DB) error {
 			hitGeki         bigint   unsigned NOT NULL DEFAULT '0',
 			hitKatu         bigint   unsigned NOT NULL DEFAULT '0',
 			replays_watched bigint   unsigned NOT NULL DEFAULT '0',
-			rank            bigint   unsigned NOT NULL DEFAULT '1',
-			date            DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP
+			current_rank    bigint   unsigned NOT NULL DEFAULT '1',
+			date            DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY(id)
 		);
 	`
 
