@@ -45,11 +45,11 @@ func (client *Client) GetClientType() common.ClientType {
 }
 
 func (client *Client) GetSilencedUntilUnix() int64 {
-	return client.silencedUntil
+	return int64(client.UserData.SilencedUntil)
 }
 
 func (client *Client) SetSilencedUntilUnix(untilUnix int64) {
-	client.silencedUntil = untilUnix
+	client.UserData.SilencedUntil = uint64(untilUnix)
 
 	database.Database.Query("UPDATE waffle.users SET silenced_until = ? WHERE user_id = ?", untilUnix, client.UserData.UserID)
 }

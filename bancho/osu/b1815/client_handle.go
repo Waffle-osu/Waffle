@@ -117,8 +117,8 @@ func (client *Client) HandleIncoming() {
 				}
 			//The client is sending a message into a channel
 			case serialization.OsuSendIrcMessage:
-				if time.Now().Unix() < client.silencedUntil {
-					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", client.silencedUntil-time.Now().Unix()), client.UserData.Username)
+				if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
+					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 				} else {
 
 					message := base_packet_structures.ReadMessage(packetDataReader)
@@ -146,8 +146,8 @@ func (client *Client) HandleIncoming() {
 				}
 				//The client is sending a private message to someone
 			case serialization.OsuSendIrcMessagePrivate:
-				if time.Now().Unix() < client.silencedUntil {
-					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", client.silencedUntil-time.Now().Unix()), client.UserData.Username)
+				if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
+					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 				} else {
 					message := base_packet_structures.ReadMessage(packetDataReader)
 					//Assign a sender, as the client doesn't seem to send itself as the sender

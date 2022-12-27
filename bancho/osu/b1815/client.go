@@ -59,8 +59,6 @@ type Client struct {
 	CatchStats  database.UserStats
 	ManiaStats  database.UserStats
 	FriendsList []database.FriendEntry
-
-	silencedUntil int64
 }
 
 // CleanupClient cleans the client up, leaves spectator and the lobby and the multi match if applicable, also lets everyone know its departure

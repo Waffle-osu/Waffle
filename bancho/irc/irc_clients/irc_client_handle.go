@@ -98,8 +98,8 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		client.CleanupClient(message.Trailing)
 	case "PRIVMSG":
 		if len(message.Params) != 0 {
-			if time.Now().Unix() < client.silencedUntil {
-				client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", client.silencedUntil-time.Now().Unix()), client.UserData.Username)
+			if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
+				client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 			} else {
 				foundChannel, exists := client.joinedChannels[message.Params[0]]
 

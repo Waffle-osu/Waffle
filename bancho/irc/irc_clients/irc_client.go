@@ -66,8 +66,6 @@ type IrcClient struct {
 	Password string
 
 	UserData database.User
-
-	silencedUntil int64
 }
 
 func (client *IrcClient) CleanupClient(reason string) {
