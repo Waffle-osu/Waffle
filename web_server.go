@@ -46,5 +46,8 @@ func RunWeb() {
 	ginServer.POST("/api/waffle-login", api.ApiHandleWaffleLogin)
 	ginServer.POST("/api/waffle-site-register", api.ApiHandleWaffleRegister)
 
+	//achievements
+	ginServer.GET("/images/achievements/:filename", web.HandleOsuGetAchievementImage)
+
 	ginServer.Run("127.0.0.1:80")
 }

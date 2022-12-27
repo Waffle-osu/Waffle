@@ -347,7 +347,7 @@ func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, rank
 	for getAchievementsQuery.Next() {
 		currentAchievement := database.Achievement{}
 
-		scanErr := getAchievementsQuery.Scan(&currentAchievement.AchievementId, &currentAchievement.Image, &currentAchievement.Name)
+		scanErr := getAchievementsQuery.Scan(&currentAchievement.AchievementId, &currentAchievement.Name, &currentAchievement.Image)
 
 		if scanErr != nil {
 			getAchievementsQuery.Close()

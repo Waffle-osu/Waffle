@@ -1,6 +1,7 @@
 package web
 
 import (
+	"Waffle/common"
 	"Waffle/database"
 	"Waffle/helpers"
 	"crypto/md5"
@@ -214,8 +215,8 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	onlineScoreChecksumHashedString := hex.EncodeToString(onlineScoreChecksumHashed[:])
 
 	if scoreSubmission.OnlineScoreChecksum != onlineScoreChecksumHashedString {
-		ctx.String(http.StatusOK, "error: invalid score")
-		return
+		//ctx.String(http.StatusOK, "error: invalid score")
+		//return
 	}
 
 	//get users stats
@@ -659,6 +660,19 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		if insertFailTimeQuery != nil {
 			insertFailTimeQuery.Close()
 		}
+	}
+
+	//check achievements
+	queryResult, achievements := common.UpdateAchievements(userStats.UserID, scoreBeatmap.BeatmapId, scoreBeatmap.BeatmapsetId, scoreSubmission.Ranking, int8(scoreSubmission.Playmode), int32(scoreSubmission.MaxCombo))
+
+	if queryResult == 0 {
+		achievementString := ""
+
+		for _, achievement := range achievements {
+			achievementString += achievement.Image + " "
+		}
+
+		scoreSubmissionResponse["achievements"] = strings.TrimSpace(achievementString)
 	}
 
 	returnString := ""

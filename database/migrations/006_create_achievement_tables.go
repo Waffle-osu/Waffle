@@ -18,7 +18,7 @@ func (migration AchievementTablesStruct) Apply(db *sql.DB) error {
 		) DEFAULT CHARSET=utf8mb4;
 @@@@
 		CREATE TABLE waffle.osu_achieved_achievements (
-			user_achievement_id bigint              NOT NULL,
+			user_achievement_id bigint              NOT NULL AUTO_INCREMENT,
 			achievement_id      int             DEFAULT NULL,
 			user_id             bigint unsigned DEFAULT NULL,
 			
