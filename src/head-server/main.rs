@@ -1,10 +1,16 @@
 use tokio::{io::AsyncReadExt, net::TcpListener};
 
+use crate::server_handling::handle_socket;
+
+mod server_handling;
+
 #[tokio::main]
 async fn main() {
     let server_file_read_result = std::fs::read_to_string("servers.txt");
 
     let cwd = std::env::current_dir().unwrap();
+
+    println!("Running from: {}", cwd.to_str().unwrap());
 
     let servers: Vec<String> = match server_file_read_result {
         Err(e) => {
@@ -29,28 +35,6 @@ async fn main() {
             .await
             .expect("Accepting TCP Connection failed");
 
-        tokio::spawn(async move {
-            let mut buf = Vec::with_capacity(4096);
-
-            loop {
-                let read_result = socket.read_buf(&mut buf).await;
-
-                let read = match read_result {
-                    Err(e) => {
-                        eprintln!("Read from client failed; Error: {:?}", e);
-                        return;
-                    }
-
-                    Ok(n) => n,
-                };
-
-                //Apperantly that means disconnect in tokio
-                if read == 0 {
-                    return;
-                }
-
-                
-            }
-        });
+        tokio::spawn(handle_socket(socket));
     }
 }

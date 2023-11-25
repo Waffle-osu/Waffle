@@ -39,10 +39,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "binary-reader"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d173c51941d642588ed6a13d464617e3a9176b8fe00dc2de182434c36812a5e"
+dependencies = [
+ "byteorder",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
+
+[[package]]
+name = "byteorder"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
@@ -282,6 +297,7 @@ checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
 name = "waffle-new"
 version = "0.1.0"
 dependencies = [
+ "binary-reader",
  "tokio",
 ]
 
