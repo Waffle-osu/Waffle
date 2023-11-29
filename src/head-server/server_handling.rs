@@ -1,4 +1,4 @@
-use tokio::{net::TcpStream, io::AsyncReadExt};
+use tokio::{io::AsyncReadExt, net::TcpStream};
 
 pub async fn handle_socket(mut socket: TcpStream) {
     let mut buf = Vec::with_capacity(4096);
@@ -19,7 +19,5 @@ pub async fn handle_socket(mut socket: TcpStream) {
         if read == 0 {
             return;
         }
-
-        
     }
 }

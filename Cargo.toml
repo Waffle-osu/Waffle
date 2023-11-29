@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-binary-reader = "0.4.5"
+binary_rw = "4.0.4"
 
 [[bin]]
 name = "head-server"
