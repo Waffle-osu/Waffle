@@ -1,3 +1,4 @@
+#[derive(sqlx::FromRow)]
 pub struct User {
     user_id: u64,
     username: String,
@@ -17,6 +18,6 @@ impl User {
     }
 
     fn from_where_condition(sql_where: String) -> User {
-
+        let mut 
     }
 }

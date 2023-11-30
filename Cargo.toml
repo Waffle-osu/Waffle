@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 binary_rw = "4.0.4"
+sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-native-tls", "mysql" ] }
 
 [[bin]]
 name = "head-server"
