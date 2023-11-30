@@ -1,2 +1,2 @@
-mod client_manager;
-mod waffle_client;
+pub mod client_manager;
+pub mod waffle_client;

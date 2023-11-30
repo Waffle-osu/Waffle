@@ -16,7 +16,7 @@ lazy_static! {
     static ref manager: ClientManager = ClientManager { clients_by_id: DashMap::new(), clients_by_name: DashMap::new() };
 }
 
-fn register_client(client: Arc<WaffleClient>) {
+pub fn register_client(client: Arc<WaffleClient>) {
     match *client {
         WaffleClient::Irc(ref irc_client) => {
             manager.clients_by_id.insert(irc_client.user.user_id, client.clone());
