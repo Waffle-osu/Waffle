@@ -12,6 +12,7 @@ mod chat;
 mod bot;
 mod lobby;
 mod osu;
+mod irc;
 
 #[tokio::main]
 async fn main() {
@@ -43,7 +44,5 @@ async fn main() {
         bancho_listener(bancho_pool).await
     });
 
-    tokio::spawn(async move {
-        irc_listener(irc_pool).await
-    });
+    irc_listener(irc_pool).await
 }
