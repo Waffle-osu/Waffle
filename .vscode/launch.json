@@ -1,52 +1,82 @@
 {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Waffle",
-            "type": "go",
+            "type": "lldb",
             "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}",
-            "cwd": "${workspaceFolder}/build",
-            "output": "build/Waffle.exe"
+            "name": "Debug executable 'head-server'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=head-server",
+                    "--package=waffle-new"
+                ],
+                "filter": {
+                    "name": "head-server",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/env/head-server"
         },
         {
-            "name": "Launch osz Renamer",
-            "type": "go",
+            "type": "lldb",
             "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}",
-            "cwd": "${workspaceFolder}/build",
-            "output": "build/Waffle.exe",
-            "args": [
-                "osz_renamer",
-                "${workspaceFolder}/build/oszs"
-            ] 
+            "name": "Debug unit tests in executable 'head-server'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=head-server",
+                    "--package=waffle-new"
+                ],
+                "filter": {
+                    "name": "head-server",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/env/head-server"
         },
         {
-            "name": "Launch .osu Mover",
-            "type": "go",
+            "type": "lldb",
             "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}",
-            "cwd": "${workspaceFolder}/build",
-            "output": "build/Waffle.exe",
-            "args": [
-                "osu_mover",
-                "V:/osu!waffle map holder/Songs"
-            ] 
+            "name": "Debug executable 'server-instance'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=server-instance",
+                    "--package=waffle-new"
+                ],
+                "filter": {
+                    "name": "server-instance",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/env/server-instance"
         },
         {
-            "name": "Launch Necessary Migrations",
-            "type": "go",
+            "type": "lldb",
             "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}",
-            "cwd": "${workspaceFolder}/build",
-            "output": "build/Waffle.exe",
-            "args": [
-                "migrate",
-            ] 
+            "name": "Debug unit tests in executable 'server-instance'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=server-instance",
+                    "--package=waffle-new"
+                ],
+                "filter": {
+                    "name": "server-instance",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/env/server-instance"
         }
     ]
 }

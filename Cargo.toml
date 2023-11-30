@@ -1,0 +1,23 @@
+[package]
+name = "waffle-new"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+binary_rw = "4.0.4"
+sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-native-tls", "mysql" ] }
+
+[[bin]]
+name = "head-server"
+path = "src/head-server/main.rs"
+
+[[bin]]
+name = "server-instance"
+path = "src/server-instance/main.rs"
+
+[lib]
+name = "common"
+path = "src/common/lib.rs"
