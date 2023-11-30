@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use sqlx::{MySqlPool, mysql::MySqlPoolOptions};
 use tokio::net::TcpListener;
 use osu_listener::bancho_listener;
 use irc_listener::irc_listener;
@@ -7,7 +8,10 @@ use irc_listener::irc_listener;
 mod osu_listener;
 mod irc_listener;
 mod clients;
-
+mod chat;
+mod bot;
+mod lobby;
+mod osu;
 
 #[tokio::main]
 async fn main() {
@@ -32,11 +36,14 @@ async fn main() {
 
     let arc_pool = Arc::new(pool);
 
+    let bancho_pool = arc_pool.clone();
+    let irc_pool = arc_pool.clone();
+
     tokio::spawn(async move {
-        bancho_listener(arc_pool).await
+        bancho_listener(bancho_pool).await
     });
 
     tokio::spawn(async move {
-        irc_listener(arc_pool).await
+        irc_listener(irc_pool).await
     });
 }

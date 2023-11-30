@@ -1,3 +1,6 @@
+use std::sync::Arc;
+
+use sqlx::MySqlPool;
 use tokio::net::TcpListener;
 
 pub async fn irc_listener(db_conn: Arc<MySqlPool>) {

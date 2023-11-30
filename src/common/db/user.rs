@@ -1,18 +1,16 @@
 use sqlx::MySqlPool;
 
-use super::db_pool;
-
 #[derive(sqlx::FromRow)]
 pub struct User {
-    user_id: u64,
-    username: String,
-    password: String,
-    country: String,
-    silenced_until: u64,
-    banned: bool,
-    banned_reason: String,
-    privileges: i32,
-    joined_at: sqlx::types::time::PrimitiveDateTime
+    pub user_id: u64,
+    pub username: String,
+    pub password: String,
+    pub country: String,
+    pub silenced_until: u64,
+    pub banned: bool,
+    pub banned_reason: String,
+    pub privileges: i32,
+    pub joined_at: sqlx::types::time::PrimitiveDateTime
 }
 
 impl User {
