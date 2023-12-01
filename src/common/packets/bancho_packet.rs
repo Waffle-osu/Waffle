@@ -1,3 +1,5 @@
+use std::sync::mpsc::Sender;
+
 use binary_rw::{BinaryReader, BinaryWriter};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -106,9 +108,9 @@ impl From<u16> for BanchoRequestType {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq)]
 pub struct BanchoPacketHeader {
-    packet_id: BanchoRequestType,
-    compressed: bool,
-    size: i32,
+    pub packet_id: BanchoRequestType,
+    pub compressed: bool,
+    pub size: i32,
 }
 
 impl BanchoRequestType {
@@ -117,7 +119,7 @@ impl BanchoRequestType {
     }
 }
 
-trait BanchoSerializable {
+pub trait BanchoSerializable {
     fn read(&mut self, reader: &mut BinaryReader);
     fn write(&self, writer: &mut BinaryWriter);
 }
@@ -137,5 +139,16 @@ impl BanchoSerializable for BanchoPacketHeader {
         writer.write_u16(packet_id).expect(msg);
         writer.write_bool(self.compressed).expect(msg);
         writer.write_i32(self.size).expect(msg);
+    }
+}
+
+pub struct BanchoPacket {
+    header: BanchoPacketHeader,
+    data: Vec<u8>
+}
+
+impl BanchoPacket {
+    fn from(packet_id: BanchoRequestType, serializable: &dyn BanchoSerializable) {
+
     }
 }

@@ -1,2 +1,3 @@
-pub mod bancho_packet;
+
 pub mod db;
+pub mod packets;

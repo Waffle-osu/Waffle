@@ -1,11 +1,9 @@
 use std::sync::Arc;
 
-use clients::waffle_client::WaffleClient;
-use osu::osub1816;
-use sqlx::{MySqlPool, mysql::MySqlPoolOptions};
-use tokio::net::TcpListener;
+use clients::{waffle_client::WaffleClient, ClientManager};
 use osu_listener::bancho_listener;
 use irc_listener::irc_listener;
+use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
 
 mod osu_listener;
 mod irc_listener;
@@ -41,13 +39,6 @@ async fn main() {
 
     let bancho_pool = arc_pool.clone();
     let irc_pool = arc_pool.clone();
-
-    let client = osub1816 {};
-    let as_arc = Arc::new(client);
-
-    clients::client_manager::register_client(
-        Arc::new(WaffleClient::Osu(as_arc))
-    );
 
     tokio::spawn(async move {
         bancho_listener(bancho_pool).await

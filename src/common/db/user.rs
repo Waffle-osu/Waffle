@@ -1,3 +1,5 @@
+use std::{sync::Arc, ops::Deref};
+
 use sqlx::MySqlPool;
 
 #[derive(sqlx::FromRow)]
@@ -14,11 +16,11 @@ pub struct User {
 }
 
 impl User {
-    async fn from_id(pool: &MySqlPool, id: u64) -> Option<User> {
+    pub async fn from_id(pool: Arc<MySqlPool>, id: u64) -> Option<User> {
         let row = 
             sqlx::query_as("SELECT * FROM osu_users WHERE user_id = $1")
                 .bind(id)
-                .fetch_one(pool)
+                .fetch_one(pool.deref())
                 .await;
 
         match row {
@@ -27,11 +29,11 @@ impl User {
         };
     }
 
-    async fn from_username(pool: &MySqlPool, username: String) -> Option<User> {
+    pub async fn from_username(pool: Arc<MySqlPool>, username: String) -> Option<User> {
         let row = 
             sqlx::query_as("SELECT * FROM osu_users WHERE username = $1")
                 .bind(username)
-                .fetch_one(pool)
+                .fetch_one(pool.deref())
                 .await;
 
         match row {
