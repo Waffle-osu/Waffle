@@ -31,5 +31,23 @@ impl ClientManager {
                 manager.clients_by_name.insert(user.username, client.clone());
             }
         }
-    }    
+    }   
+
+    pub fn get_client_by_id(user_id: u64) -> Option<Arc<WaffleClient>> {
+        let what = manager.clients_by_id.get(&user_id);
+
+        match what {
+            None => return None,
+            Some(x) => return Some(x.value().clone())
+        }
+    } 
+
+    pub fn get_client_by_name(username: String) -> Option<Arc<WaffleClient>> {
+        let what = manager.clients_by_name.get(&username);
+
+        match what {
+            None => return None,
+            Some(x) => return Some(x.value().clone())
+        }
+    } 
 }

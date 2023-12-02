@@ -45,7 +45,8 @@ impl BanchoInt {
         BanchoInt::send(packet_id, self.number)
     }
 
-    pub async fn self_send_queue(&self, queue: Sender<Vec<u8>>, packet_id: BanchoRequestType) {
-        let _ = BanchoInt::send_queue(&queue, packet_id, self.number);
+    pub async fn self_send_queue(&self, queue: &Sender<Vec<u8>>, packet_id: BanchoRequestType) {
+        let _ = BanchoInt::send_queue(queue, packet_id, self.number);
     }
 }
+

@@ -1,5 +1,11 @@
+use std::sync::Arc;
+
 use chrono::{DateTime, Utc};
-use tokio::net::TcpStream;
+use common::packets::BanchoPacket;
+use dashmap::DashMap;
+use tokio::{net::TcpStream, sync::mpsc::{Sender, Receiver}};
+
+use crate::clients::{self, waffle_client::WaffleClient};
 
 pub struct ClientInformation {
     pub version: i32,
@@ -21,10 +27,11 @@ pub struct OsuClient {
     // joinedChannels: 
     away_message: String,
 
-    // spectators:
-    // spectatingClient:
+    spectators: DashMap<u64, Arc<WaffleClient>>,
+    spectatingClient: Arc<WaffleClient>,
 
-    // packetQueue: 
+    packetQueueSend: Arc<Sender<BanchoPacket>>, 
+    packetQueueRecv: Arc<Receiver<BanchoPacket>>
 }
 
 impl OsuClient {
