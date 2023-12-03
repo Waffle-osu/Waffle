@@ -1,7 +1,7 @@
 use binary_rw::{MemoryStream, BinaryWriter, Endian};
 use tokio::sync::mpsc::Sender;
 
-use super::{BanchoSerializable, BanchoRequestType, BanchoPacketHeader};
+use super::{BanchoSerializable, BanchoRequestType, BanchoPacketHeader, BanchoPacket};
 
 pub fn write_bancho_string(string: &String) -> Vec<u8> {
     let mut output = Vec::new();
@@ -94,36 +94,24 @@ impl BanchoSerializable for BanchoString {
 }
 
 impl BanchoString {
-    pub fn send(packet_id: BanchoRequestType, string: &String) -> Vec<u8> {
-        let mut buffer = MemoryStream::new();
-        let mut writer = BinaryWriter::new(&mut buffer, Endian::Little);
-
-        let bancho_string = write_bancho_string(string);
-
-        let header = BanchoPacketHeader {
-            packet_id: packet_id,
-            compressed: false,
-            size: bancho_string.len() as i32
-        };
-
-        header.write(&mut writer);
-
-        let _ = writer.write_bytes(bancho_string);
-
-        return buffer.into();
+    pub fn send(packet_id: BanchoRequestType, string: &String) -> BanchoPacket {
+        return BanchoPacket::from_data(
+            packet_id, 
+            write_bancho_string(string)
+        );
     }
 
-    pub async fn send_queue(queue: &Sender<Vec<u8>>, packet_id: BanchoRequestType, string: &String) {
+    pub async fn send_queue(queue: &Sender<BanchoPacket>, packet_id: BanchoRequestType, string: &String) {
         let _ = queue.send(
             BanchoString::send(packet_id, string)
         ).await;
     }
 
-    pub async fn self_send(&self, packet_id: BanchoRequestType) -> Vec<u8> {
+    pub async fn self_send(&self, packet_id: BanchoRequestType) -> BanchoPacket {
         BanchoString::send(packet_id, &self.string)
     }
 
-    pub async fn self_send_queue(&self, queue: &Sender<Vec<u8>>, packet_id: BanchoRequestType) {
+    pub async fn self_send_queue(&self, queue: &Sender<BanchoPacket>, packet_id: BanchoRequestType) {
         let _ = BanchoString::send_queue(queue, packet_id, &self.string);
     }
 }

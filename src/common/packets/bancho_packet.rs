@@ -1,6 +1,5 @@
-use std::sync::mpsc::Sender;
-
-use binary_rw::{BinaryReader, BinaryWriter};
+use binary_rw::{BinaryReader, BinaryWriter, MemoryStream, Endian};
+use tokio::sync::mpsc::Sender;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum InternalRequestType {
@@ -148,7 +147,47 @@ pub struct BanchoPacket {
 }
 
 impl BanchoPacket {
-    fn from(packet_id: BanchoRequestType, serializable: &dyn BanchoSerializable) {
+    pub fn from_serializable(packet_id: BanchoRequestType, serializable: &dyn BanchoSerializable) -> BanchoPacket {
+        let mut memory_stream = MemoryStream::new();
+        let mut binary_writer = BinaryWriter::new(&mut memory_stream, Endian::Little);
 
+        serializable.write(&mut binary_writer);
+
+        let packet_data: Vec<u8> = memory_stream.into();
+
+        return BanchoPacket { 
+            header: BanchoPacketHeader { 
+                packet_id: packet_id, 
+                compressed: false, 
+                size: packet_data.len() as i32
+            }, 
+            data: packet_data
+        }
+    }
+
+    pub fn from_data(packet_id: BanchoRequestType, data: Vec<u8>) -> BanchoPacket {
+        return BanchoPacket { 
+            header: BanchoPacketHeader { 
+                packet_id: packet_id, 
+                compressed: false, 
+                size: data.len() as i32 
+            }, 
+            data: data 
+        }
+    }
+
+    pub fn send(&self) -> Vec<u8> {
+        let mut memory_stream = MemoryStream::new();
+        let mut binary_writer = BinaryWriter::new(&mut memory_stream, Endian::Little);
+
+        self.header.write(&mut binary_writer);
+
+        let _ = binary_writer.write_bytes(&self.data);
+
+        return memory_stream.into()
+    }
+
+    pub async fn send_queue(&self, queue: &Sender<Vec<u8>>) {
+        let _  = queue.send(self.send()).await;
     }
 }
