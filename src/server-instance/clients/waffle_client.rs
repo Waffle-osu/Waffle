@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
-use common::db;
-
 use crate::{osu, irc};
 
-pub trait WaffleClient: Send + Sync  {
-    fn get_user(&self) -> db::User;
+pub enum WaffleClient {
+    Osu(Arc<dyn osu::OsuClient>),
+    Irc(irc::IrcClient),
 }

@@ -1,12 +1,12 @@
-use std::{sync::Arc, net::SocketAddr, ops::Deref};
+use std::{sync::Arc, net::SocketAddr};
 
 use chrono::Utc;
 use common::{packets::{derived::{BanchoLoginReply, BanchoAnnounce, BanchoFriendsList}, BanchoPacket}, db};
 use dashmap::DashMap;
 use sqlx::MySqlPool;
-use tokio::{net::TcpStream, sync::mpsc::{self, Receiver, Sender}, io::{BufReader, AsyncBufReadExt, AsyncWriteExt}};
+use tokio::{net::TcpStream, sync::mpsc::{self, Receiver, Sender}, io::{BufReader, AsyncBufReadExt}};
 
-use crate::{clients::{ClientManager, waffle_client::WaffleClient}, osu::OsuClient};
+use crate::clients::{ClientManager, waffle_client::WaffleClient};
 
 use super::client::{ClientInformation, OsuClient2011};
 
@@ -27,8 +27,6 @@ async fn send_wrong_version(connection: TcpStream, queue_send: &mut Sender<Banch
 
 pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, address: SocketAddr) {
     let login_start = Utc::now();
-    // let connection_arc = Arc::new(connection);
-
     
     let (mut tx, mut rx) = mpsc::channel::<BanchoPacket>(128);
     
@@ -64,7 +62,7 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
 
     let security_parts_split: Vec<&str> = client_info_split[3].split(':').collect();
 
-    if security_parts_split.len() != 2 {
+    if security_parts_split.len() != 3 {
         send_wrong_version(recovered_conn, &mut tx, &mut rx).await;
         return;
     }
@@ -72,8 +70,16 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
     let client_hash = security_parts_split[0];
     let mac_address = security_parts_split[1];
 
+    let comparable_version_string = 
+        client_info_split[0]
+            .trim_start_matches('b')
+            .trim_end_matches(".peppy")
+            .trim_end_matches(".test")
+            .trim_end_matches(".ctbtest")
+            .trim_end_matches(".arcade");
+
     //Parse version as int, so it's easier to compare
-    let version_parse = client_info_split[0].trim_start_matches('b').parse::<i32>();
+    let version_parse = comparable_version_string.parse::<i32>();
 
     if version_parse.is_err() {
         send_wrong_version(recovered_conn, &mut tx, &mut rx).await;
@@ -83,7 +89,7 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
     let parsed_version = version_parse.unwrap();
 
     //Older than b1816 not supprted over regular bancho
-    if parsed_version < 1816 {
+    if parsed_version < 1815 {
         send_wrong_version(recovered_conn, &mut tx, &mut rx).await;
         return;
     }
@@ -175,14 +181,14 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
         last_ping: Utc::now(),
         away_message: String::from(""),
         spectators: DashMap::new(),
-        spectatingClient: None,
-        packetQueueSend: Arc::new(tx),
-        packetQueueRecv: Arc::new(rx),
+        spectating_client: None,
+        packet_queue_send: Arc::new(tx),
+        packet_queue_recv: Arc::new(rx),
     };
 
     let as_arc = Arc::new(client);
 
     ClientManager::register_client(
-        as_arc
+        Arc::new(WaffleClient::Osu(as_arc))
     );
 }

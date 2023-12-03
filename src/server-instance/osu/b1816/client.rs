@@ -1,11 +1,11 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 
 use chrono::{DateTime, Utc};
 use common::packets::BanchoPacket;
 use dashmap::DashMap;
 use tokio::{net::TcpStream, sync::mpsc::{Sender, Receiver}};
 
-use crate::{clients::{self, waffle_client::WaffleClient}, osu::OsuClient};
+use crate::{clients::{waffle_client::WaffleClient}, osu::OsuClient};
 
 pub struct ClientInformation {
     pub version: i32,
@@ -27,23 +27,19 @@ pub struct OsuClient2011 {
     // joinedChannels: 
     pub away_message: String,
 
-    pub spectators: DashMap<u64, Arc<dyn WaffleClient>>,
-    pub spectatingClient: Option<Arc<dyn WaffleClient>>,
+    pub spectators: DashMap<u64, WaffleClient>,
+    pub spectating_client: Option<WaffleClient>,
     
-    pub packetQueueSend: Arc<Sender<BanchoPacket>>, 
-    pub packetQueueRecv: Arc<Receiver<BanchoPacket>>
+    pub packet_queue_send: Arc<Sender<BanchoPacket>>, 
+    pub packet_queue_recv: Arc<Receiver<BanchoPacket>>
 }
 
-impl WaffleClient for OsuClient2011 {
+impl OsuClient for OsuClient2011 {
     fn get_user(&self) -> common::db::User {
         todo!()
     }
 }
 
-
-
 impl OsuClient2011 {
-    // pub fn as_waffle_client(&self) -> Box<dyn WaffleClient + Send + Sync> {
-    //     Box::new(self)
-    // }
+
 }

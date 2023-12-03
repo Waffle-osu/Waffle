@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use clients::{waffle_client::WaffleClient, ClientManager};
 use osu_listener::bancho_listener;
 use irc_listener::irc_listener;
 use sqlx::{mysql::MySqlPoolOptions, MySqlPool};

@@ -1,7 +1,6 @@
-use binary_rw::{MemoryStream, BinaryWriter, Endian};
 use tokio::sync::mpsc::Sender;
 
-use super::{BanchoSerializable, BanchoRequestType, BanchoPacketHeader, BanchoPacket};
+use super::{BanchoSerializable, BanchoRequestType, BanchoPacket};
 
 pub fn write_bancho_string(string: &String) -> Vec<u8> {
     let mut output = Vec::new();
@@ -12,23 +11,23 @@ pub fn write_bancho_string(string: &String) -> Vec<u8> {
 
     let mut length = 0;
     let mut i = string.len();
-    let mut ulebBytes: Vec<u8> = Vec::new();
+    let mut uleb_bytes: Vec<u8> = Vec::new();
 
     while i > 0 {
-        ulebBytes.push(0);
-        ulebBytes[length] = (i & 0x7F) as u8;
+        uleb_bytes.push(0);
+        uleb_bytes[length] = (i & 0x7F) as u8;
 
         i >>= 7;
 
         if i != 0 {
-            ulebBytes[length] |= 0x80;
+            uleb_bytes[length] |= 0x80;
         }
 
         length += 1;
     }
 
     output.push(11);
-    output.append(&mut ulebBytes);
+    output.append(&mut uleb_bytes);
     
     let mut str_to_vec = Vec::from(string.as_bytes());
 
@@ -56,7 +55,6 @@ impl BanchoSerializable for BanchoString {
         }
 
         let mut shift: u32 = 0;
-        let mut last_byte: u8 = 0;
         let mut total: u32 = 0;
 
         loop {
@@ -66,7 +64,7 @@ impl BanchoSerializable for BanchoString {
                 return;
             }
 
-            last_byte = read_result.unwrap();
+            let last_byte = read_result.unwrap();
 
             total |= ((last_byte & 0x7F) as u32) << shift;
 

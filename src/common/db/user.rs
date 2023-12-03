@@ -2,7 +2,7 @@ use std::{sync::Arc, ops::Deref};
 
 use sqlx::MySqlPool;
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Clone)]
 pub struct User {
     pub user_id: u64,
     pub username: String,

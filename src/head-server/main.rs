@@ -1,4 +1,4 @@
-use tokio::{io::AsyncReadExt, net::TcpListener};
+use tokio::net::TcpListener;
 
 use crate::server_handling::handle_socket;
 
@@ -30,7 +30,7 @@ async fn main() {
         .expect("Failed to create Head Server...");
 
     loop {
-        let (mut socket, _) = listener
+        let (socket, _) = listener
             .accept()
             .await
             .expect("Accepting TCP Connection failed");

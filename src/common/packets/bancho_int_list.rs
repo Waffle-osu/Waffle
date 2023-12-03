@@ -1,6 +1,6 @@
 use tokio::sync::mpsc::Sender;
 
-use super::{BanchoSerializable, BanchoRequestType, BanchoPacket, BanchoInt};
+use super::{BanchoSerializable, BanchoRequestType, BanchoPacket};
 
 pub struct BanchoIntList {
     pub length: i16,
