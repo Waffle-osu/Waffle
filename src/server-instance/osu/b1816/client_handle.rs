@@ -1,15 +1,15 @@
-use std::{sync::Arc, ops::Deref};
+use std::{sync::Arc, ops::Deref, time::Duration};
 
 use binary_rw::{MemoryStream, BinaryReader, Endian};
 use common::packets::{BanchoPacketHeader, BanchoPacket};
-use tokio::io::{AsyncWriteExt, AsyncReadExt};
+use tokio::{io::{AsyncWriteExt, AsyncReadExt}, time::sleep};
 
 use super::client::OsuClient2011;
 
 impl OsuClient2011 {
     pub async fn maintain_client(client: Arc<OsuClient2011>) {
         while client.continue_running {
-
+            sleep(Duration::from_millis(1000)).await;
         }
     }
 
@@ -21,9 +21,8 @@ impl OsuClient2011 {
 
             let read_result = client.connection.try_read(&mut buffer);
 
+            //There do come useless errors which shouldnt be accounted for
             if read_result.is_err() {
-                println!("{}", read_result.err().unwrap().to_string());
-                //TODO: Error handling
                 continue;
             }
 
@@ -42,7 +41,6 @@ impl OsuClient2011 {
 
                 println!("Received Packet {:?} size {}", packet.header.packet_id, packet.header.size);
             }
-
         }
     }
 
@@ -69,6 +67,8 @@ impl OsuClient2011 {
                     }
                 }
             }
+
+            sleep(Duration::from_millis(1)).await;
         }
     }
 }

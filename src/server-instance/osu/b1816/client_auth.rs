@@ -1,7 +1,7 @@
-use std::{sync::Arc, net::SocketAddr};
+use std::{sync::Arc, net::SocketAddr, ops::Sub};
 
 use chrono::Utc;
-use common::{packets::{derived::{BanchoLoginReply, BanchoAnnounce, BanchoFriendsList}, BanchoPacket}, db};
+use common::{packets::{derived::{BanchoLoginReply, BanchoAnnounce, BanchoFriendsList, BanchoProtocolNegotiation, BanchoLoginPermissions}, BanchoPacket}, db};
 use dashmap::DashMap;
 use sqlx::MySqlPool;
 use tokio::{net::TcpStream, sync::{mpsc::{self, Receiver, Sender}, Mutex}, io::{BufReader, AsyncBufReadExt}};
@@ -144,7 +144,11 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
 
     let user = user_query.unwrap();
 
+    let verify_begin = Utc::now();
+
     let password_valid = bcrypt::verify(password, user.password.as_str());
+
+    let verify_end = Utc::now();
 
     //I hope this never happens? why would bcrypt fail...
     if password_valid.is_err() {
@@ -189,6 +193,17 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
     
     BanchoFriendsList::send(&mut tx, to_i32_list).await;
     BanchoAnnounce::send(&mut tx, String::from("Welcome to Waffle!")).await;
+    BanchoProtocolNegotiation::send(&mut tx, 7).await;
+    BanchoLoginPermissions::send(&mut tx, user.privileges).await;
+
+        //TODO: protocol negotiation
+    //TODO: permissions
+    //TODO: user presence
+    //TODO: osu update
+    //TODO: other users presence
+    //TODO: other users osu update
+    //TODO: channel available
+    //TODO: channel autojoin
 
     let client = OsuClient2011 {
         connection: recovered_conn,
@@ -214,17 +229,12 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
     ClientManager::register_client(
         Arc::new(WaffleClient::Osu(as_arc.clone()))
     );
-    
-    //TODO: protocol negotiation
-    //TODO: permissions
-    //TODO: user presence
-    //TODO: osu update
-    //TODO: other users presence
-    //TODO: other users osu update
-    //TODO: channel available
-    //TODO: channel autojoin
 
     tokio::spawn(OsuClient2011::maintain_client(as_arc.clone()));
     tokio::spawn(OsuClient2011::handle_incoming(as_arc.clone()));
     tokio::spawn(OsuClient2011::send_outgoing(as_arc.clone()));
+
+    let time = Utc::now().sub(login_start).num_milliseconds();
+
+    println!("Login for {} took {}ms; bcrypt took {}ms", as_arc.clone().user.username, time, verify_end.sub(verify_begin).num_milliseconds());
 }
