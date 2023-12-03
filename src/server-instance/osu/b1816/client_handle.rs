@@ -1,7 +1,7 @@
 use std::{sync::Arc, ops::Deref, time::Duration};
 
 use binary_rw::{MemoryStream, BinaryReader, Endian};
-use common::packets::{BanchoPacketHeader, BanchoPacket};
+use common::packets::{BanchoPacketHeader, BanchoPacket, derived::BanchoPing};
 use tokio::{io::{AsyncWriteExt, AsyncReadExt}, time::sleep};
 
 use super::client::OsuClient2011;
@@ -9,7 +9,9 @@ use super::client::OsuClient2011;
 impl OsuClient2011 {
     pub async fn maintain_client(client: Arc<OsuClient2011>) {
         while client.continue_running {
-            sleep(Duration::from_millis(1000)).await;
+            sleep(Duration::from_millis(15000)).await;
+
+            BanchoPing::send(&client.packet_queue_send.lock().await.to_owned()).await;
         }
     }
 
@@ -56,6 +58,8 @@ impl OsuClient2011 {
             match packet {
                 None => {},
                 Some(packet) => {
+                    println!("Writing Packet {:?} with size {}", packet.header.packet_id, packet.header.size);
+
                     let result = 
                         client.connection.try_write(
                             packet.send()

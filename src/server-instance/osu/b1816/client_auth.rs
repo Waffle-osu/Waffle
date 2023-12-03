@@ -1,12 +1,12 @@
 use std::{sync::Arc, net::SocketAddr, ops::Sub};
 
 use chrono::Utc;
-use common::{packets::{derived::{BanchoLoginReply, BanchoAnnounce, BanchoFriendsList, BanchoProtocolNegotiation, BanchoLoginPermissions}, BanchoPacket}, db};
+use common::{packets::{derived::{BanchoLoginReply, BanchoAnnounce, BanchoFriendsList, BanchoProtocolNegotiation, BanchoLoginPermissions, BanchoUserPresence, BanchoStatsUpdate}, BanchoPacket, BanchoPresence, BanchoUserStats, BanchoStatusUpdate}, db};
 use dashmap::DashMap;
 use sqlx::MySqlPool;
 use tokio::{net::TcpStream, sync::{mpsc::{self, Receiver, Sender}, Mutex}, io::{BufReader, AsyncBufReadExt}};
 
-use crate::clients::{ClientManager, waffle_client::WaffleClient};
+use crate::{clients::{ClientManager, waffle_client::WaffleClient}, osu};
 
 use super::client::{ClientInformation, OsuClient2011};
 
@@ -190,13 +190,45 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
 
     let friends = db::Friends::get_users_friends(pool.clone(), user.user_id).await;
     let to_i32_list: Vec<i32> = friends.iter().map(|e| e.user_2 as i32).collect();
+
+    let presence = BanchoPresence {
+        user_id: user.user_id as i32,
+        avatar_extension: 1,
+        username: Some(user.username.clone()),
+        timezone: client_info.timezone as u8,
+        country: 0,
+        city: None,
+        permissions: 0,
+        longitude: 0.0f32,
+        latitude: 0.0f32,
+        rank: 1
+    };
+
+    let osu_stats = BanchoUserStats {
+        user_id: user.user_id as i32,
+        status: BanchoStatusUpdate { 
+            status: 0, 
+            status_text: Some(String::from("Waffle!!!!")), 
+            beatmap_checksum: Some(String::from("kek")), 
+            current_mods: 0, 
+            play_mode: 0, 
+            beatmap_id: 0 
+        },
+        ranked_score: 0,
+        accuracy: 0.0f32,
+        playcount: 0,
+        total_score: 0,
+        rank: 1
+    };
     
     BanchoFriendsList::send(&mut tx, to_i32_list).await;
     BanchoAnnounce::send(&mut tx, String::from("Welcome to Waffle!")).await;
     BanchoProtocolNegotiation::send(&mut tx, 7).await;
     BanchoLoginPermissions::send(&mut tx, user.privileges).await;
+    BanchoUserPresence::send(&mut tx, &presence).await;
+    BanchoStatsUpdate::send(&mut tx, &osu_stats).await;
 
-        //TODO: protocol negotiation
+    //TODO: protocol negotiation
     //TODO: permissions
     //TODO: user presence
     //TODO: osu update
