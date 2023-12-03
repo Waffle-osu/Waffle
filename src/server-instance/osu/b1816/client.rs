@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
 use common::packets::BanchoPacket;
@@ -40,8 +40,10 @@ impl WaffleClient for OsuClient2011 {
     }
 }
 
+
+
 impl OsuClient2011 {
-    pub fn as_waffle_client(&self) -> Box<dyn WaffleClient + Send + Sync> {
-        Box::new(self)
-    }
+    // pub fn as_waffle_client(&self) -> Box<dyn WaffleClient + Send + Sync> {
+    //     Box::new(self)
+    // }
 }

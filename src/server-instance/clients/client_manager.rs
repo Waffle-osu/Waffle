@@ -21,8 +21,8 @@ impl ClientManager {
     pub fn register_client(client: Arc<dyn WaffleClient + Send + Sync>) {
         let user = client.get_user();
 
-        manager.clients_by_id.insert(user.user_id, client);
-        manager.clients_by_name.insert(user.username, client);
+        manager.clients_by_id.insert(user.user_id, client.clone());
+        manager.clients_by_name.insert(user.username, client.clone());
     }   
 
     pub fn get_client_by_id(user_id: u64) -> Option<Arc<dyn WaffleClient + Send + Sync>> {
