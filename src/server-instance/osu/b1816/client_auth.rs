@@ -10,25 +10,22 @@ use crate::{clients::{ClientManager, waffle_client::WaffleClient}, osu::OsuClien
 
 use super::client::{ClientInformation, OsuClient2011};
 
-async fn send_and_close(connection: &mut TcpStream, queue: &mut Receiver<BanchoPacket>) {
+async fn send_and_close(connection: TcpStream, queue: &mut Receiver<BanchoPacket>) {
     while let Some(packet) = queue.recv().await {
         let buffer = packet.send();
         let slice = buffer.as_slice();
 
-        connection.write(slice).await.expect("Failed to write packets!");
+        connection.try_write(slice).expect("Failed to write packets!");
     }
-
-    connection.flush().await.expect("Failed to flush packets");
-    connection.shutdown().await.expect("Shutdown of the stream failed!");
 }
 
-async fn send_wrong_version(connection: &mut TcpStream, queue_send: &mut Sender<BanchoPacket>, queue_receive: &mut Receiver<BanchoPacket>) {
+async fn send_wrong_version(connection: TcpStream, queue_send: &mut Sender<BanchoPacket>, queue_receive: &mut Receiver<BanchoPacket>) {
     BanchoLoginReply::send_wrong_version(&queue_send).await;
         
     send_and_close(connection, queue_receive).await;
 }
 
-pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: &mut TcpStream, address: SocketAddr) {
+pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, address: SocketAddr) {
     let login_start = Utc::now();
     let connection_arc = Arc::new(connection);
 
@@ -170,6 +167,7 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: &mut TcpStream,
     BanchoFriendsList::send(&mut tx, to_i32_list).await;
 
     let client = OsuClient2011 {
+        connection: recovered_conn,
         continue_running: true,
         logon_time: Utc::now(),
         last_receive: Utc::now(),
@@ -181,9 +179,9 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: &mut TcpStream,
         packetQueueRecv: Arc::new(rx),
     };
 
-    let as_arc = Arc::new(client.to_osu_client());
+    let as_arc = Arc::new(&client as &dyn WaffleClient);
 
     ClientManager::register_client(
-        Arc::new(WaffleClient::Osu(as_arc))
+        as_arc
     );
 }

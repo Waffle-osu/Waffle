@@ -4,7 +4,6 @@ use common::db;
 
 use crate::{osu, irc};
 
-pub enum WaffleClient {
-    Osu(Arc<dyn osu::OsuClient + Send + Sync>),
-    Irc(irc::IrcClient)
+pub trait WaffleClient {
+    fn get_user(&self) -> db::User;
 }

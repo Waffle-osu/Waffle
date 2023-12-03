@@ -9,8 +9,8 @@ use crate::osu;
 use super::waffle_client::WaffleClient;
 
 pub struct ClientManager {
-    clients_by_id: DashMap<u64, Arc<WaffleClient>>,
-    clients_by_name: DashMap<String, Arc<WaffleClient>>
+    clients_by_id: DashMap<u64, Arc<dyn WaffleClient + Send + Sync>>,
+    clients_by_name: DashMap<String, Arc<dyn WaffleClient + Send + Sync>>
 }
 
 lazy_static! {
@@ -18,22 +18,14 @@ lazy_static! {
 }
 
 impl ClientManager {
-    pub fn register_client(client: Arc<WaffleClient>) {
-        match *client {
-            WaffleClient::Irc(ref irc_client) => {
-                manager.clients_by_id.insert(irc_client.user.user_id, client.clone());
-                manager.clients_by_name.insert(irc_client.user.username.clone(), client.clone());
-            },
-            WaffleClient::Osu(ref osu_client) => {
-                let user = osu_client.get_user();
-    
-                manager.clients_by_id.insert(user.user_id, client.clone());
-                manager.clients_by_name.insert(user.username, client.clone());
-            }
-        }
+    pub fn register_client(client: Arc<dyn WaffleClient + Send + Sync>) {
+        let user = client.get_user();
+
+        manager.clients_by_id.insert(user.user_id, client);
+        manager.clients_by_name.insert(user.username, client);
     }   
 
-    pub fn get_client_by_id(user_id: u64) -> Option<Arc<WaffleClient>> {
+    pub fn get_client_by_id(user_id: u64) -> Option<Arc<dyn WaffleClient + Send + Sync>> {
         let what = manager.clients_by_id.get(&user_id);
 
         match what {
@@ -42,7 +34,7 @@ impl ClientManager {
         }
     } 
 
-    pub fn get_client_by_name(username: String) -> Option<Arc<WaffleClient>> {
+    pub fn get_client_by_name(username: String) -> Option<Arc<dyn WaffleClient + Send + Sync>> {
         let what = manager.clients_by_name.get(&username);
 
         match what {

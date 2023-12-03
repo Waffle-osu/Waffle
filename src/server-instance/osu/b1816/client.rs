@@ -27,21 +27,21 @@ pub struct OsuClient2011 {
     // joinedChannels: 
     pub away_message: String,
 
-    pub spectators: DashMap<u64, Arc<WaffleClient>>,
-    pub spectatingClient: Option<Arc<WaffleClient>>,
+    pub spectators: DashMap<u64, Arc<dyn WaffleClient>>,
+    pub spectatingClient: Option<Arc<dyn WaffleClient>>,
     
     pub packetQueueSend: Arc<Sender<BanchoPacket>>, 
     pub packetQueueRecv: Arc<Receiver<BanchoPacket>>
 }
 
-impl OsuClient for OsuClient2011 {
+impl WaffleClient for OsuClient2011 {
     fn get_user(&self) -> common::db::User {
         todo!()
     }
 }
 
 impl OsuClient2011 {
-    pub fn to_osu_client(&self) -> &dyn OsuClient {
-        self
+    pub fn as_waffle_client(&self) -> Box<dyn WaffleClient + Send + Sync> {
+        Box::new(self)
     }
 }
