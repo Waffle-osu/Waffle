@@ -11,14 +11,18 @@ pub struct Friends {
 impl Friends {
     pub async fn get_users_friends(pool: Arc<MySqlPool>, user_id: u64) -> Vec<Friends> {
         let rows = 
-            sqlx::query_as("SELECT * FROM osu_friends WHERE user_1 = $1")
+            sqlx::query_as("SELECT * FROM osu_friends WHERE user_1 = ?")
                 .bind(user_id)
                 .fetch_all(pool.deref())
                 .await;
 
         match rows {
             Ok(friends) => return friends,
-            Err(_) => return Vec::new(),
+            Err(err) => {
+                println!("{}", err.to_string());
+                
+                return Vec::new();
+            },
         }
     }
 }

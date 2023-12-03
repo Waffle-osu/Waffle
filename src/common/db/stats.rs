@@ -5,7 +5,7 @@ use sqlx::MySqlPool;
 #[derive(sqlx::FromRow)]
 pub struct Stats {
     pub user_id: u64,
-    pub mode: u8,
+    pub mode: i8,
     pub ranked_score: u64,
     pub total_score: u64,
     pub user_level: f64,
@@ -32,7 +32,7 @@ pub struct Stats {
 impl Stats {
     pub async fn from_id(pool: Arc<MySqlPool>, user_id: u64, mode: u8) -> Option<Stats> {
         let row = 
-            sqlx::query_as("SELECT * FROM osu_stats WHERE user_id = $1 AND mode = $2")
+            sqlx::query_as("SELECT * FROM osu_stats WHERE user_id = ? AND mode = ?")
                 .bind(user_id)
                 .bind(mode)
                 .fetch_one(pool.deref())
@@ -40,7 +40,11 @@ impl Stats {
         
         match row {
             Ok(stat) => return Some(stat),
-            Err(_) => return None,
+            Err(err) => {
+                println!("{}", err.to_string());
+                
+                return None;
+            },
         };
     }
 }

@@ -142,8 +142,8 @@ impl BanchoSerializable for BanchoPacketHeader {
 }
 
 pub struct BanchoPacket {
-    header: BanchoPacketHeader,
-    data: Vec<u8>
+    pub header: BanchoPacketHeader,
+    pub data: Vec<u8>
 }
 
 impl BanchoPacket {
@@ -189,5 +189,24 @@ impl BanchoPacket {
 
     pub async fn send_queue(&self, queue: &Sender<Vec<u8>>) {
         let _  = queue.send(self.send()).await;
+    }
+
+    pub fn read(reader: &mut BinaryReader) -> (BanchoPacket, usize) {
+        let packet_id = reader.read_u16().expect("Failed to read header!");
+        let compressed = reader.read_bool().expect("Failed to read header!");
+        let size = reader.read_i32().expect("Failed to read header!");
+
+        let data = reader.read_bytes(size as usize);
+
+        let packet = BanchoPacket {
+            header: BanchoPacketHeader { 
+                packet_id: BanchoRequestType::from(packet_id), 
+                compressed: compressed, 
+                size: size 
+            },
+            data: data.expect("Failed to read data!")
+        };
+
+        return (packet, (7 + size) as usize);
     }
 }

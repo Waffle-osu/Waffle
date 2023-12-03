@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use common::db;
 use osu_listener::bancho_listener;
 use irc_listener::irc_listener;
 use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
@@ -35,6 +36,9 @@ async fn main() {
         .expect("Failed to connect to the database");
 
     let arc_pool = Arc::new(pool);
+
+    let username = String::from("Furball");
+    let password = String::from("ssh");
 
     let bancho_pool = arc_pool.clone();
     let irc_pool = arc_pool.clone();

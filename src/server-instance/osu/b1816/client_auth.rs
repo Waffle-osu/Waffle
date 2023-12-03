@@ -4,7 +4,7 @@ use chrono::Utc;
 use common::{packets::{derived::{BanchoLoginReply, BanchoAnnounce, BanchoFriendsList}, BanchoPacket}, db};
 use dashmap::DashMap;
 use sqlx::MySqlPool;
-use tokio::{net::TcpStream, sync::mpsc::{self, Receiver, Sender}, io::{BufReader, AsyncBufReadExt}};
+use tokio::{net::TcpStream, sync::{mpsc::{self, Receiver, Sender}, Mutex}, io::{BufReader, AsyncBufReadExt}};
 
 use crate::clients::{ClientManager, waffle_client::WaffleClient};
 
@@ -31,6 +31,7 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
     let (mut tx, mut rx) = mpsc::channel::<BanchoPacket>(128);
     
     let _ = connection.set_nodelay(true);
+    let _ = connection.readable().await;
     
     let mut username = String::new();
     let mut password = String::new();
@@ -42,6 +43,21 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
     let username_err = line_reader.read_line(&mut username).await;
     let password_err = line_reader.read_line(&mut password).await;
     let client_info_err = line_reader.read_line(&mut client_info).await;
+
+    let truncate_rn = |str: &mut String| {
+        if str.ends_with('\n') {
+            str.pop();
+
+            if str.ends_with('\r') {
+                str.pop();
+            }
+        }
+    };
+
+    //Remove \r and \n
+    truncate_rn(&mut username);
+    truncate_rn(&mut password);
+    truncate_rn(&mut client_info);
 
     //Recover connection, as we moved `connection` into BufReader
     let recovered_conn = line_reader.into_inner();
@@ -172,6 +188,7 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
     let to_i32_list: Vec<i32> = friends.iter().map(|e| e.user_2 as i32).collect();
     
     BanchoFriendsList::send(&mut tx, to_i32_list).await;
+    BanchoAnnounce::send(&mut tx, String::from("Welcome to Waffle!")).await;
 
     let client = OsuClient2011 {
         connection: recovered_conn,
@@ -182,13 +199,32 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
         away_message: String::from(""),
         spectators: DashMap::new(),
         spectating_client: None,
-        packet_queue_send: Arc::new(tx),
-        packet_queue_recv: Arc::new(rx),
+        packet_queue_send: Mutex::new(tx),
+        packet_queue_recv: Mutex::new(rx),
+
+        user: user,
+        osu_stats: osu_stats_query.unwrap(),
+        taiko_stats: taiko_stats_query.unwrap(),
+        catch_stats: catch_stats_query.unwrap(),
+        mania_stats: mania_stats_query.unwrap(),
     };
 
     let as_arc = Arc::new(client);
 
     ClientManager::register_client(
-        Arc::new(WaffleClient::Osu(as_arc))
+        Arc::new(WaffleClient::Osu(as_arc.clone()))
     );
+    
+    //TODO: protocol negotiation
+    //TODO: permissions
+    //TODO: user presence
+    //TODO: osu update
+    //TODO: other users presence
+    //TODO: other users osu update
+    //TODO: channel available
+    //TODO: channel autojoin
+
+    tokio::spawn(OsuClient2011::maintain_client(as_arc.clone()));
+    tokio::spawn(OsuClient2011::handle_incoming(as_arc.clone()));
+    tokio::spawn(OsuClient2011::send_outgoing(as_arc.clone()));
 }
