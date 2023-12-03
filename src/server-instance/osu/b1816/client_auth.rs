@@ -27,10 +27,11 @@ async fn send_wrong_version(connection: TcpStream, queue_send: &mut Sender<Banch
 
 pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, address: SocketAddr) {
     let login_start = Utc::now();
-    let connection_arc = Arc::new(connection);
+    // let connection_arc = Arc::new(connection);
 
+    
     let (mut tx, mut rx) = mpsc::channel::<BanchoPacket>(128);
-
+    
     let _ = connection.set_nodelay(true);
     
     let mut username = String::new();
@@ -179,7 +180,7 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: TcpStream, addr
         packetQueueRecv: Arc::new(rx),
     };
 
-    let as_arc = Arc::new(&client as &dyn WaffleClient);
+    let as_arc = Arc::new(client);
 
     ClientManager::register_client(
         as_arc
