@@ -5,7 +5,7 @@ use common::packets::BanchoPacket;
 use dashmap::DashMap;
 use tokio::{net::TcpStream, sync::mpsc::{Sender, Receiver}};
 
-use crate::clients::{self, waffle_client::WaffleClient};
+use crate::{clients::{self, waffle_client::WaffleClient}, osu::OsuClient};
 
 pub struct ClientInformation {
     pub version: i32,
@@ -15,25 +15,33 @@ pub struct ClientInformation {
     pub timezone: i32
 }
 
-pub struct OsuClient {
-    connection: TcpStream,
-    continue_running: bool,
+pub struct OsuClient2011 {
+    pub connection: TcpStream,
+    pub continue_running: bool,
 
-    logon_time: DateTime<Utc>,
+    pub logon_time: DateTime<Utc>,
 
-    last_receive: DateTime<Utc>,
-    last_ping: DateTime<Utc>,
+    pub last_receive: DateTime<Utc>,
+    pub last_ping: DateTime<Utc>,
 
     // joinedChannels: 
-    away_message: String,
+    pub away_message: String,
 
-    spectators: DashMap<u64, Arc<WaffleClient>>,
-    spectatingClient: Arc<WaffleClient>,
-
-    packetQueueSend: Arc<Sender<BanchoPacket>>, 
-    packetQueueRecv: Arc<Receiver<BanchoPacket>>
+    pub spectators: DashMap<u64, Arc<WaffleClient>>,
+    pub spectatingClient: Option<Arc<WaffleClient>>,
+    
+    pub packetQueueSend: Arc<Sender<BanchoPacket>>, 
+    pub packetQueueRecv: Arc<Receiver<BanchoPacket>>
 }
 
-impl OsuClient {
+impl OsuClient for OsuClient2011 {
+    fn get_user(&self) -> common::db::User {
+        todo!()
+    }
+}
 
+impl OsuClient2011 {
+    pub fn to_osu_client(&self) -> &dyn OsuClient {
+        self
+    }
 }

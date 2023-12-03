@@ -1,26 +1,28 @@
-use std::{sync::Arc, net::SocketAddr};
+use std::{sync::Arc, net::SocketAddr, ops::Deref};
 
 use chrono::Utc;
-use common::{packets::derived::{BanchoLoginReply, BanchoAnnounce}, db};
+use common::{packets::{derived::{BanchoLoginReply, BanchoAnnounce, BanchoFriendsList}, BanchoPacket}, db};
+use dashmap::DashMap;
 use sqlx::MySqlPool;
 use tokio::{net::TcpStream, sync::mpsc::{self, Receiver, Sender}, io::{BufReader, AsyncBufReadExt, AsyncWriteExt}};
 
-use crate::clients::ClientManager;
+use crate::{clients::{ClientManager, waffle_client::WaffleClient}, osu::OsuClient};
 
-use super::client::ClientInformation;
+use super::client::{ClientInformation, OsuClient2011};
 
-async fn send_and_close(connection: &mut TcpStream, queue: &mut Receiver<Vec<u8>>) {
-    while let Some(message) = queue.recv().await {
-        let buffer = message.as_slice();
+async fn send_and_close(connection: &mut TcpStream, queue: &mut Receiver<BanchoPacket>) {
+    while let Some(packet) = queue.recv().await {
+        let buffer = packet.send();
+        let slice = buffer.as_slice();
 
-        connection.write(buffer).await.expect("Failed to write packets!");
+        connection.write(slice).await.expect("Failed to write packets!");
     }
 
     connection.flush().await.expect("Failed to flush packets");
     connection.shutdown().await.expect("Shutdown of the stream failed!");
 }
 
-async fn send_wrong_version(connection: &mut TcpStream, queue_send: &mut Sender<Vec<u8>>, queue_receive: &mut Receiver<Vec<u8>>) {
+async fn send_wrong_version(connection: &mut TcpStream, queue_send: &mut Sender<BanchoPacket>, queue_receive: &mut Receiver<BanchoPacket>) {
     BanchoLoginReply::send_wrong_version(&queue_send).await;
         
     send_and_close(connection, queue_receive).await;
@@ -28,8 +30,9 @@ async fn send_wrong_version(connection: &mut TcpStream, queue_send: &mut Sender<
 
 pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: &mut TcpStream, address: SocketAddr) {
     let login_start = Utc::now();
+    let connection_arc = Arc::new(connection);
 
-    let (mut tx, mut rx) = mpsc::channel::<Vec<u8>>(128);
+    let (mut tx, mut rx) = mpsc::channel::<BanchoPacket>(128);
 
     let _ = connection.set_nodelay(true);
     
@@ -161,7 +164,26 @@ pub async fn handle_new_client(pool: Arc<MySqlPool>, connection: &mut TcpStream,
         return;
     }
 
-    //TODO: friends
-
+    let friends = db::Friends::get_users_friends(pool.clone(), user.user_id).await;
+    let to_i32_list: Vec<i32> = friends.iter().map(|e| e.user_2 as i32).collect();
     
+    BanchoFriendsList::send(&mut tx, to_i32_list).await;
+
+    let client = OsuClient2011 {
+        continue_running: true,
+        logon_time: Utc::now(),
+        last_receive: Utc::now(),
+        last_ping: Utc::now(),
+        away_message: String::from(""),
+        spectators: DashMap::new(),
+        spectatingClient: None,
+        packetQueueSend: Arc::new(tx),
+        packetQueueRecv: Arc::new(rx),
+    };
+
+    let as_arc = Arc::new(client.to_osu_client());
+
+    ClientManager::register_client(
+        Arc::new(WaffleClient::Osu(as_arc))
+    );
 }
