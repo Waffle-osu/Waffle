@@ -3,6 +3,7 @@ package irc_clients
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
+	"Waffle/bancho/clients"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/bancho/misc"
 	"Waffle/bancho/osu/base_packet_structures"
@@ -103,8 +104,33 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 			} else {
 				foundChannel, exists := client.joinedChannels[message.Params[0]]
 
+				//Reroute if it's for #multiplayer
+				if message.Params[0] == "#multiplayer" {
+					if client.currentMultiLobby != nil {
+						client.currentMultiLobby.MultiChannel.SendMessage(client, message.Trailing, message.Params[0])
+					}
+
+					if message.Trailing[0] == '!' {
+						go clients.WaffleBotInstance.WaffleBotHandleCommand(client, base_packet_structures.Message{
+							Sender:  client.Username,
+							Message: message.Trailing,
+							Target:  message.Params[0],
+						})
+					}
+
+					break
+				}
+
 				if exists {
 					foundChannel.SendMessage(client, message.Trailing, message.Params[0])
+
+					if message.Trailing[0] == '!' {
+						go clients.WaffleBotInstance.WaffleBotHandleCommand(client, base_packet_structures.Message{
+							Sender:  client.Username,
+							Message: message.Trailing,
+							Target:  message.Params[0],
+						})
+					}
 				} else {
 					foundClient := client_manager.GetClientByName(message.Params[0])
 

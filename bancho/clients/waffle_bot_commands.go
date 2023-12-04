@@ -6,6 +6,7 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
 	"Waffle/database"
+	"Waffle/helpers"
 	"fmt"
 	"math"
 	"math/rand"
@@ -314,6 +315,7 @@ func WaffleBotCommandRank(sender client_manager.WaffleClient, args []string) []s
 		fmt.Sprintf("Level: %.2f", userStats.Level),
 		fmt.Sprintf("Accuracy: %.2f%%", userStats.Accuracy*100.0),
 		fmt.Sprintf("Playcount: %d", userStats.Playcount),
+		fmt.Sprintf("Playtime: %s", helpers.FormatTime(userStats.Playtime)),
 	}
 }
 

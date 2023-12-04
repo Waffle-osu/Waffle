@@ -120,7 +120,6 @@ func (client *Client) HandleIncoming() {
 				if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
 					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 				} else {
-
 					message := base_packet_structures.ReadMessage(packetDataReader)
 
 					//Reroute if it's for #multiplayer
