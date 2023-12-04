@@ -127,12 +127,12 @@ func (client *Client) HandleIncoming() {
 					if message.Target == "#multiplayer" {
 						if client.currentMultiLobby != nil {
 							client.currentMultiLobby.MultiChannel.SendMessage(client, message.Message, message.Target)
-
-							if message.Message[0] == '!' {
-								//TODO: wafflebot
-								go clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
-							}
 						}
+
+						if message.Message[0] == '!' {
+							go clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
+						}
+
 						break
 					}
 
@@ -142,6 +142,10 @@ func (client *Client) HandleIncoming() {
 					if exists {
 						channel.SendMessage(client, message.Message, message.Target)
 						database.ChatInsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
+					}
+
+					if message.Message[0] == '!' {
+						go clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
 					}
 				}
 				//The client is sending a private message to someone

@@ -247,7 +247,7 @@ func WaffleBotCommandBanchoStatistics(sender client_manager.WaffleClient, args [
 	}
 }
 
-//!rank <?mode> <username>
+// !rank <?mode> <username>
 func WaffleBotCommandRank(sender client_manager.WaffleClient, args []string) []string {
 	username := sender.GetUserData().Username
 	mode := int8(0)
@@ -383,7 +383,7 @@ func WaffleBotCommandLeaderboards(sender client_manager.WaffleClient, args []str
 	}
 
 	returnResults := []string{
-		fmt.Sprintf("Showing leaderboards for %s #%d - #%d", writtenMode, offset, offset+10),
+		fmt.Sprintf("Showing leaderboards for %s #%d - #%d", writtenMode, offset+1, offset+10),
 	}
 
 	for leaderboardQuery.Next() {
@@ -408,7 +408,7 @@ func WaffleBotCommandLeaderboards(sender client_manager.WaffleClient, args []str
 	return returnResults
 }
 
-//!silence <duration in minutes> <username>
+// !silence <duration in minutes> <username>
 func WaffleBotCommandSilence(sender client_manager.WaffleClient, args []string) []string {
 	//Check privileges
 	if (chat.PrivilegesAdmin & sender.GetUserData().Privileges) <= 0 {

@@ -1,6 +1,7 @@
 package client_manager
 
 import (
+	"Waffle/bancho/lobby"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"time"
@@ -39,4 +40,6 @@ type WaffleClient interface {
 
 	SetSilencedUntilUnix(untilUnix int64)
 	GetSilencedUntilUnix() int64
+
+	GetMultiplayerLobby() *lobby.MultiplayerLobby
 }

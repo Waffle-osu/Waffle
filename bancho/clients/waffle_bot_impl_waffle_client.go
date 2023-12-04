@@ -2,6 +2,7 @@ package clients
 
 import (
 	"Waffle/bancho/client_manager"
+	"Waffle/bancho/lobby"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"time"
@@ -115,4 +116,8 @@ func (waffleBot *WaffleBot) BanchoAnnounce(message string) {
 
 func (waffleBot *WaffleBot) BanchoGetAttention() {
 
+}
+
+func (WaffleBot *WaffleBot) GetMultiplayerLobby() *lobby.MultiplayerLobby {
+	return nil
 }

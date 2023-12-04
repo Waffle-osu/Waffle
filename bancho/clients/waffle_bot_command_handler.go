@@ -50,7 +50,6 @@ func WaffleBotInitializeCommands() {
 }
 
 func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClient, message base_packet_structures.Message) {
-
 	publicCommand := message.Target[0] == '#'
 
 	var command string
@@ -76,8 +75,10 @@ func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClie
 	for _, messageString := range result {
 		if publicCommand {
 			if message.Target == "#multiplayer" {
-				if client.currentMultiLobby != nil {
-					client.currentMultiLobby.MultiChannel.SendMessage(WaffleBotInstance, messageString, message.Target)
+				senderLobby := sender.GetMultiplayerLobby()
+
+				if senderLobby != nil {
+					senderLobby.MultiChannel.SendMessage(WaffleBotInstance, messageString, message.Target)
 				}
 			} else {
 				channel, exists := chat.GetChannelByName(message.Target)

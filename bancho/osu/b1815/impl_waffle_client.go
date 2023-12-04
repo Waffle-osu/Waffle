@@ -1,6 +1,9 @@
 package b1815
 
-import "time"
+import (
+	"Waffle/bancho/lobby"
+	"time"
+)
 
 func (client *Client) GetIdleTimes() (lastRecieve time.Time, logon time.Time) {
 	return client.lastReceive, client.logonTime
@@ -16,4 +19,8 @@ func (client *Client) GetFormattedJoinedChannels() string {
 	}
 
 	return channelString
+}
+
+func (client *Client) GetMultiplayerLobby() *lobby.MultiplayerLobby {
+	return client.currentMultiLobby
 }
