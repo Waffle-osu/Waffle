@@ -45,6 +45,7 @@ type UserStats struct {
 	HitGeki        uint64
 	HitKatu        uint64
 	ReplaysWatched uint64
+	Playtime       uint64
 }
 
 // UserFromDatabaseById retrieves a users information given a user id

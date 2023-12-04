@@ -503,6 +503,16 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		queryPerfect = 1
 	}
 
+	//save failtime
+	failTimeParsed, failTimeParseErr := strconv.ParseInt(failTime, 10, 64)
+
+	if wasExit == "" || wasExit == "0" {
+		//Playtime gets accounted in regardless
+		userStats.Playtime += uint64(scoreBeatmap.DrainTime) * 1000
+	} else {
+		userStats.Playtime += uint64(failTimeParsed)
+	}
+
 	insertScoreQuery, insertScoreQueryErr := database.Database.Query("INSERT INTO waffle.scores (beatmap_id, beatmapset_id, user_id, playmode, score, max_combo, ranking, hit300, hit100, hit50, hitMiss, hitGeki, hitKatu, enabled_mods, perfect, passed, leaderboard_best, mapset_best, score_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", scoreBeatmap.BeatmapId, scoreBeatmap.BeatmapsetId, userId, int8(scoreSubmission.Playmode), scoreSubmission.TotalScore, scoreSubmission.MaxCombo, scoreSubmission.Ranking, scoreSubmission.Count300, scoreSubmission.Count100, scoreSubmission.Count50, scoreSubmission.CountMiss, scoreSubmission.CountGeki, scoreSubmission.CountKatu, scoreSubmission.EnabledMods, queryPerfect, queryPassed, queryLeaderboardBest, queryMapsetBest, scoreSubmission.OnlineScoreChecksum)
 
 	if insertScoreQuery != nil {
@@ -519,7 +529,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	scoreSubmissionResponse["playCountAfter"] = strconv.FormatUint(userStats.Playcount, 10)
 	scoreSubmissionResponse["accuracyAfter"] = strconv.FormatFloat(float64(userStats.Accuracy), 'f', 2, 64)
 
-	updateUserStatsQuery, updateUserStatsQueryErr := database.Database.Query("UPDATE waffle.stats SET ranked_score = ?, total_score = ?, hit300 = ?, hit100 = ?, hit50 = ?, hitMiss = ?, hitGeki = ?, hitKatu = ?, user_level = ?, playcount = ?, accuracy = ? WHERE user_id = ? AND mode = ?", userStats.RankedScore, userStats.TotalScore, userStats.Hit300, userStats.Hit100, userStats.Hit50, userStats.HitMiss, userStats.HitGeki, userStats.HitKatu, userStats.Level, userStats.Playcount, userStats.Accuracy, userId, int8(scoreSubmission.Playmode))
+	updateUserStatsQuery, updateUserStatsQueryErr := database.Database.Query("UPDATE waffle.stats SET ranked_score = ?, total_score = ?, hit300 = ?, hit100 = ?, hit50 = ?, hitMiss = ?, hitGeki = ?, hitKatu = ?, user_level = ?, playcount = ?, accuracy = ?, playtime = ? WHERE user_id = ? AND mode = ?", userStats.RankedScore, userStats.TotalScore, userStats.Hit300, userStats.Hit100, userStats.Hit50, userStats.HitMiss, userStats.HitGeki, userStats.HitKatu, userStats.Level, userStats.Playcount, userStats.Accuracy, userStats.Playtime, userId, int8(scoreSubmission.Playmode))
 
 	if updateUserStatsQuery != nil {
 		updateUserStatsQuery.Close()
@@ -644,9 +654,6 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		scoreSubmissionResponse["toNextRank"] = "0"
 		scoreSubmissionResponse["toNextRankUser"] = ""
 	}
-
-	//save failtime
-	failTimeParsed, failTimeParseErr := strconv.ParseInt(failTime, 10, 64)
 
 	if failTimeParseErr == nil {
 		wasExitParsed := int8(0)

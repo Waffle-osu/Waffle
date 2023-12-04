@@ -28,6 +28,7 @@ func InitializeMigrations() {
 	Migrations[9] = migrations.CreateHistoricalTablesStruct{}
 	Migrations[10] = migrations.MigrationInsertAchievements{}
 	Migrations[11] = migrations.MigrationAddSilences{}
+	Migrations[12] = migrations.MigrationAddPlaytime{}
 }
 
 func InitializeDatabaseVersion() {
