@@ -1,14 +1,15 @@
-use std::{sync::Arc, ops::Deref, time::Duration};
+use std::{sync::Arc, ops::{Deref, DerefMut}, time::Duration, borrow::BorrowMut};
 
 use binary_rw::{MemoryStream, BinaryReader, Endian};
-use common::packets::{BanchoPacketHeader, BanchoPacket, derived::BanchoPing};
+use common::packets::{BanchoPacketHeader, BanchoPacket, derived::BanchoPing, BanchoRequestType};
 use tokio::{io::{AsyncWriteExt, AsyncReadExt}, time::sleep};
 
 use super::client::OsuClient2011;
 
 impl OsuClient2011 {
     pub async fn maintain_client(client: Arc<OsuClient2011>) {
-        while client.continue_running {
+        //while client.continue_running.lock().await.clone() {
+        while true {
             sleep(Duration::from_millis(15000)).await;
 
             BanchoPing::send(&client.packet_queue_send.lock().await.to_owned()).await;
@@ -16,7 +17,8 @@ impl OsuClient2011 {
     }
 
     pub async fn handle_incoming(client: Arc<OsuClient2011>) {
-        while client.continue_running {
+        //while client.continue_running.lock().await.clone() {
+        while true {
             let _ = client.connection.readable().await;
 
             let mut buffer = [0; 32768];
@@ -42,12 +44,22 @@ impl OsuClient2011 {
                 read_index += read;
 
                 println!("Received Packet {:?} size {}", packet.header.packet_id, packet.header.size);
+
+                match packet.header.packet_id {
+                    BanchoRequestType::OsuExit => {
+                        
+                    },
+                    _ => {
+                        println!("Unimplemented packet!! {:?}", packet.header.packet_id);
+                    }
+                }
             }
         }
     }
 
     pub async fn send_outgoing(client: Arc<OsuClient2011>) {
-        while client.continue_running {
+        //while client.continue_running.lock().await.clone() {
+        while true {
             let packet = 
                 client.packet_queue_recv
                     .lock()

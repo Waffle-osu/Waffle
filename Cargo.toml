@@ -13,6 +13,8 @@ sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-native-tls", "mysql
 lazy_static = "1.4.0"
 dashmap = "5.5.3"
 bcrypt = "0.15.0"
+actix = "0.13.1"
+actix-rt = "2.2"
 
 [[bin]]
 name = "head-server"

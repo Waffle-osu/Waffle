@@ -1,7 +1,8 @@
 use std::sync::{Arc};
 
+use actix::{Actor, Context};
 use chrono::{DateTime, Utc};
-use common::{packets::BanchoPacket, db};
+use common::{packets::BanchoPacket, db, send_box::SendBox};
 use dashmap::DashMap;
 use tokio::{net::TcpStream, sync::{mpsc::{Sender, Receiver}, Mutex}};
 
@@ -46,6 +47,7 @@ impl OsuClient for OsuClient2011 {
     }
 }
 
-impl OsuClient2011 {
-
+impl Actor for OsuClient2011 {
+    type Context = Context<Self>;
 }
+
