@@ -14,5 +14,9 @@ func (migration MigrationAddPlaytime) Apply(db *sql.DB) error {
 }
 
 func (migration MigrationAddPlaytime) Remove(db *sql.DB) error {
-	return nil
+	sql :=
+		`
+	ALTER TABLE waffle.users DROP COLUMN playtime;
+	`
+	return MigrationHelperRunSplitSql(sql, db)
 }
