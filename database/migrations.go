@@ -29,6 +29,7 @@ func InitializeMigrations() {
 	Migrations[10] = migrations.MigrationInsertAchievements{}
 	Migrations[11] = migrations.MigrationAddSilences{}
 	Migrations[12] = migrations.MigrationAddPlaytime{}
+	Migrations[13] = migrations.MigrationAddMatchLogs{}
 }
 
 func InitializeDatabaseVersion() {

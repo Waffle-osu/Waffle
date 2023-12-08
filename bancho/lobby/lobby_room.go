@@ -3,7 +3,9 @@ package lobby
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/osu/base_packet_structures"
+	"fmt"
 	"sync"
+	"time"
 )
 
 var clientList []LobbyClient
@@ -105,6 +107,7 @@ func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host Lob
 	}
 
 	multiLobby := new(MultiplayerLobby)
+	multiLobby.MatchId = fmt.Sprintf("%s-%s", host.GetUsername(), time.Now().Format("20060102150405"))
 
 	//Set up the Chat channel #multiplayer
 	multiLobby.MultiChannel = new(chat.Channel)

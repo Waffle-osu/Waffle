@@ -3,10 +3,14 @@ package lobby
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/database"
+	"Waffle/helpers"
+	"fmt"
 	"sync"
 )
 
 type MultiplayerLobby struct {
+	MatchId             string
 	MultiChannel        *chat.Channel
 	MatchInformation    base_packet_structures.MultiplayerMatch
 	MatchHost           LobbyClient
@@ -18,6 +22,21 @@ type MultiplayerLobby struct {
 	LastScoreFrames     [8]base_packet_structures.ScoreFrame
 	MatchInfoMutex      sync.Mutex
 	InProgress          bool
+}
+
+func (multiLobby *MultiplayerLobby) LogEvent(eventType database.MatchHistoryEventType, initiator LobbyClient, extraInfo string) {
+	id := int32(0)
+
+	if initiator != nil {
+		id = initiator.GetUserId()
+	}
+
+	database.LogMatchHistory(database.MatchHistoryElement{
+		MatchId:        multiLobby.MatchId,
+		EventType:      eventType,
+		EventInitiator: uint64(id),
+		ExtraInfo:      extraInfo,
+	})
 }
 
 // Join gets called when a client is attempting to join the lobby
@@ -49,6 +68,8 @@ func (multiLobby *MultiplayerLobby) Join(client LobbyClient, password string) bo
 
 			//Update everyone
 			multiLobby.UpdateMatch()
+
+			multiLobby.LogEvent(database.MatchHistoryEventTypeJoin, client, "")
 
 			//Join success
 			return true
@@ -153,11 +174,15 @@ func (multiLobby *MultiplayerLobby) Part(client LobbyClient) {
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeLeave, client, "")
 }
 
 // Disband is called when everyone leaves the match
 func (multiLobby *MultiplayerLobby) Disband() {
 	RemoveMultiMatch(multiLobby.MatchInformation.MatchId)
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeMatchDisbanded, nil, "")
 }
 
 // HandleHostLeave handles the host leaving, as we need to pass on the host
@@ -181,6 +206,8 @@ func (multiLobby *MultiplayerLobby) HandleHostLeave(slot int) {
 			//Tell the new client they're host now
 			multiLobby.MatchHost.BanchoMatchTransferHost()
 
+			multiLobby.LogEvent(database.MatchHistoryEventTypeHostChange, multiLobby.MatchHost, "")
+
 			multiLobby.MatchInformation.HostId = multiLobby.MatchHost.GetUserId()
 		}
 	}
@@ -201,6 +228,8 @@ func (multiLobby *MultiplayerLobby) TryChangeSlot(client LobbyClient, slotId int
 	multiLobby.MoveSlot(multiLobby.GetSlotFromUserId(client.GetUserId()), slotId)
 	multiLobby.UpdateMatch()
 
+	multiLobby.LogEvent(database.MatchHistoryEventTypeMove, client, fmt.Sprintf("Moved to slot %d", slotId))
+
 	multiLobby.MatchInfoMutex.Unlock()
 }
 
@@ -214,9 +243,13 @@ func (multiLobby *MultiplayerLobby) ChangeTeam(client LobbyClient) {
 		return
 	}
 
+	color := "Red"
+
 	//Flip colors
 	if multiLobby.MatchInformation.SlotTeam[clientSlot] == base_packet_structures.MultiplayerSlotTeamRed {
 		multiLobby.MatchInformation.SlotTeam[clientSlot] = base_packet_structures.MultiplayerSlotTeamBlue
+
+		color = "Blue"
 	} else if multiLobby.MatchInformation.SlotTeam[clientSlot] == base_packet_structures.MultiplayerSlotTeamBlue {
 		multiLobby.MatchInformation.SlotTeam[clientSlot] = base_packet_structures.MultiplayerSlotTeamRed
 	} else {
@@ -227,6 +260,8 @@ func (multiLobby *MultiplayerLobby) ChangeTeam(client LobbyClient) {
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeChangeTeam, client, fmt.Sprintf("Is now Team %s", color))
 }
 
 // TransferHost gets called when the host willingly gives up their host
@@ -248,6 +283,8 @@ func (multiLobby *MultiplayerLobby) TransferHost(client LobbyClient, slotId int)
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeHostChange, client, fmt.Sprintf("New host is now UserID: %d; Username %s", multiLobby.MatchHost.GetUserId(), multiLobby.MatchHost.GetUsername()))
 }
 
 // ReadyUp gets called when a player has clicked the Ready button
@@ -265,6 +302,8 @@ func (multiLobby *MultiplayerLobby) ReadyUp(client LobbyClient) {
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeReady, client, "")
 }
 
 // Unready gets called when a player has changed their mind about being ready and pressed the not ready button
@@ -282,6 +321,8 @@ func (multiLobby *MultiplayerLobby) Unready(client LobbyClient) {
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeUnready, client, "")
 }
 
 // ChangeSettings gets called when the host of the lobby changes some settings
@@ -292,11 +333,56 @@ func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSett
 		return
 	}
 
+	//We're building a diff for the match logging.
+	diff := ""
+
+	if multiLobby.MatchInformation.ActiveMods != matchSettings.ActiveMods {
+		oldMods := helpers.FormatMods(uint32(multiLobby.MatchInformation.ActiveMods))
+		newMods := helpers.FormatMods(uint32(matchSettings.ActiveMods))
+
+		diff += fmt.Sprintf("Mods changed (was: %s; is: %s)\n", oldMods, newMods)
+	}
+
+	if multiLobby.MatchInformation.GameName != matchSettings.GameName {
+		diff += fmt.Sprintf("Match name changed (was: %s; is %s)\n", multiLobby.MatchInformation.GameName, matchSettings.GameName)
+	}
+
+	if multiLobby.MatchInformation.GamePassword != matchSettings.GamePassword {
+		diff += "Password was changed.\n"
+	}
+
+	if multiLobby.MatchInformation.BeatmapChecksum != matchSettings.BeatmapChecksum {
+		diff += fmt.Sprintf("Map was changed to Beatmap ID: %d; Name: %s\n", matchSettings.BeatmapId, matchSettings.BeatmapName)
+	}
+
+	if multiLobby.MatchInformation.Playmode != matchSettings.Playmode {
+		oldMode := helpers.FormatPlaymodes(multiLobby.MatchInformation.Playmode)
+		newMode := helpers.FormatPlaymodes(matchSettings.Playmode)
+
+		diff += fmt.Sprintf("Playmode changed (was: %s; is %s)\n", oldMode, newMode)
+	}
+
+	if multiLobby.MatchInformation.MatchScoringType != matchSettings.MatchScoringType {
+		oldMode := helpers.FormatScoringType(multiLobby.MatchInformation.MatchScoringType)
+		newMode := helpers.FormatScoringType(matchSettings.MatchScoringType)
+
+		diff += fmt.Sprintf("Scoring type changed (was: %s; is %s)\n", oldMode, newMode)
+	}
+
+	if multiLobby.MatchInformation.MatchTeamType != matchSettings.MatchTeamType {
+		oldMode := helpers.FormatMatchTeamTypes(multiLobby.MatchInformation.MatchTeamType)
+		newMode := helpers.FormatMatchTeamTypes(matchSettings.MatchTeamType)
+
+		diff += fmt.Sprintf("Team type changed (was: %s; is %s)\n", oldMode, newMode)
+	}
+
 	//Update the settings and tell everyone
 	multiLobby.MatchInformation = matchSettings
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeSettingsChanged, multiLobby.MatchHost, diff)
 }
 
 // ChangeMods gets called when the host of the lobby changes which mods are going to get played
@@ -307,11 +393,17 @@ func (multiLobby *MultiplayerLobby) ChangeMods(client LobbyClient, newMods int32
 		return
 	}
 
+	oldMods := helpers.FormatMods(uint32(multiLobby.MatchInformation.ActiveMods))
+
 	//Set new mods and tell everyone
 	multiLobby.MatchInformation.ActiveMods = uint16(newMods)
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	newModsFmt := helpers.FormatMods(uint32(newMods))
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeModsChanged, multiLobby.MatchHost, fmt.Sprintf("was %s; is %s", oldMods, newModsFmt))
 }
 
 // LockSlot gets called when the host attempts to lock/unlock a slot
@@ -337,6 +429,8 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 		droppedClient.BanchoMatchUpdate(multiLobby.MatchInformation)
 
 		multiLobby.MatchInfoMutex.Lock()
+
+		multiLobby.LogEvent(database.MatchHistoryEventTypeKick, multiLobby.MatchHost, "Slot was locked")
 	}
 
 	//If it's locked already, make it open
@@ -346,17 +440,22 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 		multiLobby.UpdateMatch()
 		multiLobby.MatchInfoMutex.Unlock()
 
+		multiLobby.LogEvent(database.MatchHistoryEventTypeUnlock, multiLobby.MatchHost, fmt.Sprintf("Slot %d was unlocked", slotId))
+
 		return
 	}
 
 	//Don't allow all slots to be locked
 	if multiLobby.GetOpenSlotCount() > 2 && multiLobby.MatchInformation.SlotStatus[slotId] == base_packet_structures.MultiplayerMatchSlotStatusOpen {
 		multiLobby.MatchInformation.SlotStatus[slotId] = base_packet_structures.MultiplayerMatchSlotStatusLocked
+
+		multiLobby.LogEvent(database.MatchHistoryEventTypeLock, multiLobby.MatchHost, fmt.Sprintf("Slot %d was locked", slotId))
 	}
 
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
 }
 
 // InformNoBeatmap gets called when a player happens to be missing the map thats about to be played
@@ -413,6 +512,8 @@ func (multiLobby *MultiplayerLobby) InformLoadComplete(client LobbyClient) {
 				multiLobby.MultiClients[i].BanchoMatchAllPlayersLoaded()
 			}
 		}
+
+		multiLobby.LogEvent(database.MatchHistoryEventTypePlayingStarted, nil, "")
 	}
 
 	multiLobby.MatchInfoMutex.Unlock()
@@ -480,6 +581,19 @@ func (multiLobby *MultiplayerLobby) InformCompletion(client LobbyClient) {
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	info := fmt.Sprintf("Score: %d\n", multiLobby.LastScoreFrames[slot].TotalScore)
+	info += fmt.Sprintf("Max Combo: %d\n", multiLobby.LastScoreFrames[slot].MaxCombo)
+	info += fmt.Sprintf("Final Combo: %d\n", multiLobby.LastScoreFrames[slot].CurrentCombo)
+	info += fmt.Sprintf("Perfect: %t\n", multiLobby.LastScoreFrames[slot].Perfect)
+	info += fmt.Sprintf("300: %d\n", multiLobby.LastScoreFrames[slot].Count300)
+	info += fmt.Sprintf("100: %d\n", multiLobby.LastScoreFrames[slot].Count100)
+	info += fmt.Sprintf("50: %d\n", multiLobby.LastScoreFrames[slot].Count50)
+	info += fmt.Sprintf("Miss: %d\n", multiLobby.LastScoreFrames[slot].CountMiss)
+	info += fmt.Sprintf("Geki: %d\n", multiLobby.LastScoreFrames[slot].CountGeki)
+	info += fmt.Sprintf("Katu: %d", multiLobby.LastScoreFrames[slot].CountKatu)
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeFinalScore, client, info)
 }
 
 // InformPressedSkip gets called when a player pressed skip in multi
@@ -535,6 +649,8 @@ func (multiLobby *MultiplayerLobby) InformFailed(client LobbyClient) {
 	}
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypePlayerFail, client, "")
 }
 
 // StartGame gets called whenever the host starts the game
@@ -561,4 +677,6 @@ func (multiLobby *MultiplayerLobby) StartGame(client LobbyClient) {
 	multiLobby.UpdateMatch()
 
 	multiLobby.MatchInfoMutex.Unlock()
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeMatchStarted, client, "")
 }
