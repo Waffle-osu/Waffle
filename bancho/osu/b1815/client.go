@@ -49,6 +49,10 @@ type Client struct {
 	isInLobby         bool
 	currentMultiLobby *lobby.MultiplayerLobby
 
+	packetListeners []PacketEvent
+
+	waffleGuardContext WaffleGuardContext
+
 	PacketQueue chan []byte
 
 	UserData    database.User

@@ -361,6 +361,9 @@ func HandleNewClient(connection net.Conn) {
 	go client.MaintainClient()
 	go client.HandleIncoming()
 	go client.SendOutgoing()
+
+	client.OnPacket(client.handlePackets)      //Regular packet processing
+	client.OnPacket(client.waffleGuardPackets) //Waffle Guard processing for certaind detections
 }
 
 // SendOffPacketsAndClose sends off any remaining packets in the packet queue
