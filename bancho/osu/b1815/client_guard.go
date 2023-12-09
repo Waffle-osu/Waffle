@@ -45,8 +45,7 @@ func (client *Client) waffleGuardPackets(packetChannel chan serialization.Bancho
 				}
 			}
 		case <-ctx.Done():
-
-		default:
+			return
 		}
 	}
 }

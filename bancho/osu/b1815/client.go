@@ -7,16 +7,17 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
+	"context"
 	"net"
 	"sync"
 	"time"
 )
 
 const (
-	// ReceiveTimeout 16 Seconds
-	ReceiveTimeout = 16
-	// PingTimeout 8 Seconds
-	PingTimeout = 8
+	// ReceiveTimeout 30 Seconds
+	ReceiveTimeout = 30
+	// PingTimeout 6 Seconds, after 5 Pings we disconnect the client.
+	PingTimeout = 6
 )
 
 type ClientInformation struct {
@@ -52,6 +53,8 @@ type Client struct {
 	packetListeners []PacketEvent
 
 	waffleGuardContext WaffleGuardContext
+
+	maintainCancel context.CancelFunc
 
 	PacketQueue chan []byte
 
@@ -99,10 +102,13 @@ func (client *Client) CleanupClient(reason string) {
 	}
 
 	client.connection.Close()
+	client.continueRunning = false
 
 	client.clean = true
-
 	client.cleanMutex.Unlock()
+
+	//Cancels the outgoing packet queue, and pingers
+	client.maintainCancel()
 }
 
 // Cut cuts the client's connection and forces a disconnect.

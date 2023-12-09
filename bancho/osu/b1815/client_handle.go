@@ -5,6 +5,7 @@ import (
 	"Waffle/helpers"
 	"Waffle/helpers/serialization"
 	"bytes"
+	"context"
 	"time"
 )
 
@@ -56,44 +57,44 @@ func (client *Client) HandleIncoming() {
 	}
 }
 
-// SendOutgoing is looping over the packet queue and waiting for new packets, and sends them off as they come in
-func (client *Client) SendOutgoing() {
-	for packet := range client.PacketQueue {
-		sendBytes := len(packet)
-
-		go func() {
-			misc.StatsSendLock.Lock()
-			misc.StatsBytesSent += uint64(sendBytes)
-			misc.StatsSendLock.Unlock()
-		}()
-
-		client.connection.Write(packet)
-	}
-}
-
 // MaintainClient is looping every second, sending out pings and handles timeouts
-func (client *Client) MaintainClient() {
-	for client.continueRunning {
-		lastReceiveUnix := client.lastReceive.Unix()
-		lastPingUnix := client.lastPing.Unix()
-		unixNow := time.Now().Unix()
+func (client *Client) MaintainClient(ctx context.Context) {
+	pingTicker := time.NewTicker(PingTimeout * time.Second)
+	receiveTicker := time.NewTicker(ReceiveTimeout * time.Second)
 
-		if lastReceiveUnix+ReceiveTimeout <= unixNow {
-			client.CleanupClient("Client Timed out.")
+	for {
+		select {
+		case <-ctx.Done():
+			//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
+			helpers.Logger.Printf("[Bancho@Handling] Closed %s's Packet Queue", client.UserData.Username)
+			close(client.PacketQueue)
 
-			client.continueRunning = false
-		}
+			pingTicker.Stop()
+			receiveTicker.Stop()
+			return
+		case packet := <-client.PacketQueue:
+			sendBytes := len(packet)
 
-		if lastPingUnix+PingTimeout <= unixNow {
+			go func() {
+				misc.StatsSendLock.Lock()
+				misc.StatsBytesSent += uint64(sendBytes)
+				misc.StatsSendLock.Unlock()
+			}()
+
+			client.connection.Write(packet)
+		case <-pingTicker.C:
 			client.BanchoPing()
 
 			client.lastPing = time.Now()
+		case <-receiveTicker.C:
+			lastReceiveUnix := client.lastReceive.Unix()
+			unixNow := time.Now().Unix()
+
+			if lastReceiveUnix+ReceiveTimeout <= unixNow {
+				client.CleanupClient("Client Timed out.")
+
+				client.continueRunning = false
+			}
 		}
-
-		time.Sleep(time.Second)
 	}
-
-	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
-	helpers.Logger.Printf("[Bancho@Handling] Closed %s's Packet Queue", client.UserData.Username)
-	close(client.PacketQueue)
 }

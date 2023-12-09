@@ -407,7 +407,6 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 			}
 		case <-ctx.Done():
 			return
-		default:
 		}
 	}
 }

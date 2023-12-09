@@ -1,6 +1,8 @@
 package web
 
 import (
+	"Waffle/bancho/chat"
+	"Waffle/bancho/clients"
 	"Waffle/common"
 	"Waffle/database"
 	"Waffle/helpers"
@@ -227,7 +229,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		return
 	}
 
-	helpers.Logger.Printf("[Web@ScoreSubmit] Got Score Submission from ID: %d; wasExit: %s; failTime: %s; clientHash: %s", userId, wasExit, failTime, clientHash)
+	helpers.Logger.Printf("[Web@ScoreSubmit] Got Score Submission from ID: %d; wasExit: %s; failTime: %s", userId, wasExit, failTime)
 
 	//save old values
 	scoreSubmissionResponse["rankedScoreBefore"] = strconv.FormatUint(userStats.RankedScore, 10)
@@ -611,6 +613,22 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	}
 
 	scoreSubmissionResponse["beatmapRankingAfter"] = strconv.FormatInt(newLeaderboardRank, 10)
+
+	if newLeaderboardRank == 1 {
+		go func(beatmapsetId int32, beatmap database.Beatmap, username string, playmode uint8) {
+			queryResult, beatmapset := database.BeatmapsetsGetBeatmapsetById(beatmapsetId)
+
+			if queryResult != 0 {
+				return
+			}
+
+			formatted := fmt.Sprintf("%s - %s [%s] by %s", beatmapset.Artist, beatmapset.Title, beatmap.Version, beatmapset.Creator)
+			formattedLink := fmt.Sprintf("(%s)[osu.ppy.sh/b/%d]", formatted, beatmap.BeatmapId)
+
+			channel, _ := chat.GetChannelByName("#announce")
+			channel.SendMessage(clients.WaffleBotInstance, fmt.Sprintf("%s has achieved #1 on %s (%s)", username, formattedLink, helpers.FormatPlaymodes(playmode)), "#announce")
+		}(scoreBeatmap.BeatmapsetId, scoreBeatmap, scoreSubmission.Username, uint8(scoreSubmission.Playmode))
+	}
 
 	//If the user isn't rank 1, get how much score they need for the next rank
 	if newRank != 1 {

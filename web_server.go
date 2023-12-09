@@ -35,6 +35,7 @@ func RunWeb() {
 	ginServer.GET("/mt/:filename", web.HandleOsuGetDirectThumbnail)
 	ginServer.GET("/mp3/preview/:filename", web.HandleOsuGetDirectMp3Preview)
 	ginServer.GET("/d/:filename", web.HandleOsuDirectDownload)
+	ginServer.GET("/web/osu-search-set.php", web.HandleDirectSearchSet)
 
 	//avatars
 	ginServer.GET("/a/:filename", web.HandleOsuGetAvatar)

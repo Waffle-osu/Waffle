@@ -111,7 +111,7 @@ var levelValues = []uint64{
 	999999999999,
 }
 
-func GetLevelFromScore(score uint64) uint64 {
+func GetLevelFromScore(score uint64) float64 {
 	var a, i uint64 = 0, 0
 
 	for a+levelValues[i] < score {
@@ -119,5 +119,5 @@ func GetLevelFromScore(score uint64) uint64 {
 		a += levelValues[i]
 	}
 
-	return i + 1 + (score-a)/levelValues[i+1]
+	return float64(i) + 1.0 + float64(score-a)/float64(levelValues[i+1])
 }

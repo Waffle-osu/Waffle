@@ -9,6 +9,7 @@ import (
 	"Waffle/helpers/serialization"
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"net"
@@ -357,10 +358,13 @@ func HandleNewClient(connection net.Conn) {
 	helpers.Logger.Printf("[Bancho@Auth] %s successfully logged into Waffle using osu!%s\n", username, clientInfo.Version)
 	helpers.Logger.Printf("[Bancho@Auth] Login took %.2fms\n", float64(time.Since(loginStartTime).Microseconds())/1000.0)
 
+	maintainCtx, cancelMaintain := context.WithCancel(context.Background())
+
+	client.maintainCancel = cancelMaintain
+
 	//Start handlers
-	go client.MaintainClient()
+	go client.MaintainClient(maintainCtx)
 	go client.HandleIncoming()
-	go client.SendOutgoing()
 
 	client.OnPacket(client.handlePackets)      //Regular packet processing
 	client.OnPacket(client.waffleGuardPackets) //Waffle Guard processing for certaind detections
