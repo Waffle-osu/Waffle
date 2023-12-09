@@ -614,7 +614,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	scoreSubmissionResponse["beatmapRankingAfter"] = strconv.FormatInt(newLeaderboardRank, 10)
 
-	if newLeaderboardRank == 1 {
+	if newLeaderboardRank == 1 && scoreSubmission.Passed {
 		go func(beatmapsetId int32, beatmap database.Beatmap, username string, playmode uint8) {
 			queryResult, beatmapset := database.BeatmapsetsGetBeatmapsetById(beatmapsetId)
 
