@@ -165,7 +165,7 @@ func (client *Client) BanchoOsuUpdate(user database.UserStats, status base_packe
 
 func (client *Client) BanchoPresence(user database.User, stats database.UserStats, timezone int32) {
 	presence := base_packet_structures.UserPresence{
-		UserId:          int32(user.UserID),
+		UserId:          int32(stats.UserID),
 		Username:        user.Username,
 		AvatarExtension: 0,
 		Timezone:        uint8(timezone),

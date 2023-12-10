@@ -10,8 +10,10 @@ import (
 )
 
 func (client *IrcClient) GetRelevantUserStats() database.UserStats {
+	minusOne := int32(-1)
+
 	return database.UserStats{
-		UserID:         0,
+		UserID:         uint64(minusOne),
 		Mode:           0,
 		Rank:           0,
 		RankedScore:    0,
@@ -39,7 +41,7 @@ func (client *IrcClient) GetRelevantUserStats() database.UserStats {
 
 func (client *IrcClient) GetUserStatus() base_packet_structures.StatusUpdate {
 	return base_packet_structures.StatusUpdate{
-		Status:          serialization.OsuStatusIdle,
+		Status:          serialization.OsuStatusUnknown,
 		StatusText:      "on IRC",
 		BeatmapChecksum: "No!",
 		CurrentMods:     0,

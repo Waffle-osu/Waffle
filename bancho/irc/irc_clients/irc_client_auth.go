@@ -96,7 +96,24 @@ func HandleNewIrcClient(connection net.Conn) {
 
 	ircClient.packetQueue <- irc_messages.IrcSendMotdEnd()
 
+	client_manager.LockClientList()
+
+	//Loop over every client which exists
+	for _, currentClient := range client_manager.GetClientList() {
+		//We already informed the new client, no need to do it again
+		if currentClient.GetUserId() == int32(ircClient.UserData.UserID) {
+			continue
+		}
+
+		relevantStats := ircClient.GetRelevantUserStats()
+
+		//Inform client of our own existence
+		currentClient.BanchoPresence(ircClient.UserData, relevantStats, 0)
+		currentClient.BanchoOsuUpdate(relevantStats, ircClient.GetUserStatus())
+	}
+
 	client_manager.RegisterClient(&ircClient)
+	client_manager.UnlockClientList()
 
 	ircClient.lastPing = time.Now()
 	ircClient.lastReceive = time.Now()
