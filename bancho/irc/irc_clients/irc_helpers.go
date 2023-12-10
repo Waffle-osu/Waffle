@@ -41,7 +41,7 @@ func (client *IrcClient) SendChannelNames(channel *chat.Channel) {
 		client.packetQueue <- irc_messages.IrcSendNameReply(channelPrefix, channel.Name, line)
 	}
 
-	client.packetQueue <- irc_messages.IrcSendEndOfNames(channel.Name, "End of NAMES")
+	client.packetQueue <- irc_messages.IrcSendEndOfNames(channel.Name, "End of /NAMES list")
 }
 
 func (client *IrcClient) SendWhoIs(checkClient client_manager.WaffleClient) {

@@ -34,7 +34,7 @@ func (channel *Channel) Join(client ChatClient) bool {
 	channel.Clients = append(channel.Clients, client)
 	channel.ClientMutex.Unlock()
 
-	client.InformChannelJoin(client, channel)
+	// client.InformChannelJoin(client, channel)
 
 	for _, chatUser := range channel.Clients {
 		chatUser.InformChannelJoin(client, channel)
@@ -43,7 +43,7 @@ func (channel *Channel) Join(client ChatClient) bool {
 	return true
 }
 
-//Leave Makes `client` Leave the Channel
+// Leave Makes `client` Leave the Channel
 func (channel *Channel) Leave(client ChatClient) {
 	channel.ClientMutex.Lock()
 
@@ -63,7 +63,7 @@ func (channel *Channel) Leave(client ChatClient) {
 	client.InformChannelPart(client, channel)
 }
 
-//SendMessage sends a message to the channel, `sendingClient` is the sender
+// SendMessage sends a message to the channel, `sendingClient` is the sender
 func (channel *Channel) SendMessage(sendingClient ChatClient, message string, target string) {
 	//If the user doesn't have write privileges, don't allow message sending
 	if (channel.WritePrivileges & sendingClient.GetUserPrivileges()) <= 0 {

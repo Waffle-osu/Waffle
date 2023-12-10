@@ -20,7 +20,7 @@ func IrcSendListReply(channel *chat.Channel) Message {
 		NumCommand: RplList,
 		Params: []string{
 			channel.Name,
-			fmt.Sprintf("%d", len(channel.Clients)+1),
+			fmt.Sprintf("%d", len(channel.Clients)),
 		},
 		Trailing: channel.Description,
 	}
