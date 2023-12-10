@@ -8,6 +8,7 @@ import (
 	"Waffle/bancho/misc"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/helpers"
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -299,47 +300,46 @@ func (client *IrcClient) HandleIncoming() {
 	}
 }
 
-func (client *IrcClient) SendOutgoing() {
-	for message := range client.packetQueue {
-		formatted, _ := message.FormatMessage(client.Username)
+func (client *IrcClient) MaintainClient(ctx context.Context) {
+	pingTicker := time.NewTicker(PingTimeout * time.Second)
+	receiveTicker := time.NewTicker(ReceiveTimeout * time.Second)
 
-		asBytes := []byte(formatted)
+	for {
+		select {
+		case <-ctx.Done():
+			//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
+			helpers.Logger.Printf("[IRC@Handling] Closed %s's Packet Queue", client.UserData.Username)
 
-		go func() {
-			misc.StatsSendLock.Lock()
-			misc.StatsBytesSent += uint64(len(asBytes))
-			misc.StatsSendLock.Unlock()
-		}()
+			close(client.packetQueue)
 
-		client.connection.Write(asBytes)
-	}
-}
-
-func (client *IrcClient) MaintainClient() {
-	for client.continueRunning {
-		lastReceiveUnix := client.lastReceive.Unix()
-		lastPingUnix := client.lastPing.Unix()
-		unixNow := time.Now().Unix()
-
-		if lastReceiveUnix+ReceiveTimeout <= unixNow {
-			client.CleanupClient("Client Timed out.")
-
-			client.continueRunning = false
-		}
-
-		if lastPingUnix+PingTimeout <= unixNow {
+			pingTicker.Stop()
+			receiveTicker.Stop()
+			return
+		case <-pingTicker.C:
 			client.lastPingToken = fmt.Sprintf("irc.waffle.nya@%d", time.Now().Unix())
 
 			client.packetQueue <- irc_messages.IrcSendPing(client.lastPingToken)
 
 			client.lastPing = time.Now()
+		case <-receiveTicker.C:
+			lastReceiveUnix := client.lastReceive.Unix()
+			unixNow := time.Now().Unix()
+
+			if lastReceiveUnix+ReceiveTimeout <= unixNow {
+				client.CleanupClient("Client Timed out.")
+			}
+		case message := <-client.packetQueue:
+			formatted, _ := message.FormatMessage(client.Username)
+
+			asBytes := []byte(formatted)
+
+			go func() {
+				misc.StatsSendLock.Lock()
+				misc.StatsBytesSent += uint64(len(asBytes))
+				misc.StatsSendLock.Unlock()
+			}()
+
+			client.connection.Write(asBytes)
 		}
-
-		time.Sleep(time.Second)
 	}
-
-	//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
-	helpers.Logger.Printf("[IRC@Handling] Closed %s's Packet Queue", client.UserData.Username)
-
-	close(client.packetQueue)
 }

@@ -8,6 +8,7 @@ import (
 	"Waffle/database"
 	"Waffle/helpers"
 	"bufio"
+	"context"
 	"net"
 	"sync"
 	"time"
@@ -48,6 +49,8 @@ type IrcClient struct {
 	clean      bool
 	cleanMutex sync.Mutex
 
+	maintainCancel context.CancelFunc
+
 	//Name used to address you on IRC
 	//Must be unique across the network
 	//This is the username used in /kick commands and similar
@@ -79,7 +82,7 @@ func (client *IrcClient) CleanupClient(reason string) {
 
 	if client.currentMultiLobby != nil {
 		//TODO: implement lobbyclient
-		//client.currentMultiLobby.Part(client)
+		client.currentMultiLobby.Part(client)
 		client.currentMultiLobby = nil
 	}
 
@@ -92,8 +95,10 @@ func (client *IrcClient) CleanupClient(reason string) {
 	client.connection.Close()
 
 	client.clean = true
-
 	client.cleanMutex.Unlock()
+
+	client.maintainCancel()
+	client.continueRunning = false
 }
 
 func (client *IrcClient) Cut() {

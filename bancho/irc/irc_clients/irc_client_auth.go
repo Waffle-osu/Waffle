@@ -6,6 +6,7 @@ import (
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/database"
 	"bufio"
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"net"
@@ -102,9 +103,12 @@ func HandleNewIrcClient(connection net.Conn) {
 	ircClient.logonTime = time.Now()
 	ircClient.continueRunning = true
 
+	ctx, cancel := context.WithCancel(context.Background())
+
+	ircClient.maintainCancel = cancel
+
 	go ircClient.HandleIncoming()
-	go ircClient.SendOutgoing()
-	go ircClient.MaintainClient()
+	go ircClient.MaintainClient(ctx)
 }
 
 func (client *IrcClient) SendOffMessagesAndClose() {
