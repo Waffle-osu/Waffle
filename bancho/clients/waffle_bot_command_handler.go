@@ -47,6 +47,7 @@ func WaffleBotInitializeCommands() {
 	commandHandlers["!leaderboard"] = WaffleBotCommandLeaderboards
 	commandHandlers["!leaderboards"] = WaffleBotCommandLeaderboards
 	commandHandlers["!silence"] = WaffleBotCommandSilence
+	commandHandlers["!mp"] = WaffleBotCommandMultiplayer
 }
 
 func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClient, message base_packet_structures.Message) {

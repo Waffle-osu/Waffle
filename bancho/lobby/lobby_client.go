@@ -11,7 +11,7 @@ type LobbyClient interface {
 	GetUserId() int32
 	GetUserData() database.User
 	GetUserPrivileges() int32
-	SendChatMessage(sender string, content string, channel string)
+	BanchoIrcMessage(message base_packet_structures.Message)
 	GetUsername() string
 	GetRelevantUserStats() database.UserStats
 	GetUserStatus() base_packet_structures.StatusUpdate

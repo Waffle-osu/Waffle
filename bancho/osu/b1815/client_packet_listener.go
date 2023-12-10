@@ -236,7 +236,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 			case serialization.OsuMatchCreate:
 				match := base_packet_structures.ReadMultiplayerMatch(packetDataReader)
 
-				lobby.CreateNewMultiMatch(match, client)
+				lobby.CreateNewMultiMatch(match, client, true)
 			//The client is looking to join a multiplayer match
 			case serialization.OsuMatchJoin:
 				matchJoin := base_packet_structures.ReadMatchJoin(packetDataReader)

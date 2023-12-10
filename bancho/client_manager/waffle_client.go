@@ -1,8 +1,10 @@
 package client_manager
 
 import (
+	"Waffle/bancho/chat"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/common"
 	"Waffle/database"
 	"time"
 )
@@ -42,4 +44,33 @@ type WaffleClient interface {
 	GetSilencedUntilUnix() int64
 
 	GetMultiplayerLobby() *lobby.MultiplayerLobby
+
+	//heh fuckin entire LobbyClient here because of IRC Multiplayer Referree
+	BanchoChannelRevoked(channel string)
+	BanchoLobbyJoin(userId int32)
+	BanchoLobbyLeft(userId int32)
+
+	BanchoMatchNew(match base_packet_structures.MultiplayerMatch)
+	BanchoMatchUpdate(match base_packet_structures.MultiplayerMatch)
+	BanchoMatchStart(match base_packet_structures.MultiplayerMatch)
+	BanchoMatchDisband(matchId int32)
+	BanchoMatchTransferHost()
+	BanchoMatchAllPlayersLoaded()
+	BanchoMatchComplete()
+	BanchoMatchSkip()
+	BanchoMatchPlayerSkipped(slot int32)
+	BanchoMatchPlayerFailed(slot int32)
+	BanchoMatchScoreUpdate(scoreFrame base_packet_structures.ScoreFrame)
+
+	LeaveCurrentMatch()
+	JoinMatch(match *lobby.MultiplayerLobby, password string)
+
+	GetClientType() common.ClientType
+	GetUserPrivileges() int32
+	GetUsername() string
+
+	InformChannelJoin(chatClient chat.ChatClient, channel *chat.Channel)
+	InformChannelPart(chatClient chat.ChatClient, channel *chat.Channel)
+
+	SendChatMessage(sender string, content string, channel string)
 }

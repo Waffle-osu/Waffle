@@ -10,6 +10,9 @@ import (
 )
 
 func (client *IrcClient) GetRelevantUserStats() database.UserStats {
+	//If the ID is below 1, it gets recognized as a IRC client
+	//Inside osu! clients, because inside b1815 BanchoPresence
+	//we use the stats.UserID instead of user.UserID, this is exactly why.
 	minusOne := int32(-1)
 
 	return database.UserStats{

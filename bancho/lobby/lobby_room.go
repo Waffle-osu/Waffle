@@ -94,7 +94,7 @@ func BroadcastToLobby(packetFunction func(LobbyClient)) {
 }
 
 // CreateNewMultiMatch is responsible for creating a new Multiplayer Match
-func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host LobbyClient) {
+func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host LobbyClient, autojoinHost bool) *MultiplayerLobby {
 	multiMutex.Lock()
 
 	for i := 0; i != 65536; i++ {
@@ -124,8 +124,10 @@ func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host Lob
 	multiLobby.MatchHost = host
 	multiLobby.MatchInformation.HostId = host.GetUserId()
 
-	//Make the host join the lobby
-	host.JoinMatch(multiLobby, multiLobby.MatchInformation.GamePassword)
+	//Make the host join the lobby, if specified
+	if autojoinHost {
+		host.JoinMatch(multiLobby, multiLobby.MatchInformation.GamePassword)
+	}
 
 	//Append lobby to the list
 	multiLobbies = append(multiLobbies, multiLobby)
@@ -137,6 +139,8 @@ func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host Lob
 	})
 
 	multiMutex.Unlock()
+
+	return multiLobby
 }
 
 // RemoveMultiMatch gets called when a match gets disbanded
