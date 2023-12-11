@@ -41,8 +41,6 @@ func (multiLobby *MultiplayerLobby) LogEvent(eventType database.MatchHistoryEven
 
 // Join gets called when a client is attempting to join the lobby
 func (multiLobby *MultiplayerLobby) Join(client LobbyClient, password string) bool {
-	//TODO@(Furball): currently there's a bug where the lobby can only have 7 players instead of the max 8
-
 	//if they input the wrong password, join failed
 	if multiLobby.MatchInformation.GamePassword != password {
 		return false
