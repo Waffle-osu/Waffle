@@ -20,7 +20,8 @@ type WaffleClient interface {
 	Cut()
 	GetAwayMessage() string
 
-	BanchoHandleOsuQuit(userId int32)
+	BanchoHandleOsuQuit(userId int32, username string)
+	BanchoHandleIrcQuit(username string)
 
 	BanchoSpectatorJoined(userId int32)
 	BanchoSpectatorLeft(userId int32)

@@ -94,7 +94,7 @@ func (client *Client) CleanupClient(reason string) {
 
 	client_manager.UnregisterClient(client)
 	client_manager.BroadcastPacketOsu(func(broadcastClient client_manager.WaffleClient) {
-		broadcastClient.BanchoHandleOsuQuit(client.GetUserId())
+		broadcastClient.BanchoHandleOsuQuit(client.GetUserId(), client.GetUsername())
 	})
 
 	for _, channel := range client.joinedChannels {

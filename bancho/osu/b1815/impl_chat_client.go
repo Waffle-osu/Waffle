@@ -13,7 +13,6 @@ func (client *Client) GetUserPrivileges() int32 {
 }
 
 // SendChatMessage directly sends a chat message to the user
-//TODO@(Furball): maybe remove this in favor of just getting the packet queue and sending it that way?
 func (client *Client) SendChatMessage(sender string, content string, channel string) {
 	client.BanchoIrcMessage(base_packet_structures.Message{
 		Sender:  sender,

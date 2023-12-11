@@ -106,7 +106,7 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 	//Display Title
 	returnString += fmt.Sprintf("[bold:0,size:20]%s|%s\n", beatmapset.Artist, beatmapset.Title)
 
-	//Online Rating, currently rating doesnt exist, so TODO
+	//Online Rating
 	returnString += fmt.Sprintf("%.2f\n", database.BeatmapRatingsGetBeatmapRating(beatmapset.BeatmapsetId))
 
 	if skipScores == "1" {

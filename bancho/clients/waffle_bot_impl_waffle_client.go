@@ -55,7 +55,11 @@ func (waffleBot *WaffleBot) GetAwayMessage() string {
 	return waffleBot.awayMessage
 }
 
-func (waffleBot *WaffleBot) BanchoHandleOsuQuit(userId int32) {
+func (waffleBot *WaffleBot) BanchoHandleOsuQuit(userId int32, username string) {
+
+}
+
+func (waffleBot *WaffleBot) BanchoHandleIrcQuit(username string) {
 
 }
 

@@ -27,7 +27,7 @@ const (
 	OsuErrorReport                 uint16 = 20
 	OsuCantSpectate                uint16 = 21
 	BanchoSpectatorCantSpectate    uint16 = 22
-	BanchoGetAttention             uint16 = 23 //TODO: maybe once there's an admin panel or something? or maybe as a chat command for admins
+	BanchoGetAttention             uint16 = 23
 	BanchoAnnounce                 uint16 = 24
 	OsuSendIrcMessagePrivate       uint16 = 25
 	BanchoMatchUpdate              uint16 = 26

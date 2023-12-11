@@ -72,28 +72,4 @@ func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClie
 	}
 
 	return handler(sender, arguments)
-
-	// for _, messageString := range result {
-	// 	if publicCommand {
-	// 		if message.Target == "#multiplayer" {
-	// 			senderLobby := sender.GetMultiplayerLobby()
-
-	// 			if senderLobby != nil {
-	// 				senderLobby.MultiChannel.SendMessage(WaffleBotInstance, messageString, message.Target)
-	// 			}
-	// 		} else {
-	// 			channel, exists := chat.GetChannelByName(message.Target)
-
-	// 			if exists {
-	// 				channel.SendMessage(WaffleBotInstance, messageString, message.Target)
-	// 			}
-	// 		}
-	// 	} else {
-	// 		sender.BanchoIrcMessage(base_packet_structures.Message{
-	// 			Sender:  "WaffleBot",
-	// 			Message: messageString,
-	// 			Target:  message.Target,
-	// 		})
-	// 	}
-	// }
 }

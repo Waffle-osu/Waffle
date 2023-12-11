@@ -77,8 +77,12 @@ func (client *Client) BanchoProtocolNegotiation(protocolVersion int32) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoProtocolNegotiation, protocolVersion)
 }
 
-func (client *Client) BanchoHandleOsuQuit(userId int32) {
+func (client *Client) BanchoHandleOsuQuit(userId int32, username string) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoHandleOsuQuit, userId)
+}
+
+func (client *Client) BanchoHandleIrcQuit(username string) {
+	client.PacketQueue <- serialization.SendSerializableString(serialization.BanchoHandleIrcQuit, username)
 }
 
 func (client *Client) BanchoLobbyJoin(userId int32) {

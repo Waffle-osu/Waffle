@@ -24,6 +24,7 @@ type OsuClientPacketsInterface interface {
 	BanchoProtocolNegotiation(protocolVersion int32)
 
 	BanchoHandleOsuQuit(userId int32)
+	BanchoHandleIrcQuit(username string)
 
 	BanchoLobbyJoin(userId int32)
 	BanchoLobbyLeft(userId int32)

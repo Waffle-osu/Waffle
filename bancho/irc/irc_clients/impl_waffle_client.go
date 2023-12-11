@@ -60,8 +60,15 @@ func (client *IrcClient) GetClientTimezone() int32 {
 	return 0
 }
 
-func (client *IrcClient) BanchoHandleOsuQuit(userId int32) {
-	//TODO: do this
+func (client *IrcClient) BanchoHandleOsuQuit(userId int32, username string) {
+	client.BanchoHandleIrcQuit(username)
+}
+
+func (client *IrcClient) BanchoHandleIrcQuit(username string) {
+	client.packetQueue <- irc_messages.Message{
+		Command:  "QUIT",
+		Trailing: "Leaving",
+	}
 }
 
 func (client *IrcClient) BanchoSpectatorJoined(userId int32) {

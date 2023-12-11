@@ -81,7 +81,6 @@ func (client *IrcClient) CleanupClient(reason string) {
 	helpers.Logger.Printf("[IRC@IrcClient] Cleaning up %s; Reason: %s", client.Username, reason)
 
 	if client.currentMultiLobby != nil {
-		//TODO: implement lobbyclient
 		client.currentMultiLobby.Part(client)
 		client.currentMultiLobby = nil
 	}
