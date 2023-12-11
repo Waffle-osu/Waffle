@@ -93,7 +93,25 @@ func (waffleBot *WaffleBot) BanchoSpectateFrames(frameBundle base_packet_structu
 }
 
 func (waffleBot *WaffleBot) BanchoIrcMessage(message base_packet_structures.Message) {
+	if message.Target == "WaffleBot" {
+		if message.Message[0] == '!' {
+			client := client_manager.GetClientByName(message.Sender)
 
+			if client == nil {
+				return
+			}
+
+			returnMessages := waffleBot.WaffleBotHandleCommand(client, message)
+
+			for _, content := range returnMessages {
+				client.BanchoIrcMessage(base_packet_structures.Message{
+					Sender:  "WaffleBot",
+					Message: content,
+					Target:  "WaffleBot",
+				})
+			}
+		}
+	}
 }
 
 func (waffleBot *WaffleBot) BanchoOsuUpdate(stats database.UserStats, update base_packet_structures.StatusUpdate) {
