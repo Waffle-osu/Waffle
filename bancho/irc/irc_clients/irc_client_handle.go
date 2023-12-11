@@ -141,14 +141,14 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				if target == "#multiplayer" {
 					if client.currentMultiLobby != nil {
 						sendChannel = client.currentMultiLobby.MultiChannel
-					} else {
-						foundChannel, exists := client.joinedChannels[target]
+					}
+				} else {
+					foundChannel, exists := client.joinedChannels[target]
 
-						if exists {
-							sendChannel = foundChannel
-						} else {
-							sendChannel = nil
-						}
+					if exists {
+						sendChannel = foundChannel
+					} else {
+						sendChannel = nil
 					}
 				}
 

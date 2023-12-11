@@ -106,11 +106,13 @@ func MpCommandMake(sender LobbyClient, args []string) []string {
 		Playmode:         0,
 		MatchScoringType: base_packet_structures.MultiplayerMatchScoreTypeScore,
 		MatchTeamType:    base_packet_structures.MultiplayerMatchTypeHeadToHead,
-	}, sender, false)
+		SlotStatus:       [8]uint8{1, 1, 1, 1, 1, 1, 1, 1},
+	}, sender, true)
 
 	sender.AssignMultiplayerLobby(newLobby)
 
 	newLobby.MultiChannel.Join(sender)
+	sender.AddJoinedChannel(newLobby.MultiChannel)
 
 	return []string{}
 }

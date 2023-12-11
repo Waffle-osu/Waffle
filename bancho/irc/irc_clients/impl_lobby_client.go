@@ -1,6 +1,7 @@
 package irc_clients
 
 import (
+	"Waffle/bancho/chat"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/osu/base_packet_structures"
@@ -76,4 +77,8 @@ func (ircClient *IrcClient) AssignMultiplayerLobby(lobby *lobby.MultiplayerLobby
 
 func (ircClient *IrcClient) GetMultiplayerLobby() *lobby.MultiplayerLobby {
 	return ircClient.currentMultiLobby
+}
+
+func (ircClient *IrcClient) AddJoinedChannel(channel *chat.Channel) {
+	ircClient.joinedChannels[channel.Name] = channel
 }

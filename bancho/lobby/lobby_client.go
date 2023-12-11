@@ -48,4 +48,5 @@ type LobbyClient interface {
 
 	GetMultiplayerLobby() *MultiplayerLobby
 	AssignMultiplayerLobby(lobby *MultiplayerLobby)
+	AddJoinedChannel(channel *chat.Channel)
 }

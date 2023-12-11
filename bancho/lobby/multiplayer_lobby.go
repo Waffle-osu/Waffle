@@ -22,6 +22,8 @@ type MultiplayerLobby struct {
 	LastScoreFrames     [8]base_packet_structures.ScoreFrame
 	MatchInfoMutex      sync.Mutex
 	InProgress          bool
+
+	IrcReffed bool
 }
 
 func (multiLobby *MultiplayerLobby) LogEvent(eventType database.MatchHistoryEventType, initiator LobbyClient, extraInfo string) {
@@ -163,9 +165,16 @@ func (multiLobby *MultiplayerLobby) Part(client LobbyClient) {
 
 	multiLobby.MultiChannel.Leave(client)
 
-	//If there's nobody inside, disband
-	if multiLobby.GetUsedUpSlots() == 0 {
-		multiLobby.Disband()
+	//On IRC Reffed matches: disband when there's nobody in #multiplayer
+	//On regular osu! Matches: disband when nobody's inside in the match
+	if multiLobby.IrcReffed {
+		if len(multiLobby.MultiChannel.Clients) == 0 {
+			multiLobby.Disband()
+		}
+	} else {
+		if multiLobby.GetUsedUpSlots() == 0 {
+			multiLobby.Disband()
+		}
 	}
 
 	//Tell everyone about it

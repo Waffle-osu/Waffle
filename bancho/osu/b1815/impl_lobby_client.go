@@ -1,6 +1,7 @@
 package b1815
 
 import (
+	"Waffle/bancho/chat"
 	"Waffle/bancho/lobby"
 )
 
@@ -28,4 +29,8 @@ func (client *Client) JoinMatch(match *lobby.MultiplayerLobby, password string) 
 
 func (client *Client) AssignMultiplayerLobby(lobby *lobby.MultiplayerLobby) {
 	client.currentMultiLobby = lobby
+}
+
+func (client *Client) AddJoinedChannel(channel *chat.Channel) {
+	client.joinedChannels[channel.Name] = channel
 }

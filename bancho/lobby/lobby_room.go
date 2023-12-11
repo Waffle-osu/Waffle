@@ -90,7 +90,7 @@ func BroadcastToLobby(packetFunction func(LobbyClient)) {
 }
 
 // CreateNewMultiMatch is responsible for creating a new Multiplayer Match
-func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host LobbyClient, autojoinHost bool) *MultiplayerLobby {
+func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host LobbyClient, ircReffed bool) *MultiplayerLobby {
 	multiMutex.Lock()
 
 	for i := 0; i != 65536; i++ {
@@ -104,6 +104,7 @@ func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host Lob
 
 	multiLobby := new(MultiplayerLobby)
 	multiLobby.MatchId = fmt.Sprintf("%s-%s", host.GetUsername(), time.Now().Format("20060102150405"))
+	multiLobby.IrcReffed = ircReffed
 
 	//Set up the Chat channel #multiplayer
 	multiLobby.MultiChannel = new(chat.Channel)
@@ -121,7 +122,7 @@ func CreateNewMultiMatch(match base_packet_structures.MultiplayerMatch, host Lob
 	multiLobby.MatchInformation.HostId = host.GetUserId()
 
 	//Make the host join the lobby, if specified
-	if autojoinHost {
+	if !ircReffed {
 		host.JoinMatch(multiLobby, multiLobby.MatchInformation.GamePassword)
 	}
 
