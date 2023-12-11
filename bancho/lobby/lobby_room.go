@@ -76,10 +76,6 @@ func PartLobby(client LobbyClient) {
 	}
 
 	UnlockClientList()
-
-	//TODO@(Furball): i don't know whether this bug exists but it might very well exist,
-	//              : what happens when a user leaves the lobby and a match disbands,
-	//              : does the client still remember the lobby or does it disappear?
 }
 
 // BroadcastToLobby broadcasts a packet to everyone in the lobby
