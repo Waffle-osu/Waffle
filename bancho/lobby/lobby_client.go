@@ -11,7 +11,7 @@ type LobbyClient interface {
 	GetUserId() int32
 	GetUserData() database.User
 	GetUserPrivileges() int32
-	BanchoIrcMessage(message base_packet_structures.Message)
+	SendChatMessage(sender string, content string, channel string)
 	GetUsername() string
 	GetRelevantUserStats() database.UserStats
 	GetUserStatus() base_packet_structures.StatusUpdate
@@ -45,4 +45,7 @@ type LobbyClient interface {
 
 	SetSilencedUntilUnix(untilUnix int64)
 	GetSilencedUntilUnix() int64
+
+	GetMultiplayerLobby() *MultiplayerLobby
+	AssignMultiplayerLobby(lobby *MultiplayerLobby)
 }

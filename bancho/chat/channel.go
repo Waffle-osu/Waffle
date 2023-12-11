@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"Waffle/database"
 	"sync"
 )
 
@@ -79,6 +80,9 @@ func (channel *Channel) SendMessage(sendingClient ChatClient, message string, ta
 			client.SendChatMessage(sendingClient.GetUsername(), message, target)
 		}
 	}
+
+	//Log to irc_log
+	database.ChatInsertNewMessage(uint64(sendingClient.GetUserId()), channel.Name, message)
 
 	channel.ClientMutex.Unlock()
 }

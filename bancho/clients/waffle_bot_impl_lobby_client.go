@@ -68,3 +68,7 @@ func (client *WaffleBot) JoinMatch(match *lobby.MultiplayerLobby, password strin
 func (client *WaffleBot) LeaveCurrentMatch() {
 
 }
+
+func (WaffleBot *WaffleBot) GetMultiplayerLobby() *lobby.MultiplayerLobby {
+	return nil
+}

@@ -1,9 +1,9 @@
 package clients
 
 import (
-	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/osu/base_packet_structures"
+	"fmt"
 	"strings"
 )
 
@@ -36,7 +36,6 @@ var adminHelpStrings = []string{
 var commandHandlers map[string]func(client_manager.WaffleClient, []string) []string
 
 func WaffleBotInitializeCommands() {
-
 	commandHandlers = make(map[string]func(sender client_manager.WaffleClient, args []string) []string)
 
 	commandHandlers["!help"] = WaffleBotCommandHelp
@@ -47,19 +46,18 @@ func WaffleBotInitializeCommands() {
 	commandHandlers["!leaderboard"] = WaffleBotCommandLeaderboards
 	commandHandlers["!leaderboards"] = WaffleBotCommandLeaderboards
 	commandHandlers["!silence"] = WaffleBotCommandSilence
-	commandHandlers["!mp"] = WaffleBotCommandMultiplayer
 }
 
-func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClient, message base_packet_structures.Message) {
-	publicCommand := message.Target[0] == '#'
-
+func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClient, message base_packet_structures.Message) []string {
 	var command string
 	var arguments []string
 
 	splitMessage := strings.Split(message.Message, " ")
 
 	if len(splitMessage) == 0 {
-		return
+		return []string{
+			"what",
+		}
 	}
 
 	command = splitMessage[0]
@@ -68,32 +66,34 @@ func (client *WaffleBot) WaffleBotHandleCommand(sender client_manager.WaffleClie
 	handler, exists := commandHandlers[command]
 
 	if !exists {
-		return
-	}
-
-	result := handler(sender, arguments)
-
-	for _, messageString := range result {
-		if publicCommand {
-			if message.Target == "#multiplayer" {
-				senderLobby := sender.GetMultiplayerLobby()
-
-				if senderLobby != nil {
-					senderLobby.MultiChannel.SendMessage(WaffleBotInstance, messageString, message.Target)
-				}
-			} else {
-				channel, exists := chat.GetChannelByName(message.Target)
-
-				if exists {
-					channel.SendMessage(WaffleBotInstance, messageString, message.Target)
-				}
-			}
-		} else {
-			sender.BanchoIrcMessage(base_packet_structures.Message{
-				Sender:  "WaffleBot",
-				Message: messageString,
-				Target:  message.Target,
-			})
+		return []string{
+			fmt.Sprintf("%s: No command found!", command),
 		}
 	}
+
+	return handler(sender, arguments)
+
+	// for _, messageString := range result {
+	// 	if publicCommand {
+	// 		if message.Target == "#multiplayer" {
+	// 			senderLobby := sender.GetMultiplayerLobby()
+
+	// 			if senderLobby != nil {
+	// 				senderLobby.MultiChannel.SendMessage(WaffleBotInstance, messageString, message.Target)
+	// 			}
+	// 		} else {
+	// 			channel, exists := chat.GetChannelByName(message.Target)
+
+	// 			if exists {
+	// 				channel.SendMessage(WaffleBotInstance, messageString, message.Target)
+	// 			}
+	// 		}
+	// 	} else {
+	// 		sender.BanchoIrcMessage(base_packet_structures.Message{
+	// 			Sender:  "WaffleBot",
+	// 			Message: messageString,
+	// 			Target:  message.Target,
+	// 		})
+	// 	}
+	// }
 }

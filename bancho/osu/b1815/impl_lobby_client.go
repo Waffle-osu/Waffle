@@ -25,3 +25,7 @@ func (client *Client) JoinMatch(match *lobby.MultiplayerLobby, password string) 
 		client.BanchoMatchJoinFail()
 	}
 }
+
+func (client *Client) AssignMultiplayerLobby(lobby *lobby.MultiplayerLobby) {
+	client.currentMultiLobby = lobby
+}

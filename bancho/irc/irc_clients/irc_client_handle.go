@@ -5,6 +5,7 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/clients"
 	"Waffle/bancho/irc/irc_messages"
+	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/helpers"
@@ -103,48 +104,82 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 			if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
 				client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 			} else {
-				foundChannel, exists := client.joinedChannels[message.Params[0]]
+				messageText := message.Trailing
+				target := message.Params[0]
 
-				//Reroute if it's for #multiplayer
-				if message.Params[0] == "#multiplayer" {
-					if client.currentMultiLobby != nil {
-						client.currentMultiLobby.MultiChannel.SendMessage(client, message.Trailing, message.Params[0])
-					}
+				//Chhannel into which the message gets sent
+				//WaffleBot/Lobby commands get sent there awell
+				//Aswell as their responses
+				var sendChannel *chat.Channel
 
-					if message.Trailing[0] == '!' {
-						go clients.WaffleBotInstance.WaffleBotHandleCommand(client, base_packet_structures.Message{
+				//Command outputs
+				var returnMessages []string
+
+				//Commands start with !
+				if messageText[0] == '!' {
+					//MP commands take a different route
+					//because the handler has to take in a LobbyClient
+					//instead of just a WaffleClient
+					if strings.HasPrefix(messageText, "!mp") {
+						returnMessages = lobby.LobbyHandleCommandMultiplayer(client, messageText)
+					} else {
+						returnMessages = clients.WaffleBotInstance.WaffleBotHandleCommand(client, base_packet_structures.Message{
 							Sender:  client.Username,
-							Message: message.Trailing,
-							Target:  message.Params[0],
+							Message: messageText,
+							Target:  target,
 						})
 					}
-
-					break
 				}
 
-				if exists {
-					foundChannel.SendMessage(client, message.Trailing, message.Params[0])
+				//Reroute for multiplayer, or find channel
+				if target == "#multiplayer" {
+					if client.currentMultiLobby != nil {
+						sendChannel = client.currentMultiLobby.MultiChannel
+					} else {
+						foundChannel, exists := client.joinedChannels[target]
 
-					if message.Trailing[0] == '!' {
-						go clients.WaffleBotInstance.WaffleBotHandleCommand(client, base_packet_structures.Message{
-							Sender:  client.Username,
-							Message: message.Trailing,
-							Target:  message.Params[0],
-						})
+						if exists {
+							sendChannel = foundChannel
+						} else {
+							sendChannel = nil
+						}
+					}
+				}
+
+				if sendChannel != nil {
+					sendChannel.SendMessage(client, messageText, target)
+
+					for _, content := range returnMessages {
+						sendChannel.SendMessage(clients.WaffleBotInstance, content, target)
 					}
 				} else {
-					foundClient := client_manager.GetClientByName(message.Params[0])
+					//Could also be a client.
+					//So before sending a error message, we need to search for a client
+					foundClient := client_manager.GetClientByName(target)
 
 					if foundClient != nil {
 						foundClient.BanchoIrcMessage(base_packet_structures.Message{
 							Sender:  client.Username,
-							Target:  message.Params[0],
-							Message: message.Trailing,
+							Target:  target,
+							Message: messageText,
 						})
+
+						for _, content := range returnMessages {
+							foundClient.BanchoIrcMessage(base_packet_structures.Message{
+								Sender:  "WaffleBot",
+								Target:  target,
+								Message: content,
+							})
+						}
+
+						break
 					} else {
 						client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it. No user under such Username could be found either.", message.Params[0])
+
+						break
 					}
 				}
+
 			}
 		}
 	case "WHO":

@@ -14,6 +14,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -85,29 +86,53 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				} else {
 					message := base_packet_structures.ReadMessage(packetDataReader)
 
-					//Reroute if it's for #multiplayer
+					//Channel into which the message gets sent,
+					//Aswell as where all the WaffleBot/Lobby command
+					//Responses get sent to aswell
+					var sendChannel *chat.Channel
+
+					//Command outputs
+					var returnMessages []string
+
+					//Commands start with !
+					if message.Message[0] == '!' {
+						//mp commands take a different route cuz they have to take in LobbyClient
+						//instead of just WaffleClient
+						if strings.HasPrefix(message.Message, "!mp") {
+							returnMessages = lobby.LobbyHandleCommandMultiplayer(client, message.Message)
+						} else {
+							returnMessages = clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
+						}
+					}
+
+					//Reroute for multiplayer
 					if message.Target == "#multiplayer" {
 						if client.currentMultiLobby != nil {
-							client.currentMultiLobby.MultiChannel.SendMessage(client, message.Message, message.Target)
+							sendChannel = client.currentMultiLobby.MultiChannel
+						} else {
+							client.SendChatMessage("WaffleBot", "Cannot send messages to #multiplayer while not in a Multiplayer Lobby!", "WaffleBot")
+
+							break
+						}
+					} else {
+						//Find channel
+						channel, exists := client.joinedChannels[message.Target]
+
+						if !exists {
+							client.SendChatMessage("WaffleBot", fmt.Sprintf("No channel found called %s!", message.Target), "WaffleBot")
+
+							break
 						}
 
-						if message.Message[0] == '!' {
-							go clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
-						}
-
-						break
+						sendChannel = channel
 					}
 
-					//Find channel
-					channel, exists := client.joinedChannels[message.Target]
+					//Send message to appropriate channel
+					sendChannel.SendMessage(client, message.Message, message.Target)
 
-					if exists {
-						channel.SendMessage(client, message.Message, message.Target)
-						database.ChatInsertNewMessage(uint64(client.GetUserId()), message.Target, message.Message)
-					}
-
-					if message.Message[0] == '!' {
-						go clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
+					//Follow up with command responses, if any
+					for _, content := range returnMessages {
+						sendChannel.SendMessage(clients.WaffleBotInstance, content, message.Target)
 					}
 				}
 				//The client is sending a private message to someone

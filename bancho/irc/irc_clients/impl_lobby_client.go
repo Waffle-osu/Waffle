@@ -69,3 +69,11 @@ func (ircClient *IrcClient) JoinMatch(match *lobby.MultiplayerLobby, password st
 func (ircClient *IrcClient) LeaveCurrentMatch() {
 
 }
+
+func (ircClient *IrcClient) AssignMultiplayerLobby(lobby *lobby.MultiplayerLobby) {
+	ircClient.currentMultiLobby = lobby
+}
+
+func (ircClient *IrcClient) GetMultiplayerLobby() *lobby.MultiplayerLobby {
+	return ircClient.currentMultiLobby
+}

@@ -2,7 +2,6 @@ package irc_clients
 
 import (
 	"Waffle/bancho/irc/irc_messages"
-	"Waffle/bancho/lobby"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers/serialization"
@@ -127,9 +126,4 @@ func (ircClient *IrcClient) BanchoAnnounce(message string) {
 
 func (ircClient *IrcClient) BanchoGetAttention() {
 
-}
-
-func (ircClient *IrcClient) GetMultiplayerLobby() *lobby.MultiplayerLobby {
-	//Will be changing as IRC Reffing gets added
-	return nil
 }
