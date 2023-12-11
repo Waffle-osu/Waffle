@@ -14,8 +14,8 @@ const (
 	BanchoLoginReply               uint16 = 5
 	BanchoSendMessage              uint16 = 7
 	BanchoPing                     uint16 = 8
-	BanchoHandleIrcChangeUsername  uint16 = 9  //TODO: maybe do these once IRC's a thing?
-	BanchoHandleIrcQuit            uint16 = 10 //TODO: maybe do these once IRC's a thing?
+	BanchoHandleIrcChangeUsername  uint16 = 9
+	BanchoHandleIrcQuit            uint16 = 10
 	BanchoHandleOsuUpdate          uint16 = 11
 	BanchoHandleOsuQuit            uint16 = 12
 	BanchoSpectatorJoined          uint16 = 13
