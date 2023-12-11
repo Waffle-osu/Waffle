@@ -18,9 +18,11 @@ import (
 func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine string) {
 	switch strings.ToUpper(message.Command) {
 	case "NICK":
-		client.Nickname = strings.Join(message.Params, " ")
-
-		//TODO: BanchoHandleIrcChangeUsername
+		if client.Nickname == "" {
+			client.Nickname = strings.Join(message.Params, " ")
+		} else {
+			client.BanchoAnnounce(fmt.Sprintf("%s: Nickname changes not allowed!", client.Username))
+		}
 	case "USER":
 		if client.Username == "" && client.Realname == "" {
 			client.Username = message.Params[0]
