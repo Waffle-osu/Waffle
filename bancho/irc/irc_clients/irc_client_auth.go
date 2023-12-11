@@ -37,7 +37,7 @@ func HandleNewIrcClient(connection net.Conn) {
 		ircClient.ProcessMessage(message, line)
 	}
 
-	//TODO: irc tokens
+	//TODO: IRC OTP: https://github.com/Eeveelution/Waffle/issues/15
 
 	passwordHashed := md5.Sum([]byte(ircClient.Password))
 	passwordHashedString := hex.EncodeToString(passwordHashed[:])
