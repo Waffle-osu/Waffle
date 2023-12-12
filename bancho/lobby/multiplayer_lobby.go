@@ -141,6 +141,32 @@ func (multiLobby *MultiplayerLobby) UpdateMatch() {
 	})
 }
 
+// Handles when the IRC Referee leaves the match.
+func (multiLobby *MultiplayerLobby) IrcRefereePart(client LobbyClient) {
+	multiLobby.MatchInfoMutex.Lock()
+
+	//Ignore if not IRC Reffed
+	if !multiLobby.IrcReffed {
+		return
+	}
+
+	//Transfer host, if lobby isn't empty
+	//If it's empty there's nobody to give host to
+	if multiLobby.GetUsedUpSlots() != 0 {
+		multiLobby.HandleHostLeave()
+	}
+
+	//If there's nobody in the multi channel, disband.
+	if len(multiLobby.MultiChannel.Clients) == 0 {
+		multiLobby.Disband()
+	}
+
+	//Tell everyone about it
+	multiLobby.UpdateMatch()
+	multiLobby.MatchInfoMutex.Unlock()
+	multiLobby.LogEvent(database.MatchHistoryEventTypeLeave, client, "IRC Referee left.")
+}
+
 // Part handles a player leaving the match
 func (multiLobby *MultiplayerLobby) Part(client LobbyClient) {
 	multiLobby.MatchInfoMutex.Lock()
@@ -157,7 +183,7 @@ func (multiLobby *MultiplayerLobby) Part(client LobbyClient) {
 
 	//If they were the host, handle that separately, as we need to pass on the host
 	if multiLobby.MatchHost == client {
-		multiLobby.HandleHostLeave(slot)
+		multiLobby.HandleHostLeave()
 	}
 
 	//Make them leave #multiplayer
@@ -179,9 +205,7 @@ func (multiLobby *MultiplayerLobby) Part(client LobbyClient) {
 
 	//Tell everyone about it
 	multiLobby.UpdateMatch()
-
 	multiLobby.MatchInfoMutex.Unlock()
-
 	multiLobby.LogEvent(database.MatchHistoryEventTypeLeave, client, "")
 }
 
@@ -193,7 +217,7 @@ func (multiLobby *MultiplayerLobby) Disband() {
 }
 
 // HandleHostLeave handles the host leaving, as we need to pass on the host
-func (multiLobby *MultiplayerLobby) HandleHostLeave(slot int) {
+func (multiLobby *MultiplayerLobby) HandleHostLeave() {
 	//If nobody's there anymore, disband
 	if multiLobby.GetUsedUpSlots() == 0 {
 		multiLobby.Disband()
@@ -204,16 +228,10 @@ func (multiLobby *MultiplayerLobby) HandleHostLeave(slot int) {
 		if multiLobby.MultiClients[i] != nil {
 			//If a client is found, set them to be the new host
 			multiLobby.MatchHost = multiLobby.MultiClients[i]
-
-			//We can move them freely if the match isn't in progress, as the slot IDs don't have to be preserved, unlike during gameplay
-			if !multiLobby.InProgress {
-				multiLobby.MoveSlot(i, slot)
-			}
-
 			//Tell the new client they're host now
 			multiLobby.MatchHost.BanchoMatchTransferHost()
 
-			multiLobby.LogEvent(database.MatchHistoryEventTypeHostChange, multiLobby.MatchHost, "")
+			multiLobby.LogEvent(database.MatchHistoryEventTypeHostChange, multiLobby.MatchHost, "Host left.")
 
 			multiLobby.MatchInformation.HostId = multiLobby.MatchHost.GetUserId()
 		}

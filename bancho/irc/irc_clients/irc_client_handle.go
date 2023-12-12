@@ -82,6 +82,10 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 			} else {
 				client.packetQueue <- irc_messages.IrcSendNotOnChannel(channel)
 			}
+
+			if channel == "#multiplayer" {
+				client.currentMultiLobby.IrcRefereePart(client)
+			}
 		}
 	case "NAMES":
 		channels := []string{}
