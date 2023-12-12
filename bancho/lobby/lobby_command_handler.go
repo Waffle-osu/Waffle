@@ -177,6 +177,12 @@ func MpCommandSize(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	if len(args) < 2 {
+		return []string{
+			"!mp invite: Size required!",
+		}
+	}
+
 	size := args[1]
 
 	num, err := strconv.ParseInt(size, 10, 64)
@@ -206,6 +212,49 @@ func MpCommandSet(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	if len(args) < 2 {
+		return []string{
+			"!mp invite: Username required!",
+		}
+	}
+
+	teamMode := args[1]
+	scoreMode := ""
+
+	if len(args) >= 3 {
+		scoreMode = args[2]
+	}
+
+	newTeamType := currentLobby.MatchInformation.MatchTeamType
+
+	switch teamMode {
+	case "0":
+		newTeamType = base_packet_structures.MultiplayerMatchTypeHeadToHead
+	case "1":
+		newTeamType = base_packet_structures.MultiplayerMatchTypeTagCoop
+	case "2":
+		newTeamType = base_packet_structures.MultiplayerMatchTypeTeamVs
+	case "3":
+		newTeamType = base_packet_structures.MultiplayerMatchTypeTagTeamVs
+	}
+
+	newScoringMode := currentLobby.MatchInformation.MatchScoringType
+
+	if scoreMode != "" {
+		switch scoreMode {
+		case "0":
+			newScoringMode = base_packet_structures.MultiplayerMatchScoreTypeScore
+		case "1":
+			newScoringMode = base_packet_structures.MultiplayerMatchScoreTypeAccuracy
+		}
+	}
+
+	matchSetings := currentLobby.MatchInformation
+	matchSetings.MatchTeamType = newTeamType
+	matchSetings.MatchScoringType = newScoringMode
+
+	currentLobby.ChangeSettings(sender, matchSetings)
+
 	return []string{}
 }
 
@@ -214,6 +263,29 @@ func MpCommandMove(sender LobbyClient, args []string) []string {
 	if currentLobby == nil {
 		return []string{
 			"!mp move: Only usable inside multiplayer lobby!",
+		}
+	}
+
+	if len(args) < 3 {
+		return []string{
+			"!mp move: Username and slot required!",
+		}
+	}
+
+	username := args[1]
+	slot := args[2]
+
+	parsedSlot, err := strconv.ParseInt(slot, 10, 64)
+
+	if err != nil {
+		return []string{
+			"!mp move: Actual number for Slot required.",
+		}
+	}
+
+	for i := 0; i != 8; i++ {
+		if currentLobby.MultiClients[i].GetUsername() == username {
+			currentLobby.TryChangeSlot(currentLobby.MultiClients[i], int(parsedSlot))
 		}
 	}
 
