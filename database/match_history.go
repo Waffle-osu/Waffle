@@ -3,25 +3,27 @@ package database
 type MatchHistoryEventType uint8
 
 const (
-	MatchHistoryEventTypeJoin            MatchHistoryEventType = 0
-	MatchHistoryEventTypeLeave           MatchHistoryEventType = 1
-	MatchHistoryEventTypeKick            MatchHistoryEventType = 2
-	MatchHistoryEventTypeMove            MatchHistoryEventType = 3
-	MatchHistoryEventTypeLock            MatchHistoryEventType = 4
-	MatchHistoryEventTypeUnlock          MatchHistoryEventType = 5
-	MatchHistoryEventTypeReady           MatchHistoryEventType = 6
-	MatchHistoryEventTypeUnready         MatchHistoryEventType = 7
-	MatchHistoryEventTypeChangeTeam      MatchHistoryEventType = 8
-	MatchHistoryEventTypeHostChange      MatchHistoryEventType = 9
-	MatchHistoryEventTypeSettingsChanged MatchHistoryEventType = 10
-	MatchHistoryEventTypeModsChanged     MatchHistoryEventType = 11
-	MatchHistoryEventTypeMatchStarted    MatchHistoryEventType = 12
-	MatchHistoryEventTypePlayingStarted  MatchHistoryEventType = 13
-	MatchHistoryEventTypeFinalScore      MatchHistoryEventType = 14
-	MatchHistoryEventTypePlayerFail      MatchHistoryEventType = 15
-	MatchHistoryEventTypeTeamFail        MatchHistoryEventType = 16
-	MatchHistoryEventTypeMatchComplete   MatchHistoryEventType = 17
-	MatchHistoryEventTypeMatchDisbanded  MatchHistoryEventType = 18
+	MatchHistoryEventTypeJoin             MatchHistoryEventType = 0
+	MatchHistoryEventTypeLeave            MatchHistoryEventType = 1
+	MatchHistoryEventTypeKick             MatchHistoryEventType = 2
+	MatchHistoryEventTypeMove             MatchHistoryEventType = 3
+	MatchHistoryEventTypeLock             MatchHistoryEventType = 4
+	MatchHistoryEventTypeUnlock           MatchHistoryEventType = 5
+	MatchHistoryEventTypeReady            MatchHistoryEventType = 6
+	MatchHistoryEventTypeUnready          MatchHistoryEventType = 7
+	MatchHistoryEventTypeChangeTeam       MatchHistoryEventType = 8
+	MatchHistoryEventTypeHostChange       MatchHistoryEventType = 9
+	MatchHistoryEventTypeSettingsChanged  MatchHistoryEventType = 10
+	MatchHistoryEventTypeModsChanged      MatchHistoryEventType = 11
+	MatchHistoryEventTypeMatchStarted     MatchHistoryEventType = 12
+	MatchHistoryEventTypePlayingStarted   MatchHistoryEventType = 13
+	MatchHistoryEventTypeFinalScore       MatchHistoryEventType = 14
+	MatchHistoryEventTypePlayerFail       MatchHistoryEventType = 15
+	MatchHistoryEventTypeTeamFail         MatchHistoryEventType = 16
+	MatchHistoryEventTypeMatchComplete    MatchHistoryEventType = 17
+	MatchHistoryEventTypeMatchDisbanded   MatchHistoryEventType = 18
+	MatchHistoryEventTypeMatchRefLocked   MatchHistoryEventType = 19
+	MatchHistoryEventTypeMatchRefUnlocked MatchHistoryEventType = 20
 )
 
 type MatchHistoryElement struct {

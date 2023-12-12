@@ -3,6 +3,7 @@ package lobby
 import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -118,73 +119,235 @@ func MpCommandMake(sender LobbyClient, args []string) []string {
 }
 
 func MpCommandInvite(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp invite: Only usable inside multiplayer lobby!",
+		}
+	}
+
+	if len(args) < 2 {
+		return []string{
+			"!mp invite: Username required!",
+		}
+	}
+
+	username := ""
+
+	for i := 1; i != len(args); i++ {
+		username += args[i]
+	}
+
+	//TODO: figure out how to do this
+
 	return []string{}
 }
 
 func MpCommandLock(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp lock: Only usable inside multiplayer lobby!",
+		}
+	}
+
+	currentLobby.RefereeLock(sender)
+
 	return []string{}
 }
 
 func MpCommandUnlock(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp unlock: Only usable inside multiplayer lobby!",
+		}
+	}
+
+	currentLobby.RefereeUnlock(sender)
+
 	return []string{}
 }
 
 func MpCommandSize(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp size: Only usable inside multiplayer lobby!",
+		}
+	}
+
+	size := args[1]
+
+	num, err := strconv.ParseInt(size, 10, 64)
+
+	if err != nil {
+		return []string{
+			"!mp size: make sure the size is a number.",
+		}
+	}
+
+	if currentLobby.GetUsedUpSlots() > int(num) {
+		return []string{
+			"!mp size: there are more used up slots than you want to size down to.",
+		}
+	}
+
+	currentLobby.SetSize(sender, int(num))
+
 	return []string{}
 }
 
 func MpCommandSet(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp set: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandMove(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp move: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandTeam(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp team: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandHost(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp host: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandSettings(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp settings: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandStart(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp start: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandAbort(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp abort: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandMap(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp map: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandMods(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp mods: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandTimer(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp timer: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandAbortTimer(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp abort: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandKick(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp kick: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandPassword(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp password: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }
 
 func MpCommandClose(sender LobbyClient, args []string) []string {
+	currentLobby := sender.GetMultiplayerLobby()
+	if currentLobby == nil {
+		return []string{
+			"!mp close: Only usable inside multiplayer lobby!",
+		}
+	}
+
 	return []string{}
 }

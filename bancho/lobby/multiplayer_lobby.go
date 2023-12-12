@@ -24,6 +24,7 @@ type MultiplayerLobby struct {
 	InProgress          bool
 
 	IrcReffed bool
+	Locked    bool
 }
 
 func (multiLobby *MultiplayerLobby) LogEvent(eventType database.MatchHistoryEventType, initiator LobbyClient, extraInfo string) {
@@ -43,6 +44,11 @@ func (multiLobby *MultiplayerLobby) LogEvent(eventType database.MatchHistoryEven
 
 // Join gets called when a client is attempting to join the lobby
 func (multiLobby *MultiplayerLobby) Join(client LobbyClient, password string) bool {
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked!", "WaffleBot")
+		return false
+	}
+
 	//if they input the wrong password, join failed
 	if multiLobby.MatchInformation.GamePassword != password {
 		return false
@@ -242,6 +248,11 @@ func (multiLobby *MultiplayerLobby) HandleHostLeave() {
 
 // TryChangeSlot gets called when a player tries to change slot
 func (multiLobby *MultiplayerLobby) TryChangeSlot(client LobbyClient, slotId int) {
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot move during lock.", "WaffleBot")
+		return
+	}
+
 	multiLobby.MatchInfoMutex.Lock()
 
 	//Refuse if the slot is occupied or locked
@@ -260,6 +271,11 @@ func (multiLobby *MultiplayerLobby) TryChangeSlot(client LobbyClient, slotId int
 
 // ChangeTeam gets called when a player is trying to change their team
 func (multiLobby *MultiplayerLobby) ChangeTeam(client LobbyClient) {
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot change teams during lock.", "WaffleBot")
+		return
+	}
+
 	multiLobby.MatchInfoMutex.Lock()
 
 	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
@@ -297,6 +313,13 @@ func (multiLobby *MultiplayerLobby) TransferHost(client LobbyClient, slotId int)
 		return
 	}
 
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot transfer host during lock.", "WaffleBot")
+
+		multiLobby.MatchInfoMutex.Unlock()
+		return
+	}
+
 	//set the new host
 	multiLobby.MatchHost = multiLobby.MultiClients[slotId]
 	multiLobby.MatchInformation.HostId = multiLobby.MatchHost.GetUserId()
@@ -314,6 +337,11 @@ func (multiLobby *MultiplayerLobby) TransferHost(client LobbyClient, slotId int)
 
 // ReadyUp gets called when a player has clicked the Ready button
 func (multiLobby *MultiplayerLobby) ReadyUp(client LobbyClient) {
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot change ready state during lock.", "WaffleBot")
+		return
+	}
+
 	multiLobby.MatchInfoMutex.Lock()
 
 	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
@@ -333,6 +361,11 @@ func (multiLobby *MultiplayerLobby) ReadyUp(client LobbyClient) {
 
 // Unready gets called when a player has changed their mind about being ready and pressed the not ready button
 func (multiLobby *MultiplayerLobby) Unready(client LobbyClient) {
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot change ready state during lock.", "WaffleBot")
+		return
+	}
+
 	multiLobby.MatchInfoMutex.Lock()
 
 	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
@@ -355,6 +388,13 @@ func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSett
 	multiLobby.MatchInfoMutex.Lock()
 
 	if multiLobby.MatchHost != client {
+		return
+	}
+
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot change ready state during lock.", "WaffleBot")
+
+		multiLobby.MatchInfoMutex.Unlock()
 		return
 	}
 
@@ -418,6 +458,13 @@ func (multiLobby *MultiplayerLobby) ChangeMods(client LobbyClient, newMods int32
 		return
 	}
 
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot change ready state during lock.", "WaffleBot")
+
+		multiLobby.MatchInfoMutex.Unlock()
+		return
+	}
+
 	oldMods := helpers.FormatMods(uint32(multiLobby.MatchInformation.ActiveMods))
 
 	//Set new mods and tell everyone
@@ -436,6 +483,13 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 	multiLobby.MatchInfoMutex.Lock()
 
 	if multiLobby.MatchHost != client {
+		return
+	}
+
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot lock slots during lock.", "WaffleBot")
+
+		multiLobby.MatchInfoMutex.Unlock()
 		return
 	}
 
@@ -704,4 +758,90 @@ func (multiLobby *MultiplayerLobby) StartGame(client LobbyClient) {
 	multiLobby.MatchInfoMutex.Unlock()
 
 	multiLobby.LogEvent(database.MatchHistoryEventTypeMatchStarted, client, "")
+}
+
+// Various IRC Ref related things:
+
+func (multiLobby *MultiplayerLobby) RefereeLock(client LobbyClient) {
+	if client != multiLobby.MatchHost {
+		return
+	}
+
+	multiLobby.Locked = true
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeMatchRefLocked, client, "Referee locked the lobby.")
+}
+
+func (multiLobby *MultiplayerLobby) RefereeUnlock(client LobbyClient) {
+	if client != multiLobby.MatchHost {
+		return
+	}
+
+	multiLobby.Locked = false
+
+	multiLobby.LogEvent(database.MatchHistoryEventTypeMatchRefUnlocked, client, "Referee unlocked the lobby.")
+}
+
+func (multiLobby *MultiplayerLobby) MovePlayerUp(client LobbyClient, slotToMove int) bool {
+	if slotToMove == 0 {
+		return false
+	}
+
+	if multiLobby.MatchInformation.SlotStatus[slotToMove] == base_packet_structures.MultiplayerMatchSlotStatusOpen {
+		return false
+	}
+
+	attemptedSlot := multiLobby.MatchInformation.SlotStatus[slotToMove-1]
+
+	if attemptedSlot == base_packet_structures.MultiplayerMatchSlotStatusOpen {
+		multiLobby.MoveSlot(slotToMove, slotToMove-1)
+
+		return true
+	}
+
+	return false
+}
+
+func (multiLobby *MultiplayerLobby) IsTight() bool {
+	consecutive := 0
+	for i := 0; i != 8; i++ {
+		if multiLobby.MatchInformation.SlotStatus[i] != base_packet_structures.MultiplayerMatchSlotStatusOpen {
+			consecutive++
+		} else {
+			break
+		}
+	}
+
+	return consecutive == multiLobby.GetUsedUpSlots()
+}
+
+func (multiLobby *MultiplayerLobby) SetSize(client LobbyClient, size int) {
+	if client != multiLobby.MatchHost {
+		return
+	}
+
+	if multiLobby.Locked {
+		client.SendChatMessage("WaffleBot", "Multiplayer Lobby currently locked! Cannot change lobby arrangement during lock.", "WaffleBot")
+
+		return
+	}
+
+	multiLobby.MatchInfoMutex.Lock()
+
+	//Move everyone as tight as possible
+	for !multiLobby.IsTight() {
+		for i := 1; i != 8; i++ {
+			multiLobby.MovePlayerUp(client, i)
+		}
+	}
+
+	//Lock all the bottom slots
+	for i := 7; i != 7-(8-size); i-- {
+		multiLobby.MatchInformation.SlotStatus[i] = base_packet_structures.MultiplayerMatchSlotStatusLocked
+	}
+
+	//Tell everyone, in lobby aswell
+	multiLobby.UpdateMatch()
+
+	multiLobby.MatchInfoMutex.Unlock()
 }
