@@ -153,6 +153,8 @@ func (multiLobby *MultiplayerLobby) IrcRefereePart(client LobbyClient) {
 
 	//Ignore if not IRC Reffed
 	if !multiLobby.IrcReffed {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -181,6 +183,8 @@ func (multiLobby *MultiplayerLobby) Part(client LobbyClient) {
 
 	//If they somehow don't exist, ignore
 	if slot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -257,6 +261,8 @@ func (multiLobby *MultiplayerLobby) TryChangeSlot(client LobbyClient, slotId int
 
 	//Refuse if the slot is occupied or locked
 	if multiLobby.MatchInformation.SlotStatus[slotId] == base_packet_structures.MultiplayerMatchSlotStatusLocked || (multiLobby.MatchInformation.SlotStatus[slotId]&base_packet_structures.MultiplayerMatchSlotStatusHasPlayer) > 0 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -281,6 +287,8 @@ func (multiLobby *MultiplayerLobby) ChangeTeam(client LobbyClient) {
 	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if clientSlot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -310,6 +318,8 @@ func (multiLobby *MultiplayerLobby) TransferHost(client LobbyClient, slotId int)
 	multiLobby.MatchInfoMutex.Lock()
 
 	if multiLobby.MatchHost != client {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -347,6 +357,8 @@ func (multiLobby *MultiplayerLobby) ReadyUp(client LobbyClient) {
 	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if clientSlot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -371,6 +383,8 @@ func (multiLobby *MultiplayerLobby) Unready(client LobbyClient) {
 	clientSlot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if clientSlot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -388,6 +402,8 @@ func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSett
 	multiLobby.MatchInfoMutex.Lock()
 
 	if multiLobby.MatchHost != client {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -455,6 +471,8 @@ func (multiLobby *MultiplayerLobby) ChangeMods(client LobbyClient, newMods int32
 	multiLobby.MatchInfoMutex.Lock()
 
 	if multiLobby.MatchHost != client {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -483,6 +501,8 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 	multiLobby.MatchInfoMutex.Lock()
 
 	if multiLobby.MatchHost != client {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -495,6 +515,8 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 
 	//don't allow the host to kick themselves by locking their slot
 	if multiLobby.MultiClients[slotId] == multiLobby.MatchHost {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -544,6 +566,8 @@ func (multiLobby *MultiplayerLobby) InformNoBeatmap(client LobbyClient) {
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if slot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -561,6 +585,8 @@ func (multiLobby *MultiplayerLobby) InformGotBeatmap(client LobbyClient) {
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if slot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -578,6 +604,8 @@ func (multiLobby *MultiplayerLobby) InformLoadComplete(client LobbyClient) {
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if slot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -605,6 +633,8 @@ func (multiLobby *MultiplayerLobby) InformScoreUpdate(client LobbyClient, scoreF
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if slot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -630,6 +660,8 @@ func (multiLobby *MultiplayerLobby) InformCompletion(client LobbyClient) {
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if slot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -682,6 +714,8 @@ func (multiLobby *MultiplayerLobby) InformPressedSkip(client LobbyClient) {
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if slot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -714,6 +748,8 @@ func (multiLobby *MultiplayerLobby) InformFailed(client LobbyClient) {
 	slot := multiLobby.GetSlotFromUserId(client.GetUserId())
 
 	if slot == -1 {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 
@@ -737,6 +773,8 @@ func (multiLobby *MultiplayerLobby) StartGame(client LobbyClient) {
 	multiLobby.MatchInfoMutex.Lock()
 
 	if multiLobby.MatchHost != client {
+		multiLobby.MatchInfoMutex.Unlock()
+
 		return
 	}
 

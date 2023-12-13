@@ -140,9 +140,9 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 						}
 
 						messageText = actualMessage
+					} else {
+						client.packetQueue <- irc_messages.IrcSendErrNoTextToSend("No text to send. You either put no text in, or you're using a wack IRC client.")
 					}
-				} else {
-					client.packetQueue <- irc_messages.IrcSendErrNoTextToSend("No text to send. You either put no text in, or you're using a wack IRC client.")
 				}
 
 				//Commands start with !
@@ -356,6 +356,12 @@ func (client *IrcClient) HandleIncoming() {
 		if err != nil {
 			return
 		}
+
+		go func() {
+			misc.StatsRecvLock.Lock()
+			misc.StatsBytesRecieved += uint64(len(line) + 1)
+			misc.StatsRecvLock.Unlock()
+		}()
 
 		client.lastReceive = time.Now()
 

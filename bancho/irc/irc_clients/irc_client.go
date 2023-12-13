@@ -25,7 +25,7 @@ var MOTD []string = []string{"",
 
 const (
 	ReceiveTimeout = 30
-	PingTimeout    = 30
+	PingTimeout    = 6
 )
 
 type IrcClient struct {

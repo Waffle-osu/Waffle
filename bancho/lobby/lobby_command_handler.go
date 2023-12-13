@@ -283,8 +283,20 @@ func MpCommandMove(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	if parsedSlot > 7 || parsedSlot < 0 {
+		return []string{
+			"!mp move: Slot outside range.",
+		}
+	}
+
 	for i := 0; i != 8; i++ {
-		if currentLobby.MultiClients[i].GetUsername() == username {
+		currentClient := currentLobby.MultiClients[i]
+
+		if currentClient == nil {
+			continue
+		}
+
+		if currentClient.GetUsername() == username {
 			currentLobby.TryChangeSlot(currentLobby.MultiClients[i], int(parsedSlot))
 		}
 	}
