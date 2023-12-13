@@ -312,6 +312,43 @@ func MpCommandTeam(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	if len(args) < 3 {
+		return []string{
+			"!mp move: Username and team color required!",
+		}
+	}
+
+	username := args[1]
+	team := args[2]
+
+	actualTeam := base_packet_structures.MultiplayerSlotTeamRed
+
+	switch team {
+	case "red":
+		actualTeam = base_packet_structures.MultiplayerSlotTeamRed
+	case "blue":
+		actualTeam = base_packet_structures.MultiplayerSlotTeamBlue
+	default:
+		return []string{
+			fmt.Sprintf("!mp team: %s is not a valid team.", team),
+		}
+	}
+
+	for i := 0; i != 8; i++ {
+		currentClient := currentLobby.MultiClients[i]
+
+		if currentClient == nil {
+			continue
+		}
+
+		if currentClient.GetUsername() == username {
+			slot := currentLobby.GetSlotFromUserId(currentClient.GetUserId())
+
+			currentLobby.MatchInformation.SlotTeam[slot] = actualTeam
+			currentLobby.UpdateMatch()
+		}
+	}
+
 	return []string{}
 }
 
