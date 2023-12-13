@@ -16,6 +16,8 @@ import (
 )
 
 func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine string) {
+	helpers.Logger.Printf("%s: %s", client.Username, rawLine)
+
 	switch strings.ToUpper(message.Command) {
 	case "NICK":
 		if client.Nickname == "" {
@@ -126,8 +128,11 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				var returnMessages []string
 
 				//This is for very wack IRC Clients
+				//that for whatever reason, don't put
+				//the message in trailing, if it's only one word
+				//I'm looking at you Limechat...
 				if message.Trailing == "" {
-					if len(message.Params) > 2 {
+					if len(message.Params) >= 2 {
 						actualMessage := ""
 
 						for i := 1; i != len(message.Params); i++ {
