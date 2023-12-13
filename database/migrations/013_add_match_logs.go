@@ -14,11 +14,9 @@ func (migration MigrationAddMatchLogs) Apply(db *sql.DB) error {
 			event_type         TINYINT     UNSIGNED NOT NULL,
 			event_initiator_id BIGINT      UNSIGNED NOT NULL,
 			extra_info         TEXT                 NOT NULL,
-			time               DATETIME             NOT NULL DEFAULT CURRENT_TIMESTAMP
+			time               DATETIME             NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-			PRIMARY KEY (event_id),
-
-			KEY match_id_INDEX (match_id)
+			PRIMARY KEY (event_id)
 		)
 	`
 	return MigrationHelperRunSplitSql(sql, db)

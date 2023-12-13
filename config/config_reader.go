@@ -90,19 +90,15 @@ func ReadConfiguration() {
 	existingKeys := map[string]bool{}
 
 	if _, err := os.Stat(".env"); errors.Is(err, os.ErrNotExist) {
-		go func() {
-			time.Sleep(2 * time.Second)
+		succeeded := CreateDefaultConfiguration()
 
-			succeeded := CreateDefaultConfiguration()
+		if !succeeded {
+			return
+		}
 
-			if !succeeded {
-				return
-			}
-
-			for _, line := range strings.Split(EnvFileWarningString, "\n") {
-				helpers.Logger.Printf(line)
-			}
-		}()
+		for _, line := range strings.Split(EnvFileWarningString, "\n") {
+			helpers.Logger.Printf(line)
+		}
 
 		return
 	}

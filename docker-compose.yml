@@ -1,0 +1,9 @@
+services:
+  db:
+    image: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: waffle
+    ports: [
+      "3306:3306"
+    ]

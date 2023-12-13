@@ -81,7 +81,7 @@ func (migration CreateBeatmapTablesStruct) Apply(db *sql.DB) error {
 	CREATE TABLE waffle.beatmap_offsets (
 		offset_id  bigint NOT NULL AUTO_INCREMENT,
 		beatmap_id int    NOT NULL,
-		offset     int    NOT NULL DEFAULT '0',
+		map_offset int    NOT NULL DEFAULT '0',
 		
 		PRIMARY KEY (offset_id, beatmap_id)
 	) DEFAULT CHARSET=utf8mb4;

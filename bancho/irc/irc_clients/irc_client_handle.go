@@ -125,6 +125,21 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				//Command outputs
 				var returnMessages []string
 
+				//This is for very wack IRC Clients
+				if message.Trailing == "" {
+					if len(message.Params) > 2 {
+						actualMessage := ""
+
+						for i := 1; i != len(message.Params); i++ {
+							actualMessage += message.Params[i]
+						}
+
+						messageText = actualMessage
+					}
+				} else {
+					client.packetQueue <- irc_messages.IrcSendErrNoTextToSend("No text to send. You either put no text in, or you're using a wack IRC client.")
+				}
+
 				//Commands start with !
 				if messageText[0] == '!' {
 					//MP commands take a different route

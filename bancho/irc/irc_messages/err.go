@@ -17,6 +17,13 @@ func IrcSendNoSuchChannel(message string, channel string) Message {
 	}
 }
 
+func IrcSendErrNoTextToSend(message string) Message {
+	return Message{
+		NumCommand: ErrNoTextToSend,
+		Trailing:   message,
+	}
+}
+
 func IrcSendNotOnChannel(channel string) Message {
 	return Message{
 		NumCommand: ErrNotOnChannel,
