@@ -360,6 +360,29 @@ func MpCommandHost(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	if len(args) < 2 {
+		return []string{
+			"!mp host: Username required!",
+		}
+	}
+
+	username := args[1]
+
+	for i := 0; i != 8; i++ {
+		currentClient := currentLobby.MultiClients[i]
+
+		if currentClient == nil {
+			continue
+		}
+
+		if currentClient.GetUsername() == username {
+			slot := currentLobby.GetSlotFromUserId(currentClient.GetUserId())
+
+			currentLobby.TransferHost(sender, slot)
+			currentLobby.UpdateMatch()
+		}
+	}
+
 	return []string{}
 }
 
