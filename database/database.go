@@ -5,6 +5,7 @@ import (
 	"Waffle/helpers"
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -17,18 +18,25 @@ func Initialize() {
 		return
 	}
 
-	db, connErr := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s", config.MySqlUsername, config.MySqlPassword, config.MySqlLocation, config.MySqlDatabase))
+	for {
+		db, _ := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s", config.MySqlUsername, config.MySqlPassword, config.MySqlLocation, config.MySqlDatabase))
 
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
+		db.SetMaxOpenConns(10)
+		db.SetMaxIdleConns(10)
 
-	if connErr != nil {
-		helpers.Logger.Printf("[Database] MySQL Connection could not be established...\n")
+		pingErr := db.Ping()
 
-		return
+		if pingErr != nil {
+			helpers.Logger.Printf("[Database] MySQL Connection could not be established... Retrying...\n")
+
+			time.Sleep(time.Second * 5)
+			continue
+		} else {
+			Database = db
+
+			break
+		}
 	}
-
-	Database = db
 }
 
 func Deinitialize() {
