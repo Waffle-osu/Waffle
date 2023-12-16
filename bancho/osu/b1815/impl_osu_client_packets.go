@@ -171,7 +171,7 @@ func (client *Client) BanchoPresence(user database.User, stats database.UserStat
 	presence := base_packet_structures.UserPresence{
 		UserId:          int32(stats.UserID),
 		Username:        user.Username,
-		AvatarExtension: 0,
+		AvatarExtension: 1,
 		Timezone:        uint8(timezone),
 		Country:         uint8(user.Country),
 		City:            "",
