@@ -104,3 +104,24 @@ func FormatMatchTeamTypes(teamType uint8) string {
 
 	return ""
 }
+
+func FormatSlotStatus(slotStatus uint8) string {
+	switch slotStatus {
+	case 1:
+		return "Open"
+	case 2:
+		return "Locked"
+	case 4:
+		return "Not ready"
+	case 8:
+		return "Ready"
+	case 16:
+		return "Missing Map"
+	case 32:
+		return "Playing"
+	case 64:
+		return "Completed"
+	default:
+		return ""
+	}
+}

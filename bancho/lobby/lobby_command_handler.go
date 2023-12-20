@@ -2,6 +2,7 @@ package lobby
 
 import (
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/helpers"
 	"fmt"
 	"strconv"
 	"strings"
@@ -394,7 +395,47 @@ func MpCommandSettings(sender LobbyClient, args []string) []string {
 		}
 	}
 
-	return []string{}
+	messages := []string{
+		fmt.Sprintf("-- Lobby name: %s", currentLobby.MatchInformation.GameName),
+		fmt.Sprintf("Has password: %t", currentLobby.MatchInformation.GamePassword != ""),
+		fmt.Sprintf("Beatmap Name: %s", currentLobby.MatchInformation.BeatmapName),
+		fmt.Sprintf("Beatmap ID: %d", currentLobby.MatchInformation.BeatmapId),
+		fmt.Sprintf("Playmode: %s", helpers.FormatPlaymodes(currentLobby.MatchInformation.Playmode)),
+		fmt.Sprintf("Team Type: %s", helpers.FormatMatchTeamTypes(currentLobby.MatchInformation.MatchTeamType)),
+		fmt.Sprintf("Scoring Type: %s", helpers.FormatScoringType(currentLobby.MatchInformation.MatchScoringType)),
+		fmt.Sprintf("Host: %s", currentLobby.MatchHost.GetUsername()),
+		"-- Slots:",
+	}
+
+	for i := 0; i != 8; i++ {
+		formattedSlot := ""
+
+		if currentLobby.MatchInformation.SlotStatus[i] == base_packet_structures.MultiplayerMatchSlotStatusLocked {
+			formattedSlot = fmt.Sprintf("[%d] Locked.", i)
+		} else {
+			if currentLobby.MatchInformation.SlotStatus[i] == base_packet_structures.MultiplayerMatchSlotStatusOpen {
+				formattedSlot = fmt.Sprintf("[%d] Open..", i)
+			} else {
+				userId := currentLobby.MatchInformation.SlotUserId[i]
+
+				for j := 0; j != 8; j++ {
+					currentClient := currentLobby.MultiClients[j]
+
+					if currentClient == nil {
+						continue
+					}
+
+					if currentClient.GetUserId() == userId {
+						formattedSlot = fmt.Sprintf("[%d] Name: %s; Status: %s", i, currentClient.GetUsername(), helpers.FormatSlotStatus(currentLobby.MatchInformation.SlotStatus[i]))
+					}
+				}
+			}
+		}
+
+		messages = append(messages, formattedSlot)
+	}
+
+	return messages
 }
 
 func MpCommandStart(sender LobbyClient, args []string) []string {

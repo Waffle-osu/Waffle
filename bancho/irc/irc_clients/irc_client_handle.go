@@ -16,8 +16,6 @@ import (
 )
 
 func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine string) {
-	helpers.Logger.Printf("%s: %s", client.Username, rawLine)
-
 	switch strings.ToUpper(message.Command) {
 	case "NICK":
 		if client.Nickname == "" {
