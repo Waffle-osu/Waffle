@@ -1,9 +1,9 @@
 package b1815
 
 import (
+	"Waffle/bancho/bot"
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/clients"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
@@ -101,7 +101,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 						if strings.HasPrefix(message.Message, "!mp") {
 							returnMessages = lobby.LobbyHandleCommandMultiplayer(client, message.Message)
 						} else {
-							returnMessages = clients.WaffleBotInstance.WaffleBotHandleCommand(client, message)
+							returnMessages = bot.WaffleBotInstance.WaffleBotHandleCommand(client, message)
 						}
 					}
 
@@ -132,7 +132,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 
 					//Follow up with command responses, if any
 					for _, content := range returnMessages {
-						sendChannel.SendMessage(clients.WaffleBotInstance, content, message.Target)
+						sendChannel.SendMessage(bot.WaffleBotInstance, content, message.Target)
 					}
 				}
 				//The client is sending a private message to someone

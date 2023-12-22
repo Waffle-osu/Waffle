@@ -1,4 +1,4 @@
-package clients
+package bot
 
 import (
 	"Waffle/bancho/client_manager"

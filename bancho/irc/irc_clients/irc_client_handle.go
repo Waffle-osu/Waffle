@@ -1,9 +1,9 @@
 package irc_clients
 
 import (
+	"Waffle/bancho/bot"
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/clients"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
@@ -151,7 +151,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 					if strings.HasPrefix(messageText, "!mp") {
 						returnMessages = lobby.LobbyHandleCommandMultiplayer(client, messageText)
 					} else {
-						returnMessages = clients.WaffleBotInstance.WaffleBotHandleCommand(client, base_packet_structures.Message{
+						returnMessages = bot.WaffleBotInstance.WaffleBotHandleCommand(client, base_packet_structures.Message{
 							Sender:  client.Username,
 							Message: messageText,
 							Target:  target,
@@ -178,7 +178,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 					sendChannel.SendMessage(client, messageText, target)
 
 					for _, content := range returnMessages {
-						sendChannel.SendMessage(clients.WaffleBotInstance, content, target)
+						sendChannel.SendMessage(bot.WaffleBotInstance, content, target)
 					}
 				} else {
 					//Could also be a client.

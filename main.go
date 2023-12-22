@@ -2,9 +2,9 @@ package main
 
 import (
 	"Waffle/bancho"
+	"Waffle/bancho/bot"
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
-	"Waffle/bancho/clients"
 	"Waffle/bancho/irc"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
@@ -47,7 +47,7 @@ func main() {
 	chat.InitializeChannels()                //Initializes Chat channels
 	client_manager.InitializeClientManager() //Initializes the client manager
 	lobby.InitializeLobby()                  //Initializes the multi lobby
-	clients.WaffleBotInitializeCommands()    //Initializes Chat Commands
+	bot.WaffleBotInitializeCommands()        //Initializes Chat Commands
 	misc.InitializeStatistics()              //Initializes Statistics
 	b1815.InitializeCompatibilityLists()     //Initializes Client Compatibility lists
 	config.ReadConfiguration()               //Initializes all Configurable things
@@ -116,7 +116,7 @@ func main() {
 		}
 	}
 
-	clients.CreateWaffleBot() //Creates WaffleBot
+	bot.CreateWaffleBot() //Creates WaffleBot
 
 	go bancho.RunBancho()
 	go RunWeb()

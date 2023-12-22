@@ -35,8 +35,6 @@ func (channel *Channel) Join(client ChatClient) bool {
 	channel.Clients = append(channel.Clients, client)
 	channel.ClientMutex.Unlock()
 
-	// client.InformChannelJoin(client, channel)
-
 	for _, chatUser := range channel.Clients {
 		chatUser.InformChannelJoin(client, channel)
 	}

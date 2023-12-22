@@ -1,8 +1,8 @@
 package web
 
 import (
+	"Waffle/bancho/bot"
 	"Waffle/bancho/chat"
-	"Waffle/bancho/clients"
 	"Waffle/common"
 	"Waffle/database"
 	"Waffle/helpers"
@@ -626,7 +626,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 			formattedLink := fmt.Sprintf("(%s)[osu.ppy.sh/b/%d]", formatted, beatmap.BeatmapId)
 
 			channel, _ := chat.GetChannelByName("#announce")
-			channel.SendMessage(clients.WaffleBotInstance, fmt.Sprintf("%s has achieved #1 on %s (%s)", username, formattedLink, helpers.FormatPlaymodes(playmode)), "#announce")
+			channel.SendMessage(bot.WaffleBotInstance, fmt.Sprintf("%s has achieved #1 on %s (%s)", username, formattedLink, helpers.FormatPlaymodes(playmode)), "#announce")
 		}(scoreBeatmap.BeatmapsetId, scoreBeatmap, scoreSubmission.Username, uint8(scoreSubmission.Playmode))
 	}
 

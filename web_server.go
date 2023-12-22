@@ -11,7 +11,7 @@ func RunWeb() {
 	ginServer := gin.Default()
 	ginServer.SetTrustedProxies(nil)
 
-	// /web
+	// /weeb
 	ginServer.POST("/web/osu-screenshot.php", web.HandleOsuScreenshot)
 	ginServer.GET("/web/osu-title-image.php", web.HandleTitleImage)
 	ginServer.POST("/web/osu-submit-modular.php", web.HandleOsuSubmit)
