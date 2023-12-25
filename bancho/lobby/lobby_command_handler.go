@@ -1,11 +1,15 @@
 package lobby
 
 import (
+	"Waffle/bancho/chat"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/database"
 	"Waffle/helpers"
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // WaffleBotCommandHelp !mp
@@ -438,12 +442,104 @@ func MpCommandSettings(sender LobbyClient, args []string) []string {
 	return messages
 }
 
+func timeTicker(countdown int, tickerMessagePrefix string, tickerMessageSender chat.ChatClient, matchHost LobbyClient, ctx context.Context, onDone func(sender LobbyClient)) {
+	ticker := time.NewTicker(1 * time.Second)
+	toStart := countdown
+
+	sendMsg := func(message string) {
+		channel := matchHost.GetMultiplayerLobby().MultiChannel
+		channel.SendMessage(tickerMessageSender, message, "#multiplayer")
+	}
+
+	send := func(time int) {
+		millis := uint64(toStart * 1000)
+		timeFormatted := helpers.FormatTime(millis)
+
+		sendMsg(fmt.Sprintf("%s in %s...", tickerMessagePrefix, timeFormatted))
+	}
+
+	for {
+		select {
+		case <-ticker.C:
+			toStart--
+
+			switch toStart {
+			case 1800:
+				send(toStart)
+			case 600:
+				send(toStart)
+			case 300:
+				send(toStart)
+			case 60:
+				send(toStart)
+			case 30:
+				send(toStart)
+			case 10:
+				send(toStart)
+			case 5:
+				send(toStart)
+			case 4:
+				send(toStart)
+			case 3:
+				send(toStart)
+			case 2:
+				send(toStart)
+			case 1:
+				send(toStart)
+			case 0:
+				ticker.Stop()
+				onDone(matchHost)
+				return
+			}
+		case <-ctx.Done():
+			ticker.Stop()
+
+			sendMsg("Timer aborted!")
+
+			return
+		}
+	}
+}
+
 func MpCommandStart(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
 		return []string{
 			"!mp start: Only usable inside multiplayer lobby!",
 		}
+	}
+
+	startTime := 0
+
+	if len(args) >= 2 {
+		parsedTime, err := strconv.ParseInt(args[1], 10, 64)
+
+		if err != nil {
+			return []string{
+				"!mp start: Start time must be a number!",
+			}
+		}
+
+		startTime = int(parsedTime)
+	}
+
+	if startTime > 0 {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		currentLobby.MatchStartCancel = cancel
+
+		onDone := func(sender LobbyClient) {
+			sender.GetMultiplayerLobby().StartGame(sender)
+		}
+
+		go timeTicker(startTime, "Starting game", LobbyWaffleBot{}, sender, ctx, onDone)
+
+		return []string{
+			fmt.Sprintf("Starting game in %d seconds", startTime),
+		}
+	} else {
+		//Just start the game
+		currentLobby.StartGame(sender)
 	}
 
 	return []string{}
@@ -457,7 +553,13 @@ func MpCommandAbort(sender LobbyClient, args []string) []string {
 		}
 	}
 
-	return []string{}
+	if currentLobby.MatchStartCancel != nil {
+		currentLobby.MatchStartCancel()
+	}
+
+	return []string{
+		"Match start countdown cancelled.",
+	}
 }
 
 func MpCommandMap(sender LobbyClient, args []string) []string {
@@ -467,6 +569,37 @@ func MpCommandMap(sender LobbyClient, args []string) []string {
 			"!mp map: Only usable inside multiplayer lobby!",
 		}
 	}
+
+	if len(args) < 2 {
+		return []string{
+			"!mp map: Beatmap ID required!",
+		}
+	}
+
+	id, err := strconv.ParseInt(args[1], 10, 64)
+
+	if err != nil {
+		return []string{
+			"!mp map: Beatmap ID must be a number",
+		}
+	}
+
+	queryResult, beatmap := database.BeatmapsGetById(int32(id))
+	queryResultSet, beatmapset := database.BeatmapsetsGetBeatmapsetById(beatmap.BeatmapsetId)
+
+	if queryResult != 0 || queryResultSet != 0 {
+		return []string{
+			"!mp map: Beatmap Query failed!",
+		}
+	}
+
+	newSettings := currentLobby.MatchInformation
+
+	newSettings.BeatmapId = beatmap.BeatmapId
+	newSettings.BeatmapChecksum = beatmap.BeatmapMd5
+	newSettings.BeatmapName = fmt.Sprintf("%s - %s [%s]", beatmapset.Artist, beatmapset.Title, beatmap.Version)
+
+	currentLobby.ChangeSettings(sender, newSettings)
 
 	return []string{}
 }
@@ -486,7 +619,37 @@ func MpCommandTimer(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
 		return []string{
-			"!mp timer: Only usable inside multiplayer lobby!",
+			"!mp start: Only usable inside multiplayer lobby!",
+		}
+	}
+
+	startTime := 30
+
+	if len(args) >= 2 {
+		parsedTime, err := strconv.ParseInt(args[1], 10, 64)
+
+		if err != nil {
+			return []string{
+				"!mp start: Start time must be a number!",
+			}
+		}
+
+		startTime = int(parsedTime)
+	}
+
+	if startTime > 0 {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		currentLobby.TimerCancel = cancel
+
+		onDone := func(sender LobbyClient) {
+			currentLobby.MultiChannel.SendMessage(LobbyWaffleBot{}, "Countdown finished.", "#multiplayer")
+		}
+
+		go timeTicker(startTime, "Countdown ends", LobbyWaffleBot{}, sender, ctx, onDone)
+
+		return []string{
+			fmt.Sprintf("Started countdown for %d seconds", startTime),
 		}
 	}
 
@@ -499,6 +662,10 @@ func MpCommandAbortTimer(sender LobbyClient, args []string) []string {
 		return []string{
 			"!mp abort: Only usable inside multiplayer lobby!",
 		}
+	}
+
+	if currentLobby.TimerCancel != nil {
+		currentLobby.TimerCancel()
 	}
 
 	return []string{}

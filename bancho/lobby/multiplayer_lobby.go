@@ -5,6 +5,7 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
+	"context"
 	"fmt"
 	"sync"
 )
@@ -23,8 +24,10 @@ type MultiplayerLobby struct {
 	MatchInfoMutex      sync.Mutex
 	InProgress          bool
 
-	IrcReffed bool
-	Locked    bool
+	IrcReffed        bool
+	Locked           bool
+	MatchStartCancel context.CancelFunc
+	TimerCancel      context.CancelFunc
 }
 
 func (multiLobby *MultiplayerLobby) LogEvent(eventType database.MatchHistoryEventType, initiator LobbyClient, extraInfo string) {
