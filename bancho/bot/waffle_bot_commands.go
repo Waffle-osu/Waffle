@@ -81,7 +81,7 @@ func WaffleBotCommandAnnounce(sender client_manager.WaffleClient, args []string)
 			targetClient.BanchoGetAttention()
 		}
 	} else {
-		client_manager.BroadcastPacketOsu(func(client client_manager.WaffleClient) {
+		client_manager.BroadcastPacket(func(client client_manager.WaffleClient) {
 			totalString := strings.Join(args[1:], " ")
 
 			client.BanchoAnnounce(totalString)

@@ -106,7 +106,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 	case "QUIT":
 		client.CleanupClient(message.Trailing)
 
-		client_manager.BroadcastPacketOsu(func(_client client_manager.WaffleClient) {
+		client_manager.BroadcastPacket(func(_client client_manager.WaffleClient) {
 			_client.BanchoHandleIrcQuit(client.Username)
 		})
 	case "PRIVMSG":

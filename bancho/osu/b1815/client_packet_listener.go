@@ -32,7 +32,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 
 				client.Status = statusUpdate
 
-				client_manager.BroadcastPacketOsu(func(broadcastClient client_manager.WaffleClient) {
+				client_manager.BroadcastPacket(func(broadcastClient client_manager.WaffleClient) {
 					broadcastClient.BanchoOsuUpdate(client.GetRelevantUserStats(), client.GetUserStatus())
 				})
 

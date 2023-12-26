@@ -93,7 +93,7 @@ func (client *Client) CleanupClient(reason string) {
 	}
 
 	client_manager.UnregisterClient(client)
-	client_manager.BroadcastPacketOsu(func(broadcastClient client_manager.WaffleClient) {
+	client_manager.BroadcastPacket(func(broadcastClient client_manager.WaffleClient) {
 		broadcastClient.BanchoHandleOsuQuit(client.GetUserId(), client.GetUsername())
 	})
 
