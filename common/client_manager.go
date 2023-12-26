@@ -79,7 +79,7 @@ func (manager *ClientManager[TClient]) LockClientList() {
 
 // Unlocks the client list.
 func (manager *ClientManager[TClient]) UnlockClientList() {
-	manager.clientMutex.Lock()
+	manager.clientMutex.Unlock()
 }
 
 // Retreives the ClientList

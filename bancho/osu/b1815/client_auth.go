@@ -311,8 +311,8 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Register client in the client manager
-	client_manager.ClientManager.RegisterClient(&client)
 	client_manager.ClientManager.UnlockClientList()
+	client_manager.ClientManager.RegisterClient(&client)
 
 	//Also register on the spectatable list
 	spectator.ClientManager.RegisterClient(&client)
