@@ -89,6 +89,7 @@ var DefaultSettings map[string]string = map[string]string{
 func ReadConfiguration() {
 	existingKeys := map[string]bool{}
 
+	// Check if .env file exists, if not print first run warning
 	if _, err := os.Stat(".env"); errors.Is(err, os.ErrNotExist) {
 		succeeded := CreateDefaultConfiguration()
 
@@ -111,6 +112,7 @@ func ReadConfiguration() {
 
 	asString := string(data)
 
+	// the .env is essentially a ini without groups
 	splitLines := strings.Split(asString, "\n")
 
 	lineCounter := 1
@@ -159,6 +161,8 @@ func ReadConfiguration() {
 		}
 	}
 
+	// This gives out warnings for all the unset parameters
+	// Also fully exits if a critial key is missing.
 	for key, value := range ExpectedKeys {
 		exists := existingKeys[key.Key]
 

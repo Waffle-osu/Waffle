@@ -27,10 +27,12 @@ func (client *Client) JoinMatch(match *lobby.MultiplayerLobby, password string) 
 	}
 }
 
+// Assigns a multiplayer lobby to the client
 func (client *Client) AssignMultiplayerLobby(lobby *lobby.MultiplayerLobby) {
 	client.currentMultiLobby = lobby
 }
 
+// Adds a joined channel forcefully into the clients
 func (client *Client) AddJoinedChannel(channel *chat.Channel) {
 	client.joinedChannels[channel.Name] = channel
 }

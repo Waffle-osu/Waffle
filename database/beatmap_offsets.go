@@ -6,6 +6,7 @@ type BeatmapOffset struct {
 	Offset    int32
 }
 
+// Gets a beatmap offset for a map
 func BeatmapOffsetsGetBeatmapOffset(beatmapId int32) (result int8, offset BeatmapOffset) {
 	offsetQuery, offsetQueryErr := Database.Query("SELECT * FROM waffle.beatmap_offsets WHERE beatmap_id = ?", beatmapId)
 

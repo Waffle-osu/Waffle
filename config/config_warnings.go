@@ -2,7 +2,14 @@ package config
 
 import "Waffle/helpers"
 
+// All the warnings that've been displayed already
+// So we don't display them twice.
 var displayedWarnings map[string]bool = map[string]bool{}
+
+/*
+	Contains all the Warnings for not having certain keys set
+	in the .env file, which may or may not be important.
+*/
 
 func MySqlSettingsIncompleteError() {
 	_, runAlready := displayedWarnings["mysql"]

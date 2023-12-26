@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-//Fun Statistics
+// Fun Statistics
 var StatsBytesRecieved uint64
 var StatsBytesSent uint64
 var StatsBanchoLaunch time.Time
@@ -27,4 +27,7 @@ func ResetStatistics() {
 
 	StatsBytesRecieved = 0
 	StatsBytesSent = 0
+
+	StatsSendLock.Unlock()
+	StatsRecvLock.Unlock()
 }

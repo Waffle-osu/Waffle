@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// Handles the OsuBeatmapInfoRequest packet.
 func (client *Client) HandleBeatmapInfoRequest(infoRequest base_packet_structures.BeatmapInfoRequest) {
 	go func() {
 		infoReply := base_packet_structures.BeatmapInfoReply{}
@@ -114,77 +115,23 @@ FROM (
 					continue
 				}
 
-				//convert string rank to peppys enum ranking
-				switch osuRank {
-				case "XH":
-					beatmapInfo.OsuRank = 0
-				case "SH":
-					beatmapInfo.OsuRank = 1
-				case "X":
-					beatmapInfo.OsuRank = 2
-				case "S":
-					beatmapInfo.OsuRank = 3
-				case "A":
-					beatmapInfo.OsuRank = 4
-				case "B":
-					beatmapInfo.OsuRank = 5
-				case "C":
-					beatmapInfo.OsuRank = 6
-				case "D":
-					beatmapInfo.OsuRank = 7
-				case "F":
-					beatmapInfo.OsuRank = 8
-				case "N":
-					beatmapInfo.OsuRank = 9
+				rankToNum := map[string]uint8{
+					"XH": 0,
+					"SH": 1,
+					"X":  2,
+					"S":  3,
+					"A":  4,
+					"B":  5,
+					"C":  6,
+					"D":  7,
+					"F":  8,
+					"N":  9,
 				}
 
 				//convert string rank to peppys enum ranking
-				switch taikoRank {
-				case "XH":
-					beatmapInfo.TaikoRank = 0
-				case "SH":
-					beatmapInfo.TaikoRank = 1
-				case "X":
-					beatmapInfo.TaikoRank = 2
-				case "S":
-					beatmapInfo.TaikoRank = 3
-				case "A":
-					beatmapInfo.TaikoRank = 4
-				case "B":
-					beatmapInfo.TaikoRank = 5
-				case "C":
-					beatmapInfo.TaikoRank = 6
-				case "D":
-					beatmapInfo.TaikoRank = 7
-				case "F":
-					beatmapInfo.TaikoRank = 8
-				case "N":
-					beatmapInfo.TaikoRank = 9
-				}
-
-				//convert string rank to peppys enum ranking
-				switch catchRank {
-				case "XH":
-					beatmapInfo.CatchRank = 0
-				case "SH":
-					beatmapInfo.CatchRank = 1
-				case "X":
-					beatmapInfo.CatchRank = 2
-				case "S":
-					beatmapInfo.CatchRank = 3
-				case "A":
-					beatmapInfo.CatchRank = 4
-				case "B":
-					beatmapInfo.CatchRank = 5
-				case "C":
-					beatmapInfo.CatchRank = 6
-				case "D":
-					beatmapInfo.CatchRank = 7
-				case "F":
-					beatmapInfo.CatchRank = 8
-				case "N":
-					beatmapInfo.CatchRank = 9
-				}
+				beatmapInfo.OsuRank = rankToNum[osuRank]
+				beatmapInfo.TaikoRank = rankToNum[taikoRank]
+				beatmapInfo.CatchRank = rankToNum[catchRank]
 
 				//will store the index of the info request the client gave us
 				infoPosition := int16(-1)

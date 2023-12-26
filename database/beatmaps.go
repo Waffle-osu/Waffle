@@ -32,6 +32,7 @@ const (
 	BeatmapsDatabaseStatusApproved    = 2
 )
 
+// Gets a beatmap by the MD5 checksum
 func BeatmapsGetByMd5(checksum string) (queryResult int8, beatmap Beatmap) {
 	beatmapQuery, beatmapQueryErr := Database.Query("SELECT beatmap_id, beatmapset_id, creator_id, filename, beatmap_md5, version, total_length, drain_time, count_objects, count_normal, count_slider, count_spinner, diff_hp, diff_cs, diff_od, diff_stars, playmode, ranking_status, last_update, submit_date, approve_date, beatmap_source FROM waffle.beatmaps WHERE beatmap_md5 = ?", checksum)
 
@@ -61,6 +62,7 @@ func BeatmapsGetByMd5(checksum string) (queryResult int8, beatmap Beatmap) {
 	}
 }
 
+// Gets a beatmap by the filename
 func BeatmapsGetByFilename(filename string) (queryResult int8, beatmap Beatmap) {
 	beatmapQuery, beatmapQueryErr := Database.Query("SELECT beatmap_id, beatmapset_id, creator_id, filename, beatmap_md5, version, total_length, drain_time, count_objects, count_normal, count_slider, count_spinner, diff_hp, diff_cs, diff_od, diff_stars, playmode, ranking_status, last_update, submit_date, approve_date, beatmap_source FROM waffle.beatmaps WHERE filename = ?", filename)
 

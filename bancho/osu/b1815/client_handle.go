@@ -64,6 +64,7 @@ func (client *Client) MaintainClient(ctx context.Context) {
 
 	for {
 		select {
+		//Maintains the client until the client is cancelled.
 		case <-ctx.Done():
 			//We close in MaintainClient instead of in CleanupClient to avoid possible double closes, causing panics
 			helpers.Logger.Printf("[Bancho@Handling] Closed %s's Packet Queue", client.UserData.Username)
@@ -72,6 +73,7 @@ func (client *Client) MaintainClient(ctx context.Context) {
 			pingTicker.Stop()
 			receiveTicker.Stop()
 			return
+		//Sends off outgoing packets
 		case packet := <-client.PacketQueue:
 			sendBytes := len(packet)
 
@@ -82,10 +84,10 @@ func (client *Client) MaintainClient(ctx context.Context) {
 			}()
 
 			client.connection.Write(packet)
+		// Sends pings
 		case <-pingTicker.C:
 			client.BanchoPing()
-
-			client.lastPing = time.Now()
+		//Closes the client on timeout
 		case <-receiveTicker.C:
 			lastReceiveUnix := client.lastReceive.Unix()
 			unixNow := time.Now().Unix()

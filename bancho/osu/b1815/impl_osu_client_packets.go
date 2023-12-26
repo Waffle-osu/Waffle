@@ -9,6 +9,12 @@ import (
 	"encoding/binary"
 )
 
+/*
+	All these functions send out the packet
+	their functions are named after, no
+	real special functionality here.
+*/
+
 func (client *Client) BanchoAnnounce(annoucement string) {
 	client.PacketQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, annoucement)
 }
@@ -168,6 +174,10 @@ func (client *Client) BanchoOsuUpdate(user database.UserStats, status base_packe
 }
 
 func (client *Client) BanchoPresence(user database.User, stats database.UserStats, timezone int32) {
+	//We're using stats.UserID instead of user.UserID for a small hack
+	//Regarding Presence and IRC, because IRC client have a userid of -1 in the presence packet
+	//this is how the osu client detects them, so IRC waffleclient implementation sends out a relevant
+	//stats struct with the user id of -1 for precisely this purpose.
 	presence := base_packet_structures.UserPresence{
 		UserId:          int32(stats.UserID),
 		Username:        user.Username,

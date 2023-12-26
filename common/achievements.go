@@ -47,11 +47,17 @@ const (
 	AchievementNonstopDancerParaparaMAX = 34
 )
 
+// Takes in a score submission result, and gives out:
+// If all the queries were successful or not,
+// aswell as what achievements were achieved with that play
 func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, ranking string, playmode int8, maxCombo int32) (queryResult int8, achievements []database.Achievement) {
 	achievedAchievements := []database.Achievement{}
 
 	achievedIds := []int32{}
 
+	// This system works like this:
+	// We get all the achievements, that the user HASN'T achieved yet
+	// And then we go through all of them, to see if they've been achieved.
 	unachievedAchievementsQuery, unachievedAchievementsQueryErr := database.Database.Query("SELECT achievement_id FROM waffle.osu_achievements WHERE achievement_id NOT IN (SELECT achievement_id FROM waffle.osu_achieved_achievements WHERE user_id = ?)", userId)
 
 	if unachievedAchievementsQueryErr != nil {
@@ -67,6 +73,7 @@ func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, rank
 		return -2, achievedAchievements
 	}
 
+	// Quick function for writing a achievement as achieved into the database
 	AchieveAchievement := func(achievementId int32) {
 		achievedIds = append(achievedIds, achievementId)
 
@@ -79,6 +86,7 @@ func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, rank
 
 	beatmapPackSql := "SELECT COUNT(*) AS 'count' FROM (SELECT * FROM waffle.scores WHERE mapset_best = 1 AND user_id = ? AND beatmapset_id IN ( %s ) GROUP BY beatmapset_id) result"
 
+	// Quick function for checking if a beatmap pack has been completed
 	CheckPackCompleted := func(setIds string, mapAmount int64) bool {
 		packCheckQuery, packCheckQueryErr := database.Database.Query(fmt.Sprintf(beatmapPackSql, setIds), userId)
 
@@ -105,6 +113,8 @@ func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, rank
 		return false
 	}
 
+	//Here's the loop that checks all the unachieved achievements
+	//for achievement.
 	for unachievedAchievementsQuery.Next() {
 		var achievementId int32
 
@@ -329,6 +339,7 @@ func UpdateAchievements(userId uint64, beatmapId int32, beatmapsetId int32, rank
 		}
 	}
 
+	// We now need to query all the images for the achievements we've achieved.
 	achievementIdsString := "("
 
 	for _, currentAchievementId := range achievedIds {

@@ -6,6 +6,7 @@ type BeatmapFavourite struct {
 	UserId       uint64
 }
 
+// Gets the users Favourited maps.
 func GetUserFavourites(userId uint64) (result int8, favourites []BeatmapFavourite) {
 	var beatmapFavourites = []BeatmapFavourite{}
 
@@ -34,6 +35,7 @@ func GetUserFavourites(userId uint64) (result int8, favourites []BeatmapFavourit
 	return 0, beatmapFavourites
 }
 
+// Adds a users favourite map
 func FavouritesAddFavourite(userId uint64, beatmapsetId int32) bool {
 	query, queryErr := Database.Query("INSERT INTO waffle.beatmap_favourites (user_id, beatmapset_id) VALUES (?, ?)", userId, beatmapsetId)
 
@@ -48,6 +50,7 @@ func FavouritesAddFavourite(userId uint64, beatmapsetId int32) bool {
 	return true
 }
 
+// Removes a favourite from the database for a given user
 func FavouritesRemoveFavourite(userId uint64, beatmapsetId int32) bool {
 	query, queryErr := Database.Query("DELETE FROM waffle.beatmap_favourites WHERE user_id = ? AND beatmapset_id = ?", userId, beatmapsetId)
 

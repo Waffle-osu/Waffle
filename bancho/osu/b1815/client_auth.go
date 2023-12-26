@@ -22,7 +22,6 @@ import (
 
 // All the currently tested versions and whether they work well or not
 var guaranteedWorkingVersion = map[string]bool{
-
 	/* Official Builds Starting Here */
 
 	//b1816
@@ -229,7 +228,6 @@ func HandleNewClient(connection net.Conn) {
 	//Construct Client object
 	client := Client{
 		connection:      connection,
-		lastPing:        time.Now(),
 		lastReceive:     time.Now(),
 		continueRunning: true,
 

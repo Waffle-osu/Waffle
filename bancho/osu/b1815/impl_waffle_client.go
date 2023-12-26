@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Gets the last received packet time, and logon t
 func (client *Client) GetIdleTimes() (lastRecieve time.Time, logon time.Time) {
 	return client.lastReceive, client.logonTime
 }
@@ -21,6 +22,7 @@ func (client *Client) GetFormattedJoinedChannels() string {
 	return channelString
 }
 
+// Gets the multiplayer lobby this client is currently in
 func (client *Client) GetMultiplayerLobby() *lobby.MultiplayerLobby {
 	return client.currentMultiLobby
 }

@@ -32,10 +32,8 @@ type Client struct {
 	connection      net.Conn
 	continueRunning bool
 
-	logonTime time.Time
-
+	logonTime   time.Time
 	lastReceive time.Time
-	lastPing    time.Time
 
 	clean      bool
 	cleanMutex sync.Mutex

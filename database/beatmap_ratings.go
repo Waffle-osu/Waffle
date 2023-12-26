@@ -1,5 +1,6 @@
 package database
 
+// Gets the beatmap rating of a set
 func BeatmapRatingsGetBeatmapRating(beatmapsetId int32) float64 {
 	getRatingInfoQuery, getRatingInfoQueryErr := Database.Query("SELECT * FROM beatmap_ratings WHERE beatmapset_id = ?", beatmapsetId)
 
