@@ -6,6 +6,7 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/bancho/spectator"
 	"Waffle/database"
 	"Waffle/helpers"
 	"Waffle/helpers/serialization"
@@ -68,7 +69,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					var currentId int32
 					binary.Read(packetDataReader, binary.LittleEndian, currentId)
 
-					user := client_manager.GetClientById(currentId)
+					user := client_manager.ClientManager.GetClientById(currentId)
 
 					//If we didn't find the user, simply skip
 					if user == nil {
@@ -145,7 +146,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					message.Sender = client.UserData.Username
 
 					//Find the target
-					targetClient := client_manager.GetClientByName(message.Target)
+					targetClient := client_manager.ClientManager.GetClientByName(message.Target)
 
 					//If we found the client, only then send a message
 					if targetClient != nil {
@@ -176,7 +177,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				binary.Read(packetDataReader, binary.LittleEndian, &spectatorId)
 
 				//Find client to spectate
-				toSpectate := client_manager.GetClientById(spectatorId)
+				toSpectate := spectator.ClientManager.GetClientById(spectatorId)
 
 				//Leave if none is found
 				if toSpectate == nil {
@@ -204,7 +205,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				frameBundle := base_packet_structures.ReadSpectatorFrameBundle(packetDataReader)
 
 				//Send the frames to all spectators
-				client.BroadcastToSpectators(func(client client_manager.WaffleClient) {
+				client.BroadcastToSpectators(func(client spectator.SpectatorClient) {
 					client.BanchoSpectateFrames(frameBundle)
 				})
 			//The client informs the server that it's missing the map which the client its spectating is playing

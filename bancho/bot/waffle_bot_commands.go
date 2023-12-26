@@ -72,7 +72,7 @@ func WaffleBotCommandAnnounce(sender client_manager.WaffleClient, args []string)
 			}
 		}
 
-		targetClient := client_manager.GetClientByName(target)
+		targetClient := client_manager.ClientManager.GetClientByName(target)
 
 		if targetClient != nil {
 			totalString := strings.Join(args[index:], " ")
@@ -225,7 +225,7 @@ func WaffleBotCommandBanchoStatistics(sender client_manager.WaffleClient, args [
 	pluralUsers := "users"
 	pluralMatches := "matches"
 
-	if client_manager.GetClientCount() == 1 {
+	if client_manager.ClientManager.GetClientCount() == 1 {
 		pluralUsers = "user"
 	}
 
@@ -240,7 +240,7 @@ func WaffleBotCommandBanchoStatistics(sender client_manager.WaffleClient, args [
 
 	return []string{
 		fmt.Sprintf("[WAFFLE-STATS] Waffle has been up for %s", uptimeString),
-		fmt.Sprintf("[WAFFLE-STATS] Serving %d %s, playing %d %s", client_manager.GetClientCount(), pluralUsers, lobby.GetMatchCount(), pluralMatches),
+		fmt.Sprintf("[WAFFLE-STATS] Serving %d %s, playing %d %s", client_manager.ClientManager.GetClientCount(), pluralUsers, lobby.GetMatchCount(), pluralMatches),
 		fmt.Sprintf("[WAFFLE-STATS] %s have been sent", dataSentString),
 		fmt.Sprintf("[WAFFLE-STATS] %s have been recieved", dataRecvString),
 		fmt.Sprintf("[WAFFLE-STATS] %d Goroutines are currently running", runtime.NumGoroutine()),
@@ -443,7 +443,7 @@ func WaffleBotCommandSilence(sender client_manager.WaffleClient, args []string) 
 
 	constructedUsername = strings.TrimSpace(constructedUsername)
 
-	client := client_manager.GetClientByName(constructedUsername)
+	client := client_manager.ClientManager.GetClientByName(constructedUsername)
 
 	if client == nil {
 		return []string{

@@ -9,6 +9,7 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
 	"Waffle/bancho/osu/b1815"
+	"Waffle/bancho/spectator"
 	"Waffle/config"
 	"Waffle/database"
 	"Waffle/helpers"
@@ -46,6 +47,7 @@ func main() {
 	helpers.InitializeLogger()               //Initializes Logging, logs to both console and to a file
 	chat.InitializeChannels()                //Initializes Chat channels
 	client_manager.InitializeClientManager() //Initializes the client manager
+	spectator.InitializeClientManager()      //Initializes the spectator client manager
 	lobby.InitializeLobby()                  //Initializes the multi lobby
 	bot.WaffleBotInitializeCommands()        //Initializes Chat Commands
 	misc.InitializeStatistics()              //Initializes Statistics

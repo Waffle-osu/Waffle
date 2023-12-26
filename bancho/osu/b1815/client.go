@@ -5,6 +5,7 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/bancho/spectator"
 	"Waffle/database"
 	"Waffle/helpers"
 	"context"
@@ -41,9 +42,9 @@ type Client struct {
 	joinedChannels map[string]*chat.Channel
 	awayMessage    string
 
-	spectators       map[int32]client_manager.WaffleClient
+	spectators       map[int32]spectator.SpectatorClient
 	spectatorMutex   sync.Mutex
-	spectatingClient client_manager.WaffleClient
+	spectatingClient spectator.SpectatorClient
 
 	isInLobby         bool
 	currentMultiLobby *lobby.MultiplayerLobby
@@ -80,7 +81,7 @@ func (client *Client) CleanupClient(reason string) {
 		client.spectatingClient.BanchoSpectatorLeft(client.GetUserId())
 	}
 
-	client.spectators = map[int32]client_manager.WaffleClient{}
+	client.spectators = map[int32]spectator.SpectatorClient{}
 
 	if client.isInLobby {
 		lobby.PartLobby(client)
@@ -90,7 +91,10 @@ func (client *Client) CleanupClient(reason string) {
 		client.LeaveCurrentMatch()
 	}
 
-	client_manager.UnregisterClient(client)
+	//Unregister off all client lists necessary
+	client_manager.ClientManager.UnregisterClient(client)
+	spectator.ClientManager.UnregisterClient(client)
+
 	client_manager.BroadcastPacket(func(broadcastClient client_manager.WaffleClient) {
 		broadcastClient.BanchoHandleOsuQuit(client.GetUserId(), client.GetUsername())
 	})

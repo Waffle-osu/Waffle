@@ -81,10 +81,10 @@ func CreateWaffleBot() {
 
 	WaffleBotInstance = &botClient
 
-	client_manager.LockClientList()
+	client_manager.ClientManager.LockClientList()
 
 	//Usually shouldn't matter because WaffleBot gets created the second bancho is and there's no way clients will connect this quick but ill keep it here
-	for _, currentClient := range client_manager.GetClientList() {
+	for _, currentClient := range client_manager.ClientManager.GetClientList() {
 		if currentClient.GetUserId() == int32(user.UserID) {
 			continue
 		}
@@ -98,8 +98,8 @@ func CreateWaffleBot() {
 		botClient.BanchoOsuUpdate(currentClient.GetRelevantUserStats(), currentClient.GetUserStatus())
 	}
 
-	client_manager.RegisterClient(&botClient)
-	client_manager.UnlockClientList()
+	client_manager.ClientManager.UnlockClientList()
+	client_manager.ClientManager.RegisterClient(&botClient)
 
 	//Since it has all permissions, it can join all channels it wants
 	for _, channel := range chat.GetAvailableChannels() {

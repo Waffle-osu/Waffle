@@ -10,6 +10,8 @@ import (
 type WaffleClient interface {
 	// Retrieves this client's User ID
 	GetUserId() int32
+	// Retrieves the Username of the current client
+	GetUsername() string
 	// Retrieves the Relevant User stats of this client, relevant meaning for the currently active mode.
 	GetRelevantUserStats() database.UserStats
 	// Gets the client's current Status
@@ -34,25 +36,6 @@ type WaffleClient interface {
 	BanchoHandleOsuQuit(userId int32, username string)
 	// Sends the equivilant of a IRC client quit message.
 	BanchoHandleIrcQuit(username string)
-
-	// Sends the equivilant of a Spectator Join message.
-	// Used to build a Spectator List
-	BanchoSpectatorJoined(userId int32)
-	// Sends the equivilant of a Spectator Leave message.
-	// Used to build a Spectator List
-	BanchoSpectatorLeft(userId int32)
-	// Sends the equivilant of a Fellow Spectator Join message.
-	// Used to build a Spectator List
-	BanchoFellowSpectatorJoined(userId int32)
-	// Sends the equivilant of a Fellow Spectator Leave message.
-	// Used to build a Spectator List
-	BanchoFellowSpectatorLeft(userId int32)
-	// Sends the equivilant of a Spectator can't spectate message.
-	// in osu! there's a seperate list for Spectators that don't have the map.
-	BanchoSpectatorCantSpectate(userId int32)
-	// Sends the equivilant of Spectator Replay Frames to the client.
-	// This contains the next replay data of the client that this client is spectating
-	BanchoSpectateFrames(frameBundle base_packet_structures.SpectatorFrameBundle)
 
 	// Sends the equivilant of a chat message to the client.
 	BanchoIrcMessage(message base_packet_structures.Message)

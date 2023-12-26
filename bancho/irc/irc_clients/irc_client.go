@@ -85,7 +85,7 @@ func (client *IrcClient) CleanupClient(reason string) {
 		client.currentMultiLobby = nil
 	}
 
-	client_manager.UnregisterClient(client)
+	client_manager.ClientManager.UnregisterClient(client)
 
 	for _, channel := range client.joinedChannels {
 		channel.Leave(client)

@@ -64,7 +64,7 @@ func (waffleBot *WaffleBot) BanchoHandleIrcQuit(username string) {
 }
 
 func (waffleBot *WaffleBot) BanchoSpectatorJoined(userId int32) {
-	userById := client_manager.GetClientById(userId)
+	userById := client_manager.ClientManager.GetClientById(userId)
 
 	//Fun little easter egg, just thought i'd add it in initially for testing if it can recieve packets
 	if userById != nil {
@@ -99,7 +99,7 @@ func (waffleBot *WaffleBot) BanchoSpectateFrames(frameBundle base_packet_structu
 func (waffleBot *WaffleBot) BanchoIrcMessage(message base_packet_structures.Message) {
 	if message.Target == "WaffleBot" {
 		if message.Message[0] == '!' {
-			client := client_manager.GetClientByName(message.Sender)
+			client := client_manager.ClientManager.GetClientByName(message.Sender)
 
 			if client == nil {
 				return

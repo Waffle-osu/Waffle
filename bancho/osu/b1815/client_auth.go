@@ -4,6 +4,7 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/bancho/spectator"
 	"Waffle/database"
 	"Waffle/helpers"
 	"Waffle/helpers/serialization"
@@ -172,7 +173,7 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Check for duplicate clients
-	duplicateClient := client_manager.GetClientById(int32(user.UserID))
+	duplicateClient := client_manager.ClientManager.GetClientById(int32(user.UserID))
 
 	if duplicateClient != nil {
 		go func() {
@@ -231,7 +232,7 @@ func HandleNewClient(connection net.Conn) {
 		lastReceive:     time.Now(),
 		continueRunning: true,
 
-		spectators: make(map[int32]client_manager.WaffleClient),
+		spectators: make(map[int32]spectator.SpectatorClient),
 
 		PacketQueue: packetQueue,
 
@@ -291,10 +292,10 @@ func HandleNewClient(connection net.Conn) {
 	packetQueue <- serialization.SendSerializable(serialization.BanchoUserPresence, presence)
 	packetQueue <- serialization.SendSerializable(serialization.BanchoHandleOsuUpdate, stats)
 
-	client_manager.LockClientList()
+	client_manager.ClientManager.LockClientList()
 
 	//Loop over every client which exists
-	for _, currentClient := range client_manager.GetClientList() {
+	for _, currentClient := range client_manager.ClientManager.GetClientList() {
 		//We already informed the new client, no need to do it again
 		if currentClient.GetUserId() == int32(user.UserID) {
 			continue
@@ -310,8 +311,11 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Register client in the client manager
-	client_manager.RegisterClient(&client)
-	client_manager.UnlockClientList()
+	client_manager.ClientManager.RegisterClient(&client)
+	client_manager.ClientManager.UnlockClientList()
+
+	//Also register on the spectatable list
+	spectator.ClientManager.RegisterClient(&client)
 
 	client.logonTime = time.Now()
 

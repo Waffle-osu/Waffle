@@ -200,7 +200,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				} else {
 					//Could also be a client.
 					//So before sending a error message, we need to search for a client
-					foundClient := client_manager.GetClientByName(target)
+					foundClient := client_manager.ClientManager.GetClientByName(target)
 
 					if foundClient != nil {
 						foundClient.BanchoIrcMessage(base_packet_structures.Message{
@@ -251,12 +251,12 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 
 			//Regular Username query
 			if foundClient == nil {
-				foundClient = client_manager.GetClientByName(query)
+				foundClient = client_manager.ClientManager.GetClientByName(query)
 			}
 
 			//Try again but replace _ by space
 			if foundClient == nil {
-				foundClient = client_manager.GetClientByName(strings.ReplaceAll(query, "_", " "))
+				foundClient = client_manager.ClientManager.GetClientByName(strings.ReplaceAll(query, "_", " "))
 			}
 
 			if foundClient == nil {
@@ -275,10 +275,10 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 			username := message.Params[1]
 
 			if server != "irc.waffle.nya" {
-				foundServerClient := client_manager.GetClientByName(server)
+				foundServerClient := client_manager.ClientManager.GetClientByName(server)
 
 				if foundServerClient != nil {
-					foundWhoIsClient := client_manager.GetClientByName(username)
+					foundWhoIsClient := client_manager.ClientManager.GetClientByName(username)
 
 					if foundWhoIsClient != nil {
 						client.SendWhoIs(foundWhoIsClient)
@@ -295,7 +295,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		} else if len(message.Params) == 1 {
 			username := message.Params[0]
 
-			foundWhoIsClient := client_manager.GetClientByName(username)
+			foundWhoIsClient := client_manager.ClientManager.GetClientByName(username)
 
 			if foundWhoIsClient != nil {
 				client.SendWhoIs(foundWhoIsClient)

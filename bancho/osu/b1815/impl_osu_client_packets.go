@@ -1,8 +1,8 @@
 package b1815
 
 import (
-	"Waffle/bancho/client_manager"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/bancho/spectator"
 	"Waffle/database"
 	"Waffle/helpers/serialization"
 	"bytes"
@@ -50,13 +50,13 @@ func (client *Client) BanchoFellowSpectatorLeft(userId int32) {
 func (client *Client) BanchoSpectatorJoined(userId int32) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorJoined, userId)
 
-	client.InformSpectatorJoin(client_manager.GetClientById(userId))
+	client.InformSpectatorJoin(spectator.ClientManager.GetClientById(userId))
 }
 
 func (client *Client) BanchoSpectatorLeft(userId int32) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorLeft, userId)
 
-	client.InformSpectatorLeft(client_manager.GetClientById(userId))
+	client.InformSpectatorLeft(spectator.ClientManager.GetClientById(userId))
 }
 
 func (client *Client) BanchoFriendsList(friendsList []database.FriendEntry) {
@@ -205,5 +205,5 @@ func (client *Client) BanchoSpectateFrames(frames base_packet_structures.Spectat
 func (client *Client) BanchoSpectatorCantSpectate(userId int32) {
 	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorCantSpectate, userId)
 
-	client.InformSpectatorCantSpectate(client_manager.GetClientById(userId))
+	client.InformSpectatorCantSpectate(spectator.ClientManager.GetClientById(userId))
 }

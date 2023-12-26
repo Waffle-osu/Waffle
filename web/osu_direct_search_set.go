@@ -106,7 +106,7 @@ func HandleDirectSearchSet(ctx *gin.Context) {
 	}
 
 	if !matchFound && threadId != "" {
-		client := client_manager.GetClientByName(user)
+		client := client_manager.ClientManager.GetClientByName(user)
 
 		if client != nil {
 			client.BanchoAnnounce("Due to Waffle not having a Forum, and not being able to conviniently query the osu! forums, osu!direct pickups via topic links don't work.")
@@ -118,7 +118,7 @@ func HandleDirectSearchSet(ctx *gin.Context) {
 	}
 
 	if !matchFound && postId != "" {
-		client := client_manager.GetClientByName(user)
+		client := client_manager.ClientManager.GetClientByName(user)
 
 		if client != nil {
 			client.BanchoAnnounce("Due to Waffle not having a Forum, and not being able to conviniently query the osu! forums, osu!direct pickups via post links don't work.")

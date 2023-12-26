@@ -77,7 +77,7 @@ func HandleNewIrcClient(connection net.Conn) {
 		return
 	}
 
-	foundUsernameClient := client_manager.GetClientByName(ircClient.Username)
+	foundUsernameClient := client_manager.ClientManager.GetClientByName(ircClient.Username)
 
 	if foundUsernameClient != nil {
 		ircClient.packetQueue <- irc_messages.IrcSendPasswordMismatch("Login Error. Duplicate Usernames")
@@ -96,10 +96,10 @@ func HandleNewIrcClient(connection net.Conn) {
 
 	ircClient.packetQueue <- irc_messages.IrcSendMotdEnd()
 
-	client_manager.LockClientList()
+	client_manager.ClientManager.LockClientList()
 
 	//Loop over every client which exists
-	for _, currentClient := range client_manager.GetClientList() {
+	for _, currentClient := range client_manager.ClientManager.GetClientList() {
 		//We already informed the new client, no need to do it again
 		if currentClient.GetUserId() == int32(ircClient.UserData.UserID) {
 			continue
@@ -112,8 +112,8 @@ func HandleNewIrcClient(connection net.Conn) {
 		currentClient.BanchoOsuUpdate(relevantStats, ircClient.GetUserStatus())
 	}
 
-	client_manager.RegisterClient(&ircClient)
-	client_manager.UnlockClientList()
+	client_manager.ClientManager.UnlockClientList()
+	client_manager.ClientManager.RegisterClient(&ircClient)
 
 	ircClient.lastPing = time.Now()
 	ircClient.lastReceive = time.Now()
