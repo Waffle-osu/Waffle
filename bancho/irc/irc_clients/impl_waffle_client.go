@@ -77,42 +77,6 @@ func (client *IrcClient) BanchoHandleIrcQuit(username string) {
 	}
 }
 
-// Sends the equivilant of a Spectator Join message.
-// Used to build a Spectator List
-func (client *IrcClient) BanchoSpectatorJoined(userId int32) {
-	//We don't do anything here cuz no spectator over IRC
-}
-
-// Sends the equivilant of a Spectator Leave message.
-// Used to build a Spectator List
-func (client *IrcClient) BanchoSpectatorLeft(userId int32) {
-	//We don't do anything here cuz no spectator over IRC
-}
-
-// Sends the equivilant of a Fellow Spectator Join message.
-// Used to build a Spectator List
-func (client *IrcClient) BanchoFellowSpectatorJoined(userId int32) {
-	//We don't do anything here cuz no spectator over IRC
-}
-
-// Sends the equivilant of a Fellow Spectator Leave message.
-// Used to build a Spectator List
-func (client *IrcClient) BanchoFellowSpectatorLeft(userId int32) {
-	//We don't do anything here cuz no spectator over IRC
-}
-
-// Sends the equivilant of a Spectator can't spectate message.
-// in osu! there's a seperate list for Spectators that don't have the map.
-func (client *IrcClient) BanchoSpectatorCantSpectate(userId int32) {
-	//We don't do anything here cuz no spectator over IRC
-}
-
-// Sends the equivilant of Spectator Replay Frames to the client.
-// This contains the next replay data of the client that this client is spectating
-func (client *IrcClient) BanchoSpectateFrames(frameBundle base_packet_structures.SpectatorFrameBundle) {
-	//We don't do anything here cuz no spectator over IRC
-}
-
 // Sends the equivilant of a chat message to the client.
 func (client *IrcClient) BanchoIrcMessage(message base_packet_structures.Message) {
 	client.packetQueue <- irc_messages.IrcSendPrivMsg(message.Sender, message.Target, message.Message)
