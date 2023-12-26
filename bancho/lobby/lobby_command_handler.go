@@ -94,10 +94,12 @@ func MpCommandMake(sender LobbyClient, args []string) []string {
 
 	lobbyName := ""
 
+	// string.Join to get the entire lobby name from the remaining arguments
 	for i := 1; i != len(args); i++ {
 		lobbyName += args[i]
 	}
 
+	//Create match
 	newLobby := CreateNewMultiMatch(base_packet_structures.MultiplayerMatch{
 		MatchId:          0,
 		InProgress:       false,
@@ -115,8 +117,10 @@ func MpCommandMake(sender LobbyClient, args []string) []string {
 		SlotStatus:       [8]uint8{1, 1, 1, 1, 1, 1, 1, 1},
 	}, sender, true)
 
+	// Assign the client to it
 	sender.AssignMultiplayerLobby(newLobby)
 
+	// Join the channel and tell the client they've joined
 	newLobby.MultiChannel.Join(sender)
 	sender.AddJoinedChannel(newLobby.MultiChannel)
 
@@ -156,11 +160,13 @@ func MpCommandLock(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	// Locks match information, nobody can move from slots, nobody can change teams, nothing.
 	currentLobby.RefereeLock(sender)
 
 	return []string{}
 }
 
+// Resizes the lobby
 func MpCommandUnlock(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -169,6 +175,7 @@ func MpCommandUnlock(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	// Unlocks match info
 	currentLobby.RefereeUnlock(sender)
 
 	return []string{}
@@ -209,6 +216,7 @@ func MpCommandSize(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Sets team mode and score mode
 func MpCommandSet(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -263,6 +271,7 @@ func MpCommandSet(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Moves a player to a specific slot
 func MpCommandMove(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -309,6 +318,7 @@ func MpCommandMove(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Sets the team of a player to a specific color
 func MpCommandTeam(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -357,6 +367,7 @@ func MpCommandTeam(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Hands host to another player
 func MpCommandHost(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -391,6 +402,7 @@ func MpCommandHost(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Lists settings of the lobby match
 func MpCommandSettings(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -411,6 +423,8 @@ func MpCommandSettings(sender LobbyClient, args []string) []string {
 		"-- Slots:",
 	}
 
+	//Go over every slot and check its status,
+	//If there's a player communicate that
 	for i := 0; i != 8; i++ {
 		formattedSlot := ""
 
@@ -442,6 +456,7 @@ func MpCommandSettings(sender LobbyClient, args []string) []string {
 	return messages
 }
 
+// Time Ticker for both the countdown and match start
 func timeTicker(countdown int, tickerMessagePrefix string, tickerMessageSender chat.ChatClient, matchHost LobbyClient, ctx context.Context, onDone func(sender LobbyClient)) {
 	ticker := time.NewTicker(1 * time.Second)
 	toStart := countdown
@@ -501,6 +516,7 @@ func timeTicker(countdown int, tickerMessagePrefix string, tickerMessageSender c
 	}
 }
 
+// Starts the match with a optional countdown
 func MpCommandStart(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -545,6 +561,7 @@ func MpCommandStart(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Currently aborts the timer
 func MpCommandAbort(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -562,6 +579,7 @@ func MpCommandAbort(sender LobbyClient, args []string) []string {
 	}
 }
 
+// Changes the map
 func MpCommandMap(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -584,6 +602,7 @@ func MpCommandMap(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	//Query both map and set, set cuz we need metadata
 	queryResult, beatmap := database.BeatmapsGetById(int32(id))
 	queryResultSet, beatmapset := database.BeatmapsetsGetBeatmapsetById(beatmap.BeatmapsetId)
 
@@ -593,17 +612,20 @@ func MpCommandMap(sender LobbyClient, args []string) []string {
 		}
 	}
 
+	//construct new settigns
 	newSettings := currentLobby.MatchInformation
 
 	newSettings.BeatmapId = beatmap.BeatmapId
 	newSettings.BeatmapChecksum = beatmap.BeatmapMd5
 	newSettings.BeatmapName = fmt.Sprintf("%s - %s [%s]", beatmapset.Artist, beatmapset.Title, beatmap.Version)
 
+	// change em
 	currentLobby.ChangeSettings(sender, newSettings)
 
 	return []string{}
 }
 
+// Sets the mods of the lobby
 func MpCommandMods(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -615,6 +637,7 @@ func MpCommandMods(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Sets a timer
 func MpCommandTimer(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -656,6 +679,7 @@ func MpCommandTimer(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Aborts the timer
 func MpCommandAbortTimer(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -671,6 +695,7 @@ func MpCommandAbortTimer(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Kicks a user from the lobby
 func MpCommandKick(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -682,6 +707,7 @@ func MpCommandKick(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Sets or removes the password of the match
 func MpCommandPassword(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {
@@ -693,6 +719,7 @@ func MpCommandPassword(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+// Closes the match, disbanding it
 func MpCommandClose(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
 	if currentLobby == nil {

@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// Various Client lists
 var clientList []LobbyClient
 var clientsById map[int32]LobbyClient
 var clientsByName map[string]LobbyClient

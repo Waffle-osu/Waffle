@@ -11,25 +11,42 @@ import (
 )
 
 type MultiplayerLobby struct {
-	MatchId             string
-	MultiChannel        *chat.Channel
-	MatchInformation    base_packet_structures.MultiplayerMatch
-	MatchHost           LobbyClient
-	MultiClients        [8]LobbyClient
-	PlayersLoaded       [8]bool
+	// ID of the match
+	MatchId string
+	// Chat channel for the lobby
+	MultiChannel *chat.Channel
+	// Current match information
+	MatchInformation base_packet_structures.MultiplayerMatch
+	// Current Match host
+	MatchHost LobbyClient
+	// Array of clients inside the lobby, arranged in slots.
+	MultiClients [8]LobbyClient
+	// Slots loaded status
+	PlayersLoaded [8]bool
+	// Slots skip status
 	PlayerSkipRequested [8]bool
-	PlayerCompleted     [8]bool
-	PlayerFailed        [8]bool
-	LastScoreFrames     [8]base_packet_structures.ScoreFrame
-	MatchInfoMutex      sync.Mutex
-	InProgress          bool
+	// Slots completed status
+	PlayerCompleted [8]bool
+	// Slots failed status
+	PlayerFailed [8]bool
+	// Latest score frames for each slot
+	LastScoreFrames [8]base_packet_structures.ScoreFrame
+	// Sync mutex for MatchInformation
+	MatchInfoMutex sync.Mutex
+	// Is the current match in progress
+	InProgress bool
 
-	IrcReffed        bool
-	Locked           bool
+	// Is the match reffered by a Host over IRC
+	IrcReffed bool
+	// Referee Lock, locks MatchInformation entirely.
+	Locked bool
+	// Context cancel for !mp start
 	MatchStartCancel context.CancelFunc
-	TimerCancel      context.CancelFunc
+	// Context cancel for !mp timer
+	TimerCancel context.CancelFunc
 }
 
+// Common function for logging a event to the match log in the database
 func (multiLobby *MultiplayerLobby) LogEvent(eventType database.MatchHistoryEventType, initiator LobbyClient, extraInfo string) {
 	id := int32(0)
 
@@ -420,6 +437,7 @@ func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSett
 	//We're building a diff for the match logging.
 	diff := ""
 
+	//Mods
 	if multiLobby.MatchInformation.ActiveMods != matchSettings.ActiveMods {
 		oldMods := helpers.FormatMods(uint32(multiLobby.MatchInformation.ActiveMods))
 		newMods := helpers.FormatMods(uint32(matchSettings.ActiveMods))
@@ -427,18 +445,22 @@ func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSett
 		diff += fmt.Sprintf("Mods changed (was: %s; is: %s)\n", oldMods, newMods)
 	}
 
+	// Game name
 	if multiLobby.MatchInformation.GameName != matchSettings.GameName {
 		diff += fmt.Sprintf("Match name changed (was: %s; is %s)\n", multiLobby.MatchInformation.GameName, matchSettings.GameName)
 	}
 
+	// Password
 	if multiLobby.MatchInformation.GamePassword != matchSettings.GamePassword {
 		diff += "Password was changed.\n"
 	}
 
+	// Map
 	if multiLobby.MatchInformation.BeatmapChecksum != matchSettings.BeatmapChecksum {
 		diff += fmt.Sprintf("Map was changed to Beatmap ID: %d; Name: %s\n", matchSettings.BeatmapId, matchSettings.BeatmapName)
 	}
 
+	// Playmode
 	if multiLobby.MatchInformation.Playmode != matchSettings.Playmode {
 		oldMode := helpers.FormatPlaymodes(multiLobby.MatchInformation.Playmode)
 		newMode := helpers.FormatPlaymodes(matchSettings.Playmode)
@@ -446,6 +468,7 @@ func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSett
 		diff += fmt.Sprintf("Playmode changed (was: %s; is %s)\n", oldMode, newMode)
 	}
 
+	//Scoring type
 	if multiLobby.MatchInformation.MatchScoringType != matchSettings.MatchScoringType {
 		oldMode := helpers.FormatScoringType(multiLobby.MatchInformation.MatchScoringType)
 		newMode := helpers.FormatScoringType(matchSettings.MatchScoringType)
@@ -453,6 +476,7 @@ func (multiLobby *MultiplayerLobby) ChangeSettings(client LobbyClient, matchSett
 		diff += fmt.Sprintf("Scoring type changed (was: %s; is %s)\n", oldMode, newMode)
 	}
 
+	// Team type
 	if multiLobby.MatchInformation.MatchTeamType != matchSettings.MatchTeamType {
 		oldMode := helpers.FormatMatchTeamTypes(multiLobby.MatchInformation.MatchTeamType)
 		newMode := helpers.FormatMatchTeamTypes(matchSettings.MatchTeamType)
@@ -696,6 +720,7 @@ func (multiLobby *MultiplayerLobby) InformCompletion(client LobbyClient) {
 
 	multiLobby.MatchInfoMutex.Unlock()
 
+	//Log completion
 	info := fmt.Sprintf("Score: %d\n", multiLobby.LastScoreFrames[slot].TotalScore)
 	info += fmt.Sprintf("Max Combo: %d\n", multiLobby.LastScoreFrames[slot].MaxCombo)
 	info += fmt.Sprintf("Final Combo: %d\n", multiLobby.LastScoreFrames[slot].CurrentCombo)
@@ -803,6 +828,7 @@ func (multiLobby *MultiplayerLobby) StartGame(client LobbyClient) {
 
 // Various IRC Ref related things:
 
+// Enables referee lock
 func (multiLobby *MultiplayerLobby) RefereeLock(client LobbyClient) {
 	if client != multiLobby.MatchHost {
 		return
@@ -813,6 +839,7 @@ func (multiLobby *MultiplayerLobby) RefereeLock(client LobbyClient) {
 	multiLobby.LogEvent(database.MatchHistoryEventTypeMatchRefLocked, client, "Referee locked the lobby.")
 }
 
+// Disables referee lock
 func (multiLobby *MultiplayerLobby) RefereeUnlock(client LobbyClient) {
 	if client != multiLobby.MatchHost {
 		return
@@ -823,17 +850,21 @@ func (multiLobby *MultiplayerLobby) RefereeUnlock(client LobbyClient) {
 	multiLobby.LogEvent(database.MatchHistoryEventTypeMatchRefUnlocked, client, "Referee unlocked the lobby.")
 }
 
+// Moves player at `slotToMove` one slot up if possible
 func (multiLobby *MultiplayerLobby) MovePlayerUp(client LobbyClient, slotToMove int) bool {
+	//If we're at the top we can't move
 	if slotToMove == 0 {
 		return false
 	}
 
+	// If the slot we're trying to move is already open, we cant move anything there
 	if multiLobby.MatchInformation.SlotStatus[slotToMove] == base_packet_structures.MultiplayerMatchSlotStatusOpen {
 		return false
 	}
 
 	attemptedSlot := multiLobby.MatchInformation.SlotStatus[slotToMove-1]
 
+	// Check if the slot above is free
 	if attemptedSlot == base_packet_structures.MultiplayerMatchSlotStatusOpen {
 		multiLobby.MoveSlot(slotToMove, slotToMove-1)
 
@@ -843,8 +874,11 @@ func (multiLobby *MultiplayerLobby) MovePlayerUp(client LobbyClient, slotToMove 
 	return false
 }
 
+// Checks if everyone in the lobby is as tight as possible in terms of slots
 func (multiLobby *MultiplayerLobby) IsTight() bool {
+	// How many slots are filled consecutively
 	consecutive := 0
+
 	for i := 0; i != 8; i++ {
 		if multiLobby.MatchInformation.SlotStatus[i] != base_packet_structures.MultiplayerMatchSlotStatusOpen {
 			consecutive++
@@ -856,6 +890,7 @@ func (multiLobby *MultiplayerLobby) IsTight() bool {
 	return consecutive == multiLobby.GetUsedUpSlots()
 }
 
+// Resizes the lobby
 func (multiLobby *MultiplayerLobby) SetSize(client LobbyClient, size int) {
 	if client != multiLobby.MatchHost {
 		return

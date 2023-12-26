@@ -17,12 +17,14 @@ import (
 
 func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine string) {
 	switch strings.ToUpper(message.Command) {
+	//Client is setting their Nickname
 	case "NICK":
 		if client.Nickname == "" {
 			client.Nickname = strings.Join(message.Params, " ")
 		} else {
 			client.BanchoAnnounce(fmt.Sprintf("%s: Nickname changes not allowed!", client.Username))
 		}
+	// Client is setting their Username and Realname
 	case "USER":
 		if client.Username == "" && client.Realname == "" {
 			client.Username = message.Params[0]
@@ -30,6 +32,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		} else {
 			client.packetQueue <- irc_messages.IrcSendAlreadyRegistered("You may not reregister")
 		}
+	// Client is setting their password
 	case "PASS":
 		if client.Password == "" {
 			if message.Trailing == "" {
@@ -40,21 +43,26 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		} else {
 			client.packetQueue <- irc_messages.IrcSendAlreadyRegistered("You may not reregister")
 		}
+	// Client is requesting to join channel(s)
 	case "JOIN":
 		channels := []string{}
 
+		//Get each channel
 		for _, requestedChannel := range message.Params {
 			channels = append(channels, strings.Split(requestedChannel, ",")...)
 		}
 
+		//For each channel, try joining
 		for _, channel := range channels {
 			foundChannel, exists := chat.GetChannelByName(channel)
 
+			//If it doesn't exist
 			if !exists {
 				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("No such channel!", channel)
 				return
 			}
 
+			//Try joining
 			success := foundChannel.Join(client)
 
 			if success {
@@ -67,13 +75,16 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				client.packetQueue <- irc_messages.IrcSendBannedFromChan("Joining channel failed.", channel)
 			}
 		}
+	// Client is requesting to leave channels
 	case "PART":
 		channels := []string{}
 
+		//Collect channels
 		for _, requestedChannel := range message.Params {
 			channels = append(channels, strings.Split(requestedChannel, ",")...)
 		}
 
+		//For each channel, leave
 		for _, channel := range channels {
 			joinedChannel, exists := client.joinedChannels[channel]
 
@@ -83,17 +94,21 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				client.packetQueue <- irc_messages.IrcSendNotOnChannel(channel)
 			}
 
+			//Special handling for IRC reffering
 			if channel == "#multiplayer" {
 				client.currentMultiLobby.IrcRefereePart(client)
 			}
 		}
+	// Client is requesting to find out who's in each channel
 	case "NAMES":
 		channels := []string{}
 
+		// Collect channels
 		for _, requestedChannel := range message.Params {
 			channels = append(channels, strings.Split(requestedChannel, ",")...)
 		}
 
+		//For each channel, get every client in channel, send response
 		for _, channel := range channels {
 			foundChannel, exists := chat.GetChannelByName(channel)
 
@@ -103,12 +118,14 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("No such channel!", channel)
 			}
 		}
+	// The client is leaving/disconnecting
 	case "QUIT":
 		client.CleanupClient(message.Trailing)
 
 		client_manager.BroadcastPacket(func(_client client_manager.WaffleClient) {
 			_client.BanchoHandleIrcQuit(client.Username)
 		})
+	// The client is sending a chat message
 	case "PRIVMSG":
 		if len(message.Params) != 0 {
 			if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
@@ -117,7 +134,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				messageText := message.Trailing
 				target := message.Params[0]
 
-				//Chhannel into which the message gets sent
+				//Channel into which the message gets sent
 				//WaffleBot/Lobby commands get sent there awell
 				//Aswell as their responses
 				var sendChannel *chat.Channel
@@ -210,11 +227,13 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 
 			}
 		}
+	// Client is looking for more information on a client or channel
 	case "WHO":
 		query := message.Params[0]
 
 		channelQuery := query[0] == '#'
 
+		// Look for channel
 		if channelQuery {
 			foundChannel, exists := client.joinedChannels[query]
 
@@ -225,7 +244,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 					client.packetQueue <- irc_messages.IrcSendWhoReply(query, channelClient.GetUsername(), isAway, channelClient.GetUserPrivileges())
 				}
 			} else {
-				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it. No user under such Username could be found either.", message.Params[0])
+				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it.", message.Params[0])
 			}
 		} else {
 			var foundClient client_manager.WaffleClient = nil
@@ -241,7 +260,7 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 			}
 
 			if foundClient == nil {
-				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("Channel either doesn't exist or you haven't joined it. No user under such Username could be found either.", message.Params[0])
+				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("No connected user with this username found.", message.Params[0])
 			} else {
 				isAway := foundClient.GetAwayMessage() == ""
 
@@ -285,9 +304,12 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				client.packetQueue <- irc_messages.IrcSendEndOfWhoIs(username)
 			}
 		}
+	// Client is requesting a channel list, or is querying to find channels
 	case "LIST":
 		client.packetQueue <- irc_messages.IrcSendListStart()
 
+		// Retrieve every channel the user has access to
+		// And include them in the name response
 		if len(message.Params) == 0 {
 			for _, channel := range chat.GetAvailableChannels() {
 				if (channel.ReadPrivileges & client.GetUserPrivileges()) <= 0 {
@@ -296,7 +318,8 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 
 				client.packetQueue <- irc_messages.IrcSendListReply(channel)
 			}
-		} else {
+
+		} else { //Perform search
 			joinedQuery := strings.Join(message.Params, " ")
 
 			if strings.Contains(joinedQuery, "#") {
@@ -325,12 +348,14 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		}
 
 		client.packetQueue <- irc_messages.IrcSendListEnd()
+	// Client is pinging the server
 	case "PING":
 		token := message.Params[0]
 
 		client.packetQueue <- irc_messages.IrcSendPong(token)
 	case "PONG":
 	case "CAP":
+	case "MODE":
 	default:
 		helpers.Logger.Printf("[IRC@Debug] UNHANDLED COMMAND: %s", rawLine)
 

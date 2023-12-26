@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// Retrieves the Relevant User stats of this client, relevant meaning for the currently active mode.
 func (client *IrcClient) GetRelevantUserStats() database.UserStats {
 	//If the ID is below 1, it gets recognized as a IRC client
 	//Inside osu! clients, because inside b1815 BanchoPresence
@@ -41,6 +42,7 @@ func (client *IrcClient) GetRelevantUserStats() database.UserStats {
 	}
 }
 
+// Gets the client's current Status
 func (client *IrcClient) GetUserStatus() base_packet_structures.StatusUpdate {
 	return base_packet_structures.StatusUpdate{
 		Status:          serialization.OsuStatusUnknown,
@@ -52,18 +54,22 @@ func (client *IrcClient) GetUserStatus() base_packet_structures.StatusUpdate {
 	}
 }
 
+// Gets the client's User Information
 func (client *IrcClient) GetUserData() database.User {
 	return client.UserData
 }
 
+// Retrieves the client's Timezone
 func (client *IrcClient) GetClientTimezone() int32 {
 	return 0
 }
 
+// Sends the equivilant of a osu! client quit message.
 func (client *IrcClient) BanchoHandleOsuQuit(userId int32, username string) {
 	client.BanchoHandleIrcQuit(username)
 }
 
+// Sends the equivilant of a IRC client quit message.
 func (client *IrcClient) BanchoHandleIrcQuit(username string) {
 	client.packetQueue <- irc_messages.Message{
 		Command:  "QUIT",
@@ -71,46 +77,65 @@ func (client *IrcClient) BanchoHandleIrcQuit(username string) {
 	}
 }
 
+// Sends the equivilant of a Spectator Join message.
+// Used to build a Spectator List
 func (client *IrcClient) BanchoSpectatorJoined(userId int32) {
 	//We don't do anything here cuz no spectator over IRC
 }
 
+// Sends the equivilant of a Spectator Leave message.
+// Used to build a Spectator List
 func (client *IrcClient) BanchoSpectatorLeft(userId int32) {
 	//We don't do anything here cuz no spectator over IRC
 }
 
+// Sends the equivilant of a Fellow Spectator Join message.
+// Used to build a Spectator List
 func (client *IrcClient) BanchoFellowSpectatorJoined(userId int32) {
 	//We don't do anything here cuz no spectator over IRC
 }
 
+// Sends the equivilant of a Fellow Spectator Leave message.
+// Used to build a Spectator List
 func (client *IrcClient) BanchoFellowSpectatorLeft(userId int32) {
 	//We don't do anything here cuz no spectator over IRC
 }
 
+// Sends the equivilant of a Spectator can't spectate message.
+// in osu! there's a seperate list for Spectators that don't have the map.
 func (client *IrcClient) BanchoSpectatorCantSpectate(userId int32) {
 	//We don't do anything here cuz no spectator over IRC
 }
 
+// Sends the equivilant of Spectator Replay Frames to the client.
+// This contains the next replay data of the client that this client is spectating
 func (client *IrcClient) BanchoSpectateFrames(frameBundle base_packet_structures.SpectatorFrameBundle) {
 	//We don't do anything here cuz no spectator over IRC
 }
 
+// Sends the equivilant of a chat message to the client.
 func (client *IrcClient) BanchoIrcMessage(message base_packet_structures.Message) {
 	client.packetQueue <- irc_messages.IrcSendPrivMsg(message.Sender, message.Target, message.Message)
 }
 
+// Sends the equivilant of a statistics update to the client.
+// Used to inform of score submissions of other clients, and a difference in stats
 func (client *IrcClient) BanchoOsuUpdate(stats database.UserStats, update base_packet_structures.StatusUpdate) {
 
 }
 
+// Sends the equivilant of a Presence update to the client.
+// This is used to inform the client that a client exists. used to be done by just the Stats update.
 func (client *IrcClient) BanchoPresence(user database.User, stats database.UserStats, timezone int32) {
 
 }
 
+// Retrieves the Idle times of the client, when the client last received a packet, and when they logged on
 func (client *IrcClient) GetIdleTimes() (lastRecieve time.Time, logon time.Time) {
 	return client.lastReceive, client.logonTime
 }
 
+// Retrieves a IRC formatted joined channel list.
 func (client *IrcClient) GetFormattedJoinedChannels() string {
 	channelString := ""
 
@@ -123,6 +148,8 @@ func (client *IrcClient) GetFormattedJoinedChannels() string {
 	return channelString
 }
 
+// Sends the equivilant of a annoucement/notification to this client.
+// in osu! it shows up as a notification
 func (ircClient *IrcClient) BanchoAnnounce(message string) {
 	ircClient.BanchoIrcMessage(base_packet_structures.Message{
 		Sender:  "WaffleBot",
@@ -131,6 +158,7 @@ func (ircClient *IrcClient) BanchoAnnounce(message string) {
 	})
 }
 
+// Used to get the attention of the client.
 func (ircClient *IrcClient) BanchoGetAttention() {
 
 }

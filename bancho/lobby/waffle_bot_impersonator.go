@@ -2,7 +2,6 @@ package lobby
 
 import (
 	"Waffle/bancho/chat"
-	"Waffle/common"
 )
 
 type LobbyWaffleBot struct{}
@@ -40,11 +39,6 @@ func (LobbyWaffleBot) InformChannelJoin(chatClient chat.ChatClient, channel *cha
 // Sends the equivilant of a Channel Part information/message to this client
 func (LobbyWaffleBot) InformChannelPart(chatClient chat.ChatClient, channel *chat.Channel) {
 
-}
-
-// Gets what kind of client the client is.
-func (LobbyWaffleBot) GetClientType() common.ClientType {
-	return common.ClientTypeIrc
 }
 
 // Silences the client until `untilUnix`

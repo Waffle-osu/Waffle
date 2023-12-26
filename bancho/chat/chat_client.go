@@ -1,7 +1,5 @@
 package chat
 
-import "Waffle/common"
-
 // ChatClient defines an Interface of what we need from client.Client to be able to send messages
 type ChatClient interface {
 	// This function is used to retrieve the client's Privileges
@@ -18,8 +16,6 @@ type ChatClient interface {
 	InformChannelJoin(chatClient ChatClient, channel *Channel)
 	// Sends the equivilant of a Channel Part information/message to this client
 	InformChannelPart(chatClient ChatClient, channel *Channel)
-	// Gets what kind of client the client is.
-	GetClientType() common.ClientType
 
 	// Silences the client until `untilUnix`
 	SetSilencedUntilUnix(untilUnix int64)

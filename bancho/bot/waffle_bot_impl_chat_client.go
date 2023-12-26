@@ -3,12 +3,7 @@ package bot
 import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/osu/base_packet_structures"
-	"Waffle/common"
 )
-
-func (waffleBot *WaffleBot) GetClientType() common.ClientType {
-	return common.ClientTypeOsu1816
-}
 
 func (waffleBot *WaffleBot) GetUserPrivileges() int32 {
 	return waffleBot.UserData.Privileges

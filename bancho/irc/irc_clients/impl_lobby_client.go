@@ -7,6 +7,14 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 )
 
+/*
+	Most of these functions are empty,
+	because IRC clients can't actually play.
+	They can only ref the matches, so only
+	the functions relevant to match information
+	are implemented here.
+*/
+
 func (ircClient *IrcClient) BanchoChannelRevoked(channel string) {
 	ircClient.packetQueue <- irc_messages.IrcSendPart(ircClient.Username, channel)
 }
