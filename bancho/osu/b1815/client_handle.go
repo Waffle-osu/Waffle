@@ -18,8 +18,10 @@ func (client *Client) HandleIncoming() {
 		read, readErr := client.connection.Read(readBuffer)
 
 		if readErr != nil {
+			helpers.Logger.Printf(readErr.Error())
+
 			//We don't clean up as we may not need to
-			return
+			continue
 		}
 
 		go func() {
@@ -83,7 +85,11 @@ func (client *Client) MaintainClient(ctx context.Context) {
 				misc.StatsSendLock.Unlock()
 			}()
 
-			client.connection.Write(packet)
+			_, err := client.connection.Write(packet)
+
+			if err != nil {
+				helpers.Logger.Printf(err.Error())
+			}
 		// Sends pings
 		case <-pingTicker.C:
 			client.BanchoPing()
