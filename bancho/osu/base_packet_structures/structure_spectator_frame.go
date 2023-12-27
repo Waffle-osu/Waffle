@@ -5,8 +5,12 @@ import (
 	"io"
 )
 
+type Test struct {
+	ButtonState uint8
+}
+
 type SpectatorFrame struct {
-	ButtonState           uint8
+	Test                  Test
 	ButtonStateCompatByte uint8
 	MouseX                float32
 	MouseY                float32
@@ -16,7 +20,7 @@ type SpectatorFrame struct {
 func ReadSpectatorFrame(reader io.Reader) SpectatorFrame {
 	frame := SpectatorFrame{}
 
-	binary.Read(reader, binary.LittleEndian, &frame.ButtonState)
+	//binary.Read(reader, binary.LittleEndian, &frame.ButtonState)
 	binary.Read(reader, binary.LittleEndian, &frame.ButtonStateCompatByte)
 	binary.Read(reader, binary.LittleEndian, &frame.MouseX)
 	binary.Read(reader, binary.LittleEndian, &frame.MouseY)
@@ -26,7 +30,7 @@ func ReadSpectatorFrame(reader io.Reader) SpectatorFrame {
 }
 
 func (frame SpectatorFrame) Write(writer io.Writer) {
-	binary.Write(writer, binary.LittleEndian, frame.ButtonState)
+	//binary.Write(writer, binary.LittleEndian, frame.ButtonState)
 	binary.Write(writer, binary.LittleEndian, frame.ButtonStateCompatByte)
 	binary.Write(writer, binary.LittleEndian, frame.MouseX)
 	binary.Write(writer, binary.LittleEndian, frame.MouseY)

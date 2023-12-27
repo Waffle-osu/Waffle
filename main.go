@@ -9,6 +9,7 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
 	"Waffle/bancho/osu/b1815"
+	"Waffle/bancho/packets"
 	"Waffle/bancho/spectator"
 	"Waffle/config"
 	"Waffle/database"
@@ -59,6 +60,8 @@ func main() {
 	scheduler.InitializeJobScheduler()       //Initializes the Scheduler
 
 	//scheduler.RunScheduler()
+
+	packets.PacketTest()
 
 	if len(os.Args) == 3 {
 		switch os.Args[1] {
