@@ -5,26 +5,41 @@ import (
 	"Waffle/helpers/serialization"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"reflect"
 )
 
 func PacketTest() {
-	testFrame := base_packet_structures.SpectatorFrame{
-		Test: base_packet_structures.Test{
-			ButtonState: 24,
+	testFrame := base_packet_structures.SpectatorFrameBundle{
+		FrameCount: 2,
+		Frames: []base_packet_structures.SpectatorFrame{
+			{
+				ButtonState:           24,
+				ButtonStateCompatByte: 48,
+				MouseX:                12,
+				MouseY:                121,
+				Time:                  1111,
+			},
+			{
+				ButtonState:           25,
+				ButtonStateCompatByte: 49,
+				MouseX:                13,
+				MouseY:                122,
+				Time:                  1112,
+			},
 		},
-		ButtonStateCompatByte: 48,
-		MouseX:                12,
-		MouseY:                121,
-		Time:                  1111,
+		ReplayAction: 24,
+		ScoreFrame:   base_packet_structures.ScoreFrame{},
 	}
 
 	test := Write(testFrame)
 
-	out := base_packet_structures.SpectatorFrame{}
+	out := base_packet_structures.SpectatorFrameBundle{}
 
 	Read(bytes.NewBuffer(test), &out)
+
+	fmt.Printf("out mouse x: %f", out.Frames[1].MouseX)
 }
 
 func writeInternal(writer io.Writer, indirect reflect.Value, elements reflect.Type) {
@@ -157,9 +172,28 @@ func Write[T any](packetStruct T) []byte {
 	return buffer.Bytes()
 }
 
-func readInternal(reader io.Reader, indirect reflect.Value, elements reflect.Type) {
-	for i := 0; i != elements.NumField(); i++ {
-		field := indirect.Field(i)
+func readInternal(reader io.Reader, val reflect.Value) {
+	if val.Kind() == reflect.Interface && !val.IsNil() {
+		e := val.Elem()
+
+		if e.Kind() == reflect.Pointer && !e.IsNil() {
+			val = e
+		}
+	}
+
+	if val.Kind() == reflect.Pointer {
+		if val.IsNil() {
+			val.Set(reflect.New(val.Type().Elem()))
+		}
+
+		val = val.Elem()
+	}
+
+	elements := val.Type()
+
+	for i := 0; i != val.NumField(); i++ {
+		field := val.Field(i)
+		structField := elements.Field(i)
 		kind := field.Kind()
 
 		switch kind {
@@ -228,15 +262,70 @@ func readInternal(reader io.Reader, indirect reflect.Value, elements reflect.Typ
 
 			field.Set(reflect.ValueOf(string))
 		case reflect.Struct:
-			readInternal(reader, indirect.Field(i), field.Type())
+			readInternal(reader, field)
 		case reflect.Slice:
+			//Slices rely on a previously defined field specified in the tag
+			//this gets the tag value
+			lengthField := structField.Tag.Get("length")
+			//Field information
+			lengthFieldByName := val.FieldByName(lengthField)
+			//Dereferenced value of field
+			lengthValue := lengthFieldByName.Addr().Interface()
+
+			iterations := uint64(0)
+
+			//We need to get the proper value of the length parameter
+			//So we can iterate `iterations` amount of times
+			switch lengthFieldByName.Kind() {
+			case reflect.Uint8:
+				conv, _ := (lengthValue.(*uint8))
+
+				iterations = uint64(*conv)
+			case reflect.Int8:
+				conv, _ := (lengthValue.(*int8))
+
+				iterations = uint64(*conv)
+			case reflect.Uint16:
+				conv, _ := (lengthValue.(*uint16))
+
+				iterations = uint64(*conv)
+			case reflect.Int16:
+				conv, _ := (lengthValue.(*int16))
+
+				iterations = uint64(*conv)
+			case reflect.Uint32:
+				conv, _ := (lengthValue.(*uint32))
+
+				iterations = uint64(*conv)
+			case reflect.Int32:
+				conv, _ := (lengthValue.(*int32))
+
+				iterations = uint64(*conv)
+			case reflect.Uint64:
+				conv, _ := (lengthValue.(*uint64))
+
+				iterations = uint64(*conv)
+			case reflect.Int64:
+				conv, _ := (lengthValue.(*int64))
+
+				iterations = uint64(*conv)
+			}
+
+			elemSlice := reflect.MakeSlice(reflect.SliceOf(field.Type().Elem()), 0, int(iterations))
+
+			for j := uint64(0); j != iterations; j++ {
+				value := reflect.New(field.Type().Elem())
+
+				readInternal(reader, value)
+
+				elemSlice = reflect.Append(elemSlice, value.Elem())
+			}
+
+			field.Set(elemSlice)
 		}
 	}
 }
 
 func Read(reader io.Reader, v any) {
-	//Creates a new T
-	typeOf := reflect.TypeOf(reflect.ValueOf(v))
-
-	readInternal(reader, reflect.ValueOf(v), typeOf)
+	readInternal(reader, reflect.ValueOf(v))
 }
