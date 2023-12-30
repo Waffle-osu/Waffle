@@ -1,46 +1,43 @@
-package packets
+package serialization
 
 import (
-	"Waffle/bancho/osu/base_packet_structures"
-	"Waffle/helpers/serialization"
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"reflect"
 )
 
-func PacketTest() {
-	testFrame := base_packet_structures.SpectatorFrameBundle{
-		FrameCount: 2,
-		Frames: []base_packet_structures.SpectatorFrame{
-			{
-				ButtonState:           24,
-				ButtonStateCompatByte: 48,
-				MouseX:                12,
-				MouseY:                121,
-				Time:                  1111,
-			},
-			{
-				ButtonState:           25,
-				ButtonStateCompatByte: 49,
-				MouseX:                13,
-				MouseY:                122,
-				Time:                  1112,
-			},
-		},
-		ReplayAction: 24,
-		ScoreFrame:   base_packet_structures.ScoreFrame{},
-	}
+// func PacketTest() {
+// 	testFrame := base_packet_structures.SpectatorFrameBundle{
+// 		FrameCount: 2,
+// 		Frames: []base_packet_structures.SpectatorFrame{
+// 			{
+// 				ButtonState:           24,
+// 				ButtonStateCompatByte: 48,
+// 				MouseX:                12,
+// 				MouseY:                121,
+// 				Time:                  1111,
+// 			},
+// 			{
+// 				ButtonState:           25,
+// 				ButtonStateCompatByte: 49,
+// 				MouseX:                13,
+// 				MouseY:                122,
+// 				Time:                  1112,
+// 			},
+// 		},
+// 		ReplayAction: 24,
+// 		ScoreFrame:   base_packet_structures.ScoreFrame{},
+// 	}
 
-	test := Write(testFrame)
+// 	test := ReflectionWrite(testFrame)
 
-	out := base_packet_structures.SpectatorFrameBundle{}
+// 	out := base_packet_structures.SpectatorFrameBundle{}
 
-	Read(bytes.NewBuffer(test), &out)
+// 	ReflectionRead(bytes.NewBuffer(test), &out)
 
-	fmt.Printf("out mouse x: %f", out.Frames[1].MouseX)
-}
+// 	fmt.Printf("out mouse x: %f", out.Frames[1].MouseX)
+// }
 
 func writeInternal(writer io.Writer, indirect reflect.Value, elements reflect.Type) {
 	for i := 0; i != elements.NumField(); i++ {
@@ -96,7 +93,7 @@ func writeInternal(writer io.Writer, indirect reflect.Value, elements reflect.Ty
 		case reflect.String:
 			conv, _ := (v.(*string))
 
-			asBanchoString := serialization.WriteBanchoString(*conv)
+			asBanchoString := WriteBanchoString(*conv)
 
 			binary.Write(writer, binary.LittleEndian, asBanchoString)
 		case reflect.Struct:
@@ -160,7 +157,7 @@ func writeInternal(writer io.Writer, indirect reflect.Value, elements reflect.Ty
 	}
 }
 
-func Write[T any](packetStruct T) []byte {
+func ReflectionWrite(packetStruct any) []byte {
 	buffer := new(bytes.Buffer)
 	//Holds all the values
 	indirect := reflect.Indirect(reflect.ValueOf(&packetStruct))
@@ -258,7 +255,7 @@ func readInternal(reader io.Reader, val reflect.Value) {
 
 			field.Set(reflect.ValueOf(value))
 		case reflect.String:
-			string := string(serialization.ReadBanchoString(reader))
+			string := string(ReadBanchoString(reader))
 
 			field.Set(reflect.ValueOf(string))
 		case reflect.Struct:
@@ -326,6 +323,14 @@ func readInternal(reader io.Reader, val reflect.Value) {
 	}
 }
 
-func Read(reader io.Reader, v any) {
+func reflectionRead(reader io.Reader, v any) {
 	readInternal(reader, reflect.ValueOf(v))
+}
+
+func ReflectionRead[T any](reader io.Reader) T {
+	var out T
+
+	reflectionRead(reader, &out)
+
+	return out
 }
