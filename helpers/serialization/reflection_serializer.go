@@ -70,6 +70,10 @@ func writeSingle(writer io.Writer, indirect reflect.Value, elements reflect.Type
 		//this gets the tag value
 		lengthField := field.Tag.Get("length")
 
+		if lengthField == "" {
+			panic("No length field specified!")
+		}
+
 		//Field information
 		lengthFieldByName := indirect.FieldByName(lengthField)
 		//Dereferenced value of field
@@ -218,6 +222,10 @@ func readSingle(reader io.Reader, val reflect.Value, structField reflect.StructF
 	kind := field.Kind()
 
 	switch kind {
+	case reflect.Pointer:
+		elemed := field.Elem()
+
+		readSingle(reader, elemed, structField, elemed)
 	case reflect.Bool:
 		var value bool
 
@@ -288,10 +296,17 @@ func readSingle(reader io.Reader, val reflect.Value, structField reflect.StructF
 		string := string(ReadBanchoString(reader))
 
 		field.Set(reflect.ValueOf(string))
+	case reflect.Struct:
+		readInternal(reader, field)
 	case reflect.Slice:
 		//Slices rely on a previously defined field specified in the tag
 		//this gets the tag value
 		lengthField := structField.Tag.Get("length")
+
+		if lengthField == "" {
+			panic("No length field specified!")
+		}
+
 		//Field information
 		lengthFieldByName := val.FieldByName(lengthField)
 		//Dereferenced value of field
@@ -341,9 +356,18 @@ func readSingle(reader io.Reader, val reflect.Value, structField reflect.StructF
 		for j := uint64(0); j != iterations; j++ {
 			value := reflect.New(field.Type().Elem())
 
-			readInternal(reader, value)
+			//String hotfix
+			if value.Type().String() == "*string" {
+				value = value.Elem()
 
-			elemSlice = reflect.Append(elemSlice, value.Elem())
+				readSingle(reader, value, structField, value)
+
+				elemSlice = reflect.Append(elemSlice, value)
+			} else {
+				readSingle(reader, value, structField, value)
+
+				elemSlice = reflect.Append(elemSlice, value.Elem())
+			}
 		}
 
 		field.Set(elemSlice)

@@ -6,6 +6,7 @@ import (
 	"Waffle/helpers/serialization"
 	"bytes"
 	"context"
+	"strings"
 	"time"
 )
 
@@ -18,7 +19,19 @@ func (client *Client) HandleIncoming() {
 		read, readErr := client.connection.Read(readBuffer)
 
 		if readErr != nil {
-			helpers.Logger.Printf(readErr.Error())
+			err := readErr.Error()
+
+			if strings.Contains(err, "EOF") {
+				client.CleanupClient("EOF received.")
+
+				return
+			} else if strings.Contains(err, "connection was aborted") {
+				client.CleanupClient("Connection aborted")
+
+				return
+			}
+
+			helpers.Logger.Printf(err)
 
 			//We don't clean up as we may not need to
 			continue

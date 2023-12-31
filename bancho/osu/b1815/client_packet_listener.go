@@ -141,7 +141,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
 					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 				} else {
-					message := base_packet_structures.ReadMessage(packetDataReader)
+					message := serialization.Read[base_packet_structures.Message](packetDataReader)
 					//Assign a sender, as the client doesn't seem to send itself as the sender
 					message.Sender = client.UserData.Username
 
@@ -202,7 +202,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				client.spectatingClient = nil
 			//The client is sending replay frames for spectators, this is only done if it knows it has spectators
 			case serialization.OsuSpectateFrames:
-				frameBundle := base_packet_structures.ReadSpectatorFrameBundle(packetDataReader)
+				frameBundle := serialization.Read[base_packet_structures.SpectatorFrameBundle](packetDataReader)
 
 				//Send the frames to all spectators
 				client.BroadcastToSpectators(func(client spectator.SpectatorClient) {
@@ -265,7 +265,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				lobby.CreateNewMultiMatch(match, client, false)
 			//The client is looking to join a multiplayer match
 			case serialization.OsuMatchJoin:
-				matchJoin := base_packet_structures.ReadMatchJoin(packetDataReader)
+				matchJoin := serialization.Read[base_packet_structures.MatchJoin](packetDataReader)
 
 				foundMatch := lobby.GetMultiMatchById(uint16(matchJoin.MatchId))
 
@@ -358,7 +358,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 			//The client informs the server of its new score
 			case serialization.OsuMatchScoreUpdate:
 				if client.currentMultiLobby != nil {
-					scoreFrame := base_packet_structures.ReadScoreFrame(packetDataReader)
+					scoreFrame := serialization.Read[base_packet_structures.ScoreFrame](packetDataReader)
 
 					client.currentMultiLobby.InformScoreUpdate(client, scoreFrame)
 				}
@@ -406,7 +406,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				go database.FriendsRemoveFriend(client.UserData.UserID, uint64(friendId))
 			//The client is setting their away message
 			case serialization.OsuSetIrcAwayMessage:
-				awayMessage := base_packet_structures.ReadMessage(packetDataReader)
+				awayMessage := serialization.Read[base_packet_structures.Message](packetDataReader)
 
 				client.awayMessage = awayMessage.Message
 
@@ -425,7 +425,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					})
 				}
 			case serialization.OsuBeatmapInfoRequest:
-				infoRequest := base_packet_structures.ReadBeatmapInfoRequest(packetDataReader)
+				infoRequest := serialization.Read[base_packet_structures.BeatmapInfoRequest](packetDataReader)
 
 				client.HandleBeatmapInfoRequest(infoRequest)
 			default:

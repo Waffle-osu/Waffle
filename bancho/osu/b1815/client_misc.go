@@ -149,6 +149,8 @@ FROM (
 				infoReply.BeatmapInfos = append(infoReply.BeatmapInfos, beatmapInfo)
 			}
 
+			infoReply.Count = int32(len(infoReply.BeatmapInfos))
+
 			//send off
 			client.BanchoBeatmapInfoReply(infoReply)
 
