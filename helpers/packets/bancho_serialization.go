@@ -1,9 +1,10 @@
-package serialization
+package packets
 
 import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"reflect"
 )
 
 type BanchoSerializable interface {
@@ -71,41 +72,44 @@ func ReadBanchoString(reader io.Reader) []byte {
 	return bytes
 }
 
-func SendSerializable[T any](packetId uint16, serializable T) []byte {
-	packetBytes := ReflectionWrite(serializable)
-	packetLength := len(packetBytes)
+func isNil[T any](t T) bool {
+	v := reflect.ValueOf(t)
+	kind := v.Kind()
+	// Must be one of these types to be nillable
+	return (kind == reflect.Ptr ||
+		kind == reflect.Interface ||
+		kind == reflect.Slice ||
+		kind == reflect.Map ||
+		kind == reflect.Chan ||
+		kind == reflect.Func) &&
+		v.IsNil()
+}
 
+func Send[T any](packetId uint16, serializable T) []byte {
 	packetBuffer := new(bytes.Buffer)
 
+	//Packet ID and Compression
 	binary.Write(packetBuffer, binary.LittleEndian, packetId)
 	binary.Write(packetBuffer, binary.LittleEndian, uint8(0))
-	binary.Write(packetBuffer, binary.LittleEndian, int32(packetLength))
 
-	binary.Write(packetBuffer, binary.LittleEndian, packetBytes)
+	if isNil(serializable) {
+		binary.Write(packetBuffer, binary.LittleEndian, 0)
+	} else {
+		packetBytes := ReflectionWrite(serializable)
+		packetLength := len(packetBytes)
+
+		binary.Write(packetBuffer, binary.LittleEndian, int32(packetLength))
+		binary.Write(packetBuffer, binary.LittleEndian, packetBytes)
+	}
 
 	return packetBuffer.Bytes()
 }
 
-func SendSerializableString(packetId uint16, str string) []byte {
-	buf := new(bytes.Buffer)
-
-	binary.Write(buf, binary.LittleEndian, WriteBanchoString(str))
-
-	packetBytes := buf.Bytes()
-	packetLength := len(packetBytes)
-
-	packetBuffer := new(bytes.Buffer)
-
-	binary.Write(packetBuffer, binary.LittleEndian, packetId)
-	binary.Write(packetBuffer, binary.LittleEndian, uint8(0))
-	binary.Write(packetBuffer, binary.LittleEndian, int32(packetLength))
-
-	binary.Write(packetBuffer, binary.LittleEndian, packetBytes)
-
-	return packetBuffer.Bytes()
+func SendEmpty(packetId uint16) []byte {
+	return Send[struct{}](packetId, struct{}{})
 }
 
-func SendSerializableBytes(packetId uint16, sendBytes []byte) []byte {
+func SendBytes(packetId uint16, sendBytes []byte) []byte {
 	packetLength := len(sendBytes)
 
 	packetBuffer := new(bytes.Buffer)
@@ -117,25 +121,4 @@ func SendSerializableBytes(packetId uint16, sendBytes []byte) []byte {
 	binary.Write(packetBuffer, binary.LittleEndian, sendBytes)
 
 	return packetBuffer.Bytes()
-}
-
-func SendSerializableInt(packetId uint16, integer int32) []byte {
-	buf := new(bytes.Buffer)
-
-	binary.Write(buf, binary.LittleEndian, packetId)
-	binary.Write(buf, binary.LittleEndian, uint8(0))
-	binary.Write(buf, binary.LittleEndian, int32(4))
-	binary.Write(buf, binary.LittleEndian, integer)
-
-	return buf.Bytes()
-}
-
-func SendEmptySerializable(packetId uint16) []byte {
-	buf := new(bytes.Buffer)
-
-	binary.Write(buf, binary.LittleEndian, packetId)
-	binary.Write(buf, binary.LittleEndian, uint8(0))
-	binary.Write(buf, binary.LittleEndian, int32(0))
-
-	return buf.Bytes()
 }

@@ -1,7 +1,7 @@
 package client_manager
 
 import (
-	"Waffle/common"
+	"Waffle/utils"
 )
 
 /*
@@ -12,7 +12,7 @@ import (
 	this comedy stays
 */
 
-var ClientManager common.ClientManager[WaffleClient] = common.ClientManager[WaffleClient]{}
+var ClientManager utils.ClientManager[WaffleClient] = utils.ClientManager[WaffleClient]{}
 
 // InitializeClientManager initializes the ClientManager
 func InitializeClientManager() {

@@ -1,10 +1,10 @@
 package spectator
 
 import (
-	"Waffle/common"
+	"Waffle/utils"
 )
 
-var ClientManager common.ClientManager[SpectatorClient] = common.ClientManager[SpectatorClient]{}
+var ClientManager utils.ClientManager[SpectatorClient] = utils.ClientManager[SpectatorClient]{}
 
 func InitializeClientManager() {
 	ClientManager.Initialize()

@@ -4,7 +4,7 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/bancho/spectator"
 	"Waffle/database"
-	"Waffle/helpers/serialization"
+	"Waffle/helpers/packets"
 	"bytes"
 	"encoding/binary"
 )
@@ -16,45 +16,45 @@ import (
 */
 
 func (client *Client) BanchoAnnounce(annoucement string) {
-	client.PacketQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, annoucement)
+	client.PacketQueue <- packets.Send(packets.BanchoAnnounce, annoucement)
 }
 
 func (client *Client) BanchoBeatmapInfoReply(infoReply base_packet_structures.BeatmapInfoReply) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoBeatmapInfoReply, infoReply)
+	client.PacketQueue <- packets.Send(packets.BanchoBeatmapInfoReply, infoReply)
 }
 
 func (client *Client) BanchoChannelAvailableAutojoin(channel string) {
-	client.PacketQueue <- serialization.SendSerializableString(serialization.BanchoChannelAvailableAutojoin, channel)
+	client.PacketQueue <- packets.Send(packets.BanchoChannelAvailableAutojoin, channel)
 }
 
 func (client *Client) BanchoChannelAvailable(channel string) {
-	client.PacketQueue <- serialization.SendSerializableString(serialization.BanchoChannelAvailable, channel)
+	client.PacketQueue <- packets.Send(packets.BanchoChannelAvailable, channel)
 }
 
 func (client *Client) BanchoChannelJoinSuccess(channel string) {
-	client.PacketQueue <- serialization.SendSerializableString(serialization.BanchoChannelJoinSuccess, channel)
+	client.PacketQueue <- packets.Send(packets.BanchoChannelJoinSuccess, channel)
 }
 
 func (client *Client) BanchoChannelRevoked(channel string) {
-	client.PacketQueue <- serialization.SendSerializableString(serialization.BanchoChannelRevoked, channel)
+	client.PacketQueue <- packets.Send(packets.BanchoChannelRevoked, channel)
 }
 
 func (client *Client) BanchoFellowSpectatorJoined(userId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoFellowSpectatorJoined, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoFellowSpectatorJoined, userId)
 }
 
 func (client *Client) BanchoFellowSpectatorLeft(userId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoFellowSpectatorLeft, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoFellowSpectatorLeft, userId)
 }
 
 func (client *Client) BanchoSpectatorJoined(userId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorJoined, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoSpectatorJoined, userId)
 
 	client.InformSpectatorJoin(spectator.ClientManager.GetClientById(userId))
 }
 
 func (client *Client) BanchoSpectatorLeft(userId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorLeft, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoSpectatorLeft, userId)
 
 	client.InformSpectatorLeft(spectator.ClientManager.GetClientById(userId))
 }
@@ -68,95 +68,95 @@ func (client *Client) BanchoFriendsList(friendsList []database.FriendEntry) {
 		binary.Write(buf, binary.LittleEndian, int32(friend.User2))
 	}
 
-	client.PacketQueue <- serialization.SendSerializableBytes(serialization.BanchoFriendsList, buf.Bytes())
+	client.PacketQueue <- packets.SendBytes(packets.BanchoFriendsList, buf.Bytes())
 }
 
 func (client *Client) BanchoGetAttention() {
-	client.PacketQueue <- serialization.SendEmptySerializable(serialization.BanchoGetAttention)
+	client.PacketQueue <- packets.SendEmpty(packets.BanchoGetAttention)
 }
 
 func (client *Client) BanchoPing() {
-	client.PacketQueue <- serialization.SendEmptySerializable(serialization.BanchoPing)
+	client.PacketQueue <- packets.SendEmpty(packets.BanchoPing)
 }
 
 func (client *Client) BanchoProtocolNegotiation(protocolVersion int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoProtocolNegotiation, protocolVersion)
+	client.PacketQueue <- packets.Send(packets.BanchoProtocolNegotiation, protocolVersion)
 }
 
 func (client *Client) BanchoHandleOsuQuit(userId int32, username string) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoHandleOsuQuit, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoHandleOsuQuit, userId)
 }
 
 func (client *Client) BanchoHandleIrcQuit(username string) {
-	client.PacketQueue <- serialization.SendSerializableString(serialization.BanchoHandleIrcQuit, username)
+	client.PacketQueue <- packets.Send(packets.BanchoHandleIrcQuit, username)
 }
 
 func (client *Client) BanchoLobbyJoin(userId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoLobbyJoin, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoLobbyJoin, userId)
 }
 
 func (client *Client) BanchoLobbyLeft(userId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoLobbyPart, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoLobbyPart, userId)
 }
 
 func (client *Client) BanchoLoginPermissions(permissions int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoLoginPermissions, permissions)
+	client.PacketQueue <- packets.Send(packets.BanchoLoginPermissions, permissions)
 }
 
 func (client *Client) BanchoLoginReply(userId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoLoginReply, userId)
 }
 
 func (client *Client) BanchoMatchAllPlayersLoaded() {
-	client.PacketQueue <- serialization.SendEmptySerializable(serialization.BanchoMatchAllPlayersLoaded)
+	client.PacketQueue <- packets.SendEmpty(packets.BanchoMatchAllPlayersLoaded)
 }
 
 func (client *Client) BanchoMatchComplete() {
-	client.PacketQueue <- serialization.SendEmptySerializable(serialization.BanchoMatchComplete)
+	client.PacketQueue <- packets.SendEmpty(packets.BanchoMatchComplete)
 }
 
 func (client *Client) BanchoMatchDisband(matchId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoMatchDisband, matchId)
+	client.PacketQueue <- packets.Send(packets.BanchoMatchDisband, matchId)
 }
 
 func (client *Client) BanchoMatchJoinFail() {
-	client.PacketQueue <- serialization.SendEmptySerializable(serialization.BanchoMatchJoinFail)
+	client.PacketQueue <- packets.SendEmpty(packets.BanchoMatchJoinFail)
 }
 
 func (client *Client) BanchoMatchJoinSuccess(match base_packet_structures.MultiplayerMatch) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoMatchJoinSuccess, match)
+	client.PacketQueue <- packets.Send(packets.BanchoMatchJoinSuccess, match)
 }
 
 func (client *Client) BanchoMatchNew(match base_packet_structures.MultiplayerMatch) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoMatchNew, match)
+	client.PacketQueue <- packets.Send(packets.BanchoMatchNew, match)
 }
 
 func (client *Client) BanchoMatchStart(match base_packet_structures.MultiplayerMatch) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoMatchStart, match)
+	client.PacketQueue <- packets.Send(packets.BanchoMatchStart, match)
 }
 
 func (client *Client) BanchoMatchUpdate(match base_packet_structures.MultiplayerMatch) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoMatchUpdate, match)
+	client.PacketQueue <- packets.Send(packets.BanchoMatchUpdate, match)
 }
 
 func (client *Client) BanchoMatchPlayerFailed(slotId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoMatchPlayerFailed, slotId)
+	client.PacketQueue <- packets.Send(packets.BanchoMatchPlayerFailed, slotId)
 }
 
 func (client *Client) BanchoMatchPlayerSkipped(slotId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoMatchPlayerSkipped, slotId)
+	client.PacketQueue <- packets.Send(packets.BanchoMatchPlayerSkipped, slotId)
 }
 
 func (client *Client) BanchoMatchScoreUpdate(scoreFrame base_packet_structures.ScoreFrame) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoMatchScoreUpdate, scoreFrame)
+	client.PacketQueue <- packets.Send(packets.BanchoMatchScoreUpdate, scoreFrame)
 }
 
 func (client *Client) BanchoMatchSkip() {
-	client.PacketQueue <- serialization.SendEmptySerializable(serialization.BanchoMatchSkip)
+	client.PacketQueue <- packets.SendEmpty(packets.BanchoMatchSkip)
 }
 
 func (client *Client) BanchoMatchTransferHost() {
-	client.PacketQueue <- serialization.SendEmptySerializable(serialization.BanchoMatchTransferHost)
+	client.PacketQueue <- packets.SendEmpty(packets.BanchoMatchTransferHost)
 }
 
 func (client *Client) BanchoOsuUpdate(user database.UserStats, status base_packet_structures.StatusUpdate) {
@@ -170,7 +170,7 @@ func (client *Client) BanchoOsuUpdate(user database.UserStats, status base_packe
 		Rank:        int32(user.Rank),
 	}
 
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoHandleOsuUpdate, stats)
+	client.PacketQueue <- packets.Send(packets.BanchoHandleOsuUpdate, stats)
 }
 
 func (client *Client) BanchoPresence(user database.User, stats database.UserStats, timezone int32) {
@@ -191,19 +191,19 @@ func (client *Client) BanchoPresence(user database.User, stats database.UserStat
 		Rank:            int32(stats.Rank),
 	}
 
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoUserPresence, presence)
+	client.PacketQueue <- packets.Send(packets.BanchoUserPresence, presence)
 }
 
 func (client *Client) BanchoIrcMessage(message base_packet_structures.Message) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoSendMessage, message)
+	client.PacketQueue <- packets.Send(packets.BanchoSendMessage, message)
 }
 
 func (client *Client) BanchoSpectateFrames(frames base_packet_structures.SpectatorFrameBundle) {
-	client.PacketQueue <- serialization.SendSerializable(serialization.BanchoSpectateFrames, frames)
+	client.PacketQueue <- packets.Send(packets.BanchoSpectateFrames, frames)
 }
 
 func (client *Client) BanchoSpectatorCantSpectate(userId int32) {
-	client.PacketQueue <- serialization.SendSerializableInt(serialization.BanchoSpectatorCantSpectate, userId)
+	client.PacketQueue <- packets.Send(packets.BanchoSpectatorCantSpectate, userId)
 
 	client.InformSpectatorCantSpectate(spectator.ClientManager.GetClientById(userId))
 }

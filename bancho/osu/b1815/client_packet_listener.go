@@ -9,7 +9,7 @@ import (
 	"Waffle/bancho/spectator"
 	"Waffle/database"
 	"Waffle/helpers"
-	"Waffle/helpers/serialization"
+	"Waffle/helpers/packets"
 	"bytes"
 	"context"
 	"encoding/binary"
@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacket, ctx context.Context) {
+func (client *Client) handlePackets(packetChannel chan packets.BanchoPacket, ctx context.Context) {
 	for {
 		select {
 		case packet := <-packetChannel:
@@ -28,8 +28,8 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 
 			switch packet.PacketId {
 			//The client is informing us about its new status
-			case serialization.OsuSendUserStatus:
-				statusUpdate := serialization.Read[base_packet_structures.StatusUpdate](packetDataReader)
+			case packets.OsuSendUserStatus:
+				statusUpdate := packets.Read[base_packet_structures.StatusUpdate](packetDataReader)
 
 				client.Status = statusUpdate
 
@@ -38,7 +38,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				})
 
 			//The client is informing us, that it wants to know its own updated stats
-			case serialization.OsuRequestStatusUpdate:
+			case packets.OsuRequestStatusUpdate:
 				//Retrieve stats
 				statGetResultOsu, osuStats := database.UserStatsFromDatabase(client.UserData.UserID, 0)
 				statGetResultTaiko, taikoStats := database.UserStatsFromDatabase(client.UserData.UserID, 1)
@@ -59,7 +59,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				client.BanchoPresence(client.UserData, client.GetRelevantUserStats(), client.GetClientTimezone())
 				client.BanchoOsuUpdate(client.GetRelevantUserStats(), client.Status)
 			//The Client is requesting more information about certain clients
-			case serialization.OsuUserStatsRequest:
+			case packets.OsuUserStatsRequest:
 				var listLength int16
 
 				binary.Read(packetDataReader, binary.LittleEndian, &listLength)
@@ -81,11 +81,11 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					break
 				}
 			//The client is sending a message into a channel
-			case serialization.OsuSendIrcMessage:
+			case packets.OsuSendIrcMessage:
 				if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
 					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 				} else {
-					message := serialization.Read[base_packet_structures.Message](packetDataReader)
+					message := packets.Read[base_packet_structures.Message](packetDataReader)
 
 					//Channel into which the message gets sent,
 					//Aswell as where all the WaffleBot/Lobby command
@@ -137,11 +137,11 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					}
 				}
 				//The client is sending a private message to someone
-			case serialization.OsuSendIrcMessagePrivate:
+			case packets.OsuSendIrcMessagePrivate:
 				if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
 					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 				} else {
-					message := serialization.Read[base_packet_structures.Message](packetDataReader)
+					message := packets.Read[base_packet_structures.Message](packetDataReader)
 					//Assign a sender, as the client doesn't seem to send itself as the sender
 					message.Sender = client.UserData.Username
 
@@ -167,11 +167,11 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					}
 				}
 			//The client nicely informs the server that its leaving
-			case serialization.OsuExit:
+			case packets.OsuExit:
 				client.CleanupClient("Player Exited")
 				return
 			//The client informs that it wants to start spectating someone
-			case serialization.OsuStartSpectating:
+			case packets.OsuStartSpectating:
 				var spectatorId int32
 
 				binary.Read(packetDataReader, binary.LittleEndian, &spectatorId)
@@ -193,7 +193,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 
 				client.spectatingClient = toSpectate
 			//The client informs the server that it wants to stop spectating the current user
-			case serialization.OsuStopSpectating:
+			case packets.OsuStopSpectating:
 				if client.spectatingClient == nil {
 					break
 				}
@@ -201,37 +201,38 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				client.spectatingClient.BanchoSpectatorLeft(client.GetUserId())
 				client.spectatingClient = nil
 			//The client is sending replay frames for spectators, this is only done if it knows it has spectators
-			case serialization.OsuSpectateFrames:
-				frameBundle := serialization.Read[base_packet_structures.SpectatorFrameBundle](packetDataReader)
+			case packets.OsuSpectateFrames:
+				frameBundle := packets.Read[base_packet_structures.SpectatorFrameBundle](packetDataReader)
 
 				//Send the frames to all spectators
 				client.BroadcastToSpectators(func(client spectator.SpectatorClient) {
 					client.BanchoSpectateFrames(frameBundle)
 				})
 			//The client informs the server that it's missing the map which the client its spectating is playing
-			case serialization.OsuCantSpectate:
+			case packets.OsuCantSpectate:
 				if client.spectatingClient != nil {
 					client.spectatingClient.BanchoSpectatorCantSpectate(client.GetUserId())
 				}
 			//The client informs the server about an error which had occurred
-			case serialization.OsuErrorReport:
-				errorString := string(serialization.ReadBanchoString(packetDataReader))
+			case packets.OsuErrorReport:
+				errorString := string(packets.ReadBanchoString(packetDataReader))
 
 				helpers.Logger.Printf("[Bancho@Handling] %s Encountered an error!! Error Details:\n%s", client.UserData.Username, errorString)
 			//This is the response to a BanchoPing
-			case serialization.OsuPong:
+			case packets.OsuPong:
 				client.lastReceive = time.Now()
 			//The client has joined the lobby
-			case serialization.OsuLobbyJoin:
+			case packets.OsuLobbyJoin:
 				lobby.JoinLobby(client)
 				client.isInLobby = true
 			//The client has left the lobby
-			case serialization.OsuLobbyPart:
+			case packets.OsuLobbyPart:
 				lobby.PartLobby(client)
 				client.isInLobby = false
 			//The client is requesting to join a chat channel
-			case serialization.OsuChannelJoin:
-				channelName := string(serialization.ReadBanchoString(packetDataReader))
+			case packets.OsuChannelJoin:
+				//channelName := string(serialization.ReadBanchoString(packetDataReader))
+				channelName := packets.Read[string](packetDataReader)
 
 				channel, exists := chat.GetChannelByName(channelName)
 
@@ -248,8 +249,8 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					client.BanchoChannelRevoked(channelName)
 				}
 			//The client is requesting to leave a chat channel
-			case serialization.OsuChannelLeave:
-				channelName := string(serialization.ReadBanchoString(packetDataReader))
+			case packets.OsuChannelLeave:
+				channelName := string(packets.ReadBanchoString(packetDataReader))
 
 				//Search for the channel
 				channel, exists := client.joinedChannels[channelName]
@@ -259,13 +260,13 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					delete(client.joinedChannels, channelName)
 				}
 			//The client is creating a multiplayer match
-			case serialization.OsuMatchCreate:
-				match := serialization.Read[base_packet_structures.MultiplayerMatch](packetDataReader)
+			case packets.OsuMatchCreate:
+				match := packets.Read[base_packet_structures.MultiplayerMatch](packetDataReader)
 
 				lobby.CreateNewMultiMatch(match, client, false)
 			//The client is looking to join a multiplayer match
-			case serialization.OsuMatchJoin:
-				matchJoin := serialization.Read[base_packet_structures.MatchJoin](packetDataReader)
+			case packets.OsuMatchJoin:
+				matchJoin := packets.Read[base_packet_structures.MatchJoin](packetDataReader)
 
 				foundMatch := lobby.GetMultiMatchById(uint16(matchJoin.MatchId))
 
@@ -276,10 +277,10 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					client.BanchoMatchJoinFail()
 				}
 			//The client wants to leave the current multiplayer match
-			case serialization.OsuMatchPart:
+			case packets.OsuMatchPart:
 				client.LeaveCurrentMatch()
 			//The client wants to change in which multiplayer slot its in
-			case serialization.OsuMatchChangeSlot:
+			case packets.OsuMatchChangeSlot:
 				if client.currentMultiLobby != nil {
 					var newSlot int32
 
@@ -288,12 +289,12 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					client.currentMultiLobby.TryChangeSlot(client, int(newSlot))
 				}
 			//The client wants to change sides
-			case serialization.OsuMatchChangeTeam:
+			case packets.OsuMatchChangeTeam:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.ChangeTeam(client)
 				}
 			//The client wants to transfer its host status onto someone else
-			case serialization.OsuMatchTransferHost:
+			case packets.OsuMatchTransferHost:
 				if client.currentMultiLobby != nil {
 					var newHost int32
 
@@ -302,23 +303,23 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					client.currentMultiLobby.TransferHost(client, int(newHost))
 				}
 			//The client informs the server it has pressed the ready button
-			case serialization.OsuMatchReady:
+			case packets.OsuMatchReady:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.ReadyUp(client)
 				}
 			//The client informs the server it has pressed the not ready button
-			case serialization.OsuMatchNotReady:
+			case packets.OsuMatchNotReady:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.Unready(client)
 				}
 			//The client informs the server it has made some changes to the settings of the match
-			case serialization.OsuMatchChangeSettings:
+			case packets.OsuMatchChangeSettings:
 				if client.currentMultiLobby != nil {
-					newMatch := serialization.Read[base_packet_structures.MultiplayerMatch](packetDataReader)
+					newMatch := packets.Read[base_packet_structures.MultiplayerMatch](packetDataReader)
 					client.currentMultiLobby.ChangeSettings(client, newMatch)
 				}
 			//The client informs the server that it has changed the mods in the match
-			case serialization.OsuMatchChangeMods:
+			case packets.OsuMatchChangeMods:
 				if client.currentMultiLobby != nil {
 					var newMods int32
 
@@ -327,7 +328,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					client.currentMultiLobby.ChangeMods(client, newMods)
 				}
 			//The client informs the server that it has tried to lock a slot in the multi lobby
-			case serialization.OsuMatchLock:
+			case packets.OsuMatchLock:
 				if client.currentMultiLobby != nil {
 					var slot int32
 
@@ -336,49 +337,49 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 					client.currentMultiLobby.LockSlot(client, int(slot))
 				}
 			//The client informs the server that it's missing the beatmap to be played
-			case serialization.OsuMatchNoBeatmap:
+			case packets.OsuMatchNoBeatmap:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformNoBeatmap(client)
 				}
 			//The client informs the server that it now has the beatmap that is to be played
-			case serialization.OsuMatchHasBeatmap:
+			case packets.OsuMatchHasBeatmap:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformGotBeatmap(client)
 				}
 			//The client informs the server that it has completed playing the map
-			case serialization.OsuMatchComplete:
+			case packets.OsuMatchComplete:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformCompletion(client)
 				}
 			//The client informs the server that it has loaded into the game successfully
-			case serialization.OsuMatchLoadComplete:
+			case packets.OsuMatchLoadComplete:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformLoadComplete(client)
 				}
 			//The client informs the server of its new score
-			case serialization.OsuMatchScoreUpdate:
+			case packets.OsuMatchScoreUpdate:
 				if client.currentMultiLobby != nil {
-					scoreFrame := serialization.Read[base_packet_structures.ScoreFrame](packetDataReader)
+					scoreFrame := packets.Read[base_packet_structures.ScoreFrame](packetDataReader)
 
 					client.currentMultiLobby.InformScoreUpdate(client, scoreFrame)
 				}
 			//The client has requested to skip the beginning break
-			case serialization.OsuMatchSkipRequest:
+			case packets.OsuMatchSkipRequest:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformPressedSkip(client)
 				}
 			//The client has failed the map
-			case serialization.OsuMatchFailed:
+			case packets.OsuMatchFailed:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.InformFailed(client)
 				}
 			//The client has pressed start game
-			case serialization.OsuMatchStart:
+			case packets.OsuMatchStart:
 				if client.currentMultiLobby != nil {
 					client.currentMultiLobby.StartGame(client)
 				}
 			//The client is looking to add a friend to their friends list
-			case serialization.OsuFriendsAdd:
+			case packets.OsuFriendsAdd:
 				var friendId int32
 
 				binary.Read(packetDataReader, binary.LittleEndian, &friendId)
@@ -392,7 +393,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				//Save in database
 				go database.FriendsAddFriend(client.UserData.UserID, uint64(friendId))
 			//The client is looking to remove a friend from their friends list
-			case serialization.OsuFriendsRemove:
+			case packets.OsuFriendsRemove:
 				var friendId int32
 
 				binary.Read(packetDataReader, binary.LittleEndian, &friendId)
@@ -405,8 +406,8 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 
 				go database.FriendsRemoveFriend(client.UserData.UserID, uint64(friendId))
 			//The client is setting their away message
-			case serialization.OsuSetIrcAwayMessage:
-				awayMessage := serialization.Read[base_packet_structures.Message](packetDataReader)
+			case packets.OsuSetIrcAwayMessage:
+				awayMessage := packets.Read[base_packet_structures.Message](packetDataReader)
 
 				client.awayMessage = awayMessage.Message
 
@@ -424,12 +425,12 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 						Target:  client.UserData.Username,
 					})
 				}
-			case serialization.OsuBeatmapInfoRequest:
-				infoRequest := serialization.Read[base_packet_structures.BeatmapInfoRequest](packetDataReader)
+			case packets.OsuBeatmapInfoRequest:
+				infoRequest := packets.Read[base_packet_structures.BeatmapInfoRequest](packetDataReader)
 
 				client.HandleBeatmapInfoRequest(infoRequest)
 			default:
-				helpers.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, serialization.GetPacketName(packet.PacketId), packet.PacketSize)
+				helpers.Logger.Printf("[Bancho@Handling] %s: Got %s, of Size: %d\n", client.UserData.Username, packets.GetPacketName(packet.PacketId), packet.PacketSize)
 			}
 		case <-ctx.Done():
 			return

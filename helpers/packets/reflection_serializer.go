@@ -1,4 +1,4 @@
-package serialization
+package packets
 
 import (
 	"bytes"
@@ -15,6 +15,10 @@ func writeSingle(writer io.Writer, indirect reflect.Value, elements reflect.Type
 
 	//Each type has to be converted differently
 	switch fieldValue.Kind() {
+	case reflect.Int:
+		conv, _ := (v.(*int))
+
+		binary.Write(writer, binary.LittleEndian, int32(*conv))
 	case reflect.Bool:
 		conv, _ := (v.(*bool))
 
@@ -190,6 +194,12 @@ func writeSingle(writer io.Writer, indirect reflect.Value, elements reflect.Type
 }
 
 func writeInternal(writer io.Writer, indirect reflect.Value, elements reflect.Type) {
+	if indirect.Kind() != reflect.Struct {
+		writeSingle(writer, indirect, elements, reflect.StructField{}, indirect)
+
+		return
+	}
+
 	for i := 0; i != elements.NumField(); i++ {
 		//General field type information, used for getting the type and the Tag
 		field := elements.Field(i)
@@ -455,6 +465,12 @@ func readInternal(reader io.Reader, val reflect.Value) {
 
 	elements := val.Type()
 
+	if val.Kind() != reflect.Struct {
+		readSingle(reader, val, reflect.StructField{}, val)
+
+		return
+	}
+
 	for i := 0; i != val.NumField(); i++ {
 		field := val.Field(i)
 		structField := elements.Field(i)
@@ -469,6 +485,7 @@ func readInternal(reader io.Reader, val reflect.Value) {
 }
 
 func reflectionRead(reader io.Reader, v any) {
+
 	readInternal(reader, reflect.ValueOf(v))
 }
 

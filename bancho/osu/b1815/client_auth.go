@@ -7,7 +7,7 @@ import (
 	"Waffle/bancho/spectator"
 	"Waffle/database"
 	"Waffle/helpers"
-	"Waffle/helpers/serialization"
+	"Waffle/helpers/packets"
 	"bufio"
 	"bytes"
 	"context"
@@ -115,7 +115,7 @@ func HandleNewClient(connection net.Conn) {
 
 	//b1816 sends 4 components there, version|timezone|allow_city|security_parts
 	if len(userDataSplit) != 4 {
-		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.InvalidVersion)
+		packetQueue <- packets.Send(packets.BanchoLoginReply, packets.InvalidVersion)
 
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
@@ -128,7 +128,7 @@ func HandleNewClient(connection net.Conn) {
 	timezone, convErr := strconv.Atoi(userDataSplit[1])
 
 	if convErr != nil {
-		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.InvalidVersion)
+		packetQueue <- packets.Send(packets.BanchoLoginReply, packets.InvalidVersion)
 
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
@@ -148,26 +148,26 @@ func HandleNewClient(connection net.Conn) {
 
 	//No User Found
 	if fetchResult == -1 {
-		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.InvalidLogin)
+		packetQueue <- packets.Send(packets.BanchoLoginReply, packets.InvalidLogin)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	} else if fetchResult == -2 {
 		//Server failed to fetch the user
-		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.ServersideError)
+		packetQueue <- packets.Send(packets.BanchoLoginReply, packets.ServersideError)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
 	//Invalid Password
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.InvalidLogin)
+		packetQueue <- packets.Send(packets.BanchoLoginReply, packets.InvalidLogin)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
 
 	//Banned
 	if user.Banned == 1 {
-		packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, serialization.UserBanned)
+		packetQueue <- packets.Send(packets.BanchoLoginReply, packets.UserBanned)
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	}
@@ -177,7 +177,7 @@ func HandleNewClient(connection net.Conn) {
 
 	if duplicateClient != nil {
 		go func() {
-			packetQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, "Disconnecting because of another client conneting to your Account.")
+			packetQueue <- packets.Send(packets.BanchoAnnounce, "Disconnecting because of another client conneting to your Account.")
 
 			duplicateClient.CleanupClient("Duplicate Client")
 
@@ -188,7 +188,7 @@ func HandleNewClient(connection net.Conn) {
 	}
 
 	//Send successful login reply
-	packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginReply, int32(user.UserID))
+	packetQueue <- packets.Send(packets.BanchoLoginReply, int32(user.UserID))
 
 	//Retrieve stats
 	statGetResultOsu, osuStats := database.UserStatsFromDatabase(user.UserID, 0)
@@ -197,12 +197,12 @@ func HandleNewClient(connection net.Conn) {
 	statGetResultMania, maniaStats := database.UserStatsFromDatabase(user.UserID, 3)
 
 	if statGetResultOsu == -1 || statGetResultTaiko == -1 || statGetResultCatch == -1 || statGetResultMania == -1 {
-		packetQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
+		packetQueue <- packets.Send(packets.BanchoAnnounce, "A weird server-side fuckup occured, your stats don't exist yet your user does...")
 
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
 	} else if statGetResultOsu == -2 || statGetResultTaiko == -2 || statGetResultCatch == -2 || statGetResultMania == -2 {
-		packetQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, "A weird server-side fuckup occured, stats could not be loaded...")
+		packetQueue <- packets.Send(packets.BanchoAnnounce, "A weird server-side fuckup occured, stats could not be loaded...")
 
 		go SendOffPacketsAndClose(connection, packetQueue)
 		return
@@ -212,7 +212,7 @@ func HandleNewClient(connection net.Conn) {
 	friendsResult, friendsList := database.FriendsGetFriendsList(user.UserID)
 
 	if friendsResult != 0 {
-		packetQueue <- serialization.SendSerializableString(serialization.BanchoAnnounce, "Friend List failed to load!")
+		packetQueue <- packets.Send(packets.BanchoAnnounce, "Friend List failed to load!")
 	}
 
 	//Send Friends list to client
@@ -224,7 +224,7 @@ func HandleNewClient(connection net.Conn) {
 		binary.Write(buf, binary.LittleEndian, int32(friend.User2))
 	}
 
-	packetQueue <- serialization.SendSerializableBytes(serialization.BanchoFriendsList, buf.Bytes())
+	packetQueue <- packets.SendBytes(packets.BanchoFriendsList, buf.Bytes())
 
 	//Construct Client object
 	client := Client{
@@ -246,8 +246,8 @@ func HandleNewClient(connection net.Conn) {
 			BeatmapChecksum: "",
 			BeatmapId:       -1,
 			CurrentMods:     0,
-			Playmode:        serialization.OsuGamemodeOsu,
-			Status:          serialization.OsuStatusIdle,
+			Playmode:        packets.OsuGamemodeOsu,
+			Status:          packets.OsuStatusIdle,
 			StatusText:      user.Username + " has just logged in!",
 		},
 		FriendsList: friendsList,
@@ -287,10 +287,10 @@ func HandleNewClient(connection net.Conn) {
 		Rank:        int32(osuStats.Rank),
 	}
 
-	packetQueue <- serialization.SendSerializableInt(serialization.BanchoProtocolNegotiation, 7)
-	packetQueue <- serialization.SendSerializableInt(serialization.BanchoLoginPermissions, user.Privileges|serialization.UserPermissionsSupporter)
-	packetQueue <- serialization.SendSerializable(serialization.BanchoUserPresence, presence)
-	packetQueue <- serialization.SendSerializable(serialization.BanchoHandleOsuUpdate, stats)
+	packetQueue <- packets.Send(packets.BanchoProtocolNegotiation, 7)
+	packetQueue <- packets.Send(packets.BanchoLoginPermissions, user.Privileges|packets.UserPermissionsSupporter)
+	packetQueue <- packets.Send(packets.BanchoUserPresence, presence)
+	packetQueue <- packets.Send(packets.BanchoHandleOsuUpdate, stats)
 
 	client_manager.ClientManager.LockClientList()
 

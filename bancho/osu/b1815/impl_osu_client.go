@@ -3,7 +3,7 @@ package b1815
 import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
-	"Waffle/helpers/serialization"
+	"Waffle/helpers/packets"
 )
 
 // GetUserId gets the user's user id
@@ -16,11 +16,11 @@ func (client *Client) GetRelevantUserStats() database.UserStats {
 	var stats database.UserStats
 
 	switch client.Status.Playmode {
-	case serialization.OsuGamemodeOsu:
+	case packets.OsuGamemodeOsu:
 		stats = client.OsuStats
-	case serialization.OsuGamemodeTaiko:
+	case packets.OsuGamemodeTaiko:
 		stats = client.TaikoStats
-	case serialization.OsuGamemodeCatch:
+	case packets.OsuGamemodeCatch:
 		stats = client.CatchStats
 	}
 

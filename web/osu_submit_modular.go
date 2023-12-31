@@ -3,9 +3,9 @@ package web
 import (
 	"Waffle/bancho/bot"
 	"Waffle/bancho/chat"
-	"Waffle/common"
 	"Waffle/database"
 	"Waffle/helpers"
+	"Waffle/utils"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -688,7 +688,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 	}
 
 	//check achievements
-	queryResult, achievements := common.UpdateAchievements(userStats.UserID, scoreBeatmap.BeatmapId, scoreBeatmap.BeatmapsetId, scoreSubmission.Ranking, int8(scoreSubmission.Playmode), int32(scoreSubmission.MaxCombo))
+	queryResult, achievements := utils.UpdateAchievements(userStats.UserID, scoreBeatmap.BeatmapId, scoreBeatmap.BeatmapsetId, scoreSubmission.Ranking, int8(scoreSubmission.Playmode), int32(scoreSubmission.MaxCombo))
 
 	if queryResult == 0 {
 		achievementString := ""

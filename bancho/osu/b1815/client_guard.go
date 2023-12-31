@@ -2,7 +2,7 @@ package b1815
 
 import (
 	"Waffle/bancho/osu/base_packet_structures"
-	"Waffle/helpers/serialization"
+	"Waffle/helpers/packets"
 	"context"
 	"time"
 )
@@ -12,7 +12,7 @@ type WaffleGuardContext struct {
 	playingStart     time.Time
 }
 
-func (client *Client) waffleGuardPackets(packetChannel chan serialization.BanchoPacket, ctx context.Context) {
+func (client *Client) waffleGuardPackets(packetChannel chan packets.BanchoPacket, ctx context.Context) {
 	// var guardCtx *WaffleGuardContext = &client.waffleGuardContext
 
 	for {

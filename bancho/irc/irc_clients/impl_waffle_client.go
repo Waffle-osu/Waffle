@@ -4,7 +4,7 @@ import (
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
-	"Waffle/helpers/serialization"
+	"Waffle/helpers/packets"
 	"time"
 )
 
@@ -45,7 +45,7 @@ func (client *IrcClient) GetRelevantUserStats() database.UserStats {
 // Gets the client's current Status
 func (client *IrcClient) GetUserStatus() base_packet_structures.StatusUpdate {
 	return base_packet_structures.StatusUpdate{
-		Status:          serialization.OsuStatusUnknown,
+		Status:          packets.OsuStatusUnknown,
 		StatusText:      "on IRC",
 		BeatmapChecksum: "No!",
 		CurrentMods:     0,

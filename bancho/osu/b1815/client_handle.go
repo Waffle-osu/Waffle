@@ -3,7 +3,7 @@ package b1815
 import (
 	"Waffle/bancho/misc"
 	"Waffle/helpers"
-	"Waffle/helpers/serialization"
+	"Waffle/helpers/packets"
 	"bytes"
 	"context"
 	"strings"
@@ -52,7 +52,7 @@ func (client *Client) HandleIncoming() {
 		readIndex := 0
 
 		for readIndex < read {
-			read, packet, failedRead := serialization.ReadBanchoPacketHeader(packetBuffer)
+			read, packet, failedRead := packets.ReadBanchoPacketHeader(packetBuffer)
 
 			readIndex += read
 

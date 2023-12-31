@@ -6,7 +6,7 @@ import (
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
 	"Waffle/helpers"
-	"Waffle/helpers/serialization"
+	"Waffle/helpers/packets"
 	"sync"
 	"time"
 )
@@ -66,11 +66,11 @@ func CreateWaffleBot() {
 
 		UserData: user,
 		Status: base_packet_structures.StatusUpdate{
-			Status:          serialization.OsuStatusIdle,
+			Status:          packets.OsuStatusIdle,
 			StatusText:      "Welcome to Waffle!",
 			BeatmapChecksum: "No Map",
 			CurrentMods:     0,
-			Playmode:        serialization.OsuGamemodeOsu,
+			Playmode:        packets.OsuGamemodeOsu,
 			BeatmapId:       0,
 		},
 		OsuStats:   osuStats,
