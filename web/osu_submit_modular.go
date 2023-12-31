@@ -384,7 +384,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	scoreSubmissionResponse["beatmapRankingBefore"] = strconv.FormatInt(oldLeaderboardPlace, 10)
 
-	if bestLeaderboardScoreExists == 0 {
+	if bestLeaderboardScoreExists == 0 && scoreSubmission.Passed {
 		userStats.TotalScore += uint64(scoreSubmission.TotalScore)
 		userStats.Hit300 += uint64(scoreSubmission.Count300)
 		userStats.Hit100 += uint64(scoreSubmission.Count100)
