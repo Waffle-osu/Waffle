@@ -42,7 +42,7 @@ type MultiplayerMatch struct {
 	BeatmapChecksum  string
 	SlotStatus       [8]uint8
 	SlotTeam         [8]uint8
-	SlotUserId       [8]int32
+	SlotUserId       [8]int32 `multi:"SlotStatus" multiAnd:"124"`
 	HostId           int32
 	Playmode         uint8
 	MatchScoringType uint8

@@ -71,12 +71,8 @@ func ReadBanchoString(reader io.Reader) []byte {
 	return bytes
 }
 
-func SendSerializable(packetId uint16, serializable any) []byte {
-	buf := new(bytes.Buffer)
-
-	ReflectionWrite(serializable)
-
-	packetBytes := buf.Bytes()
+func SendSerializable[T any](packetId uint16, serializable T) []byte {
+	packetBytes := ReflectionWrite(serializable)
 	packetLength := len(packetBytes)
 
 	packetBuffer := new(bytes.Buffer)

@@ -29,7 +29,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 			switch packet.PacketId {
 			//The client is informing us about its new status
 			case serialization.OsuSendUserStatus:
-				statusUpdate := base_packet_structures.ReadStatusUpdate(packetDataReader)
+				statusUpdate := serialization.Read[base_packet_structures.StatusUpdate](packetDataReader)
 
 				client.Status = statusUpdate
 
@@ -85,7 +85,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				if time.Now().Unix() < int64(client.UserData.SilencedUntil) {
 					client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 				} else {
-					message := base_packet_structures.ReadMessage(packetDataReader)
+					message := serialization.Read[base_packet_structures.Message](packetDataReader)
 
 					//Channel into which the message gets sent,
 					//Aswell as where all the WaffleBot/Lobby command
@@ -260,7 +260,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 				}
 			//The client is creating a multiplayer match
 			case serialization.OsuMatchCreate:
-				match := base_packet_structures.ReadMultiplayerMatch(packetDataReader)
+				match := serialization.Read[base_packet_structures.MultiplayerMatch](packetDataReader)
 
 				lobby.CreateNewMultiMatch(match, client, false)
 			//The client is looking to join a multiplayer match
@@ -314,7 +314,7 @@ func (client *Client) handlePackets(packetChannel chan serialization.BanchoPacke
 			//The client informs the server it has made some changes to the settings of the match
 			case serialization.OsuMatchChangeSettings:
 				if client.currentMultiLobby != nil {
-					newMatch := base_packet_structures.ReadMultiplayerMatch(packetDataReader)
+					newMatch := serialization.Read[base_packet_structures.MultiplayerMatch](packetDataReader)
 					client.currentMultiLobby.ChangeSettings(client, newMatch)
 				}
 			//The client informs the server that it has changed the mods in the match
