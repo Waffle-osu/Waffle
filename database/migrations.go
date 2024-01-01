@@ -30,6 +30,8 @@ func InitializeMigrations() {
 	Migrations[11] = migrations.MigrationAddSilences{}
 	Migrations[12] = migrations.MigrationAddPlaytime{}
 	Migrations[13] = migrations.MigrationAddMatchLogs{}
+	Migrations[14] = migrations.MigrationAddSystemVersioning{}
+	Migrations[15] = migrations.MigrationAddBeatmapRankedVersionRestriction{}
 }
 
 func InitializeDatabaseVersion() {
