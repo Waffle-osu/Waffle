@@ -1,3 +1,5 @@
+github.com/Waffle-osu/osu-parser v0.0.0-20240108201625-f2df3b982569 h1:7844WUUAujYTUXfV8fgMN0BunXntc+Dz9rHJeIp891c=
+github.com/Waffle-osu/osu-parser v0.0.0-20240108201625-f2df3b982569/go.mod h1:S2DZzqsx56KQaRWSN/26agcry2t9VmXeYDV3I3JwLqU=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

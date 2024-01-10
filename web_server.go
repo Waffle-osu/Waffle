@@ -3,6 +3,7 @@ package main
 import (
 	"Waffle/api"
 	"Waffle/web"
+	"Waffle/web/bss"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,6 +25,9 @@ func RunWeb() {
 	ginServer.GET("/rating/ingame-rate2.php", web.HandleOsuIngameRate2)
 	ginServer.GET("/web/osu-search.php", web.HandleOsuDirectSearch)
 	ginServer.GET("/web/maps/:filename", web.HandleOsuMapUpdate)
+
+	//BSS b1815
+	ginServer.POST("/web/osu-bmsubmit-getid5.php", bss.HandleGetId5)
 
 	// updater
 	//ginServer.GET("/p/changelog", HandleUpdaterChangelog)
