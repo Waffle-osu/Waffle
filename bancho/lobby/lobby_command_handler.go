@@ -625,6 +625,46 @@ func MpCommandMap(sender LobbyClient, args []string) []string {
 	return []string{}
 }
 
+func chunks(s string, chunkSize int) []string {
+	if len(s) == 0 {
+		return nil
+	}
+
+	if chunkSize >= len(s) {
+		return []string{s}
+	}
+
+	chunks := make([]string, 0, (len(s)-1)/chunkSize+1)
+
+	currentLen := 0
+	currentStart := 0
+
+	for i := range s {
+		if currentLen == chunkSize {
+			chunks = append(chunks, s[currentStart:i])
+
+			currentLen = 0
+			currentStart = i
+		}
+
+		currentLen++
+	}
+
+	chunks = append(chunks, s[currentStart:])
+
+	return chunks
+}
+
+func isAllNumbers(s string) bool {
+	for _, c := range s {
+		if !(c >= '0' && c <= '9') {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Sets the mods of the lobby
 func MpCommandMods(sender LobbyClient, args []string) []string {
 	currentLobby := sender.GetMultiplayerLobby()
@@ -634,7 +674,68 @@ func MpCommandMods(sender LobbyClient, args []string) []string {
 		}
 	}
 
-	return []string{}
+	if len(args) < 2 {
+		return []string{
+			"!mp mods: Mod combination required!",
+		}
+	}
+
+	if isAllNumbers(args[1]) {
+		parsedNum, parseErr := strconv.ParseInt(args[1], 10, 64)
+
+		if parseErr != nil {
+			return []string{
+				"!mp mods: failed to parse mod number",
+			}
+		}
+
+		currentLobby.ChangeMods(sender, int32(parsedNum))
+
+		return []string{
+			fmt.Sprintf("!mp mods: Changed mods to %s", helpers.FormatMods(uint32(parsedNum))),
+		}
+	} else {
+		chunkedMods := chunks(args[1], 2)
+
+		mods := 0
+
+		for _, chunk := range chunkedMods {
+			toLower := strings.ToLower(chunk)
+
+			switch toLower {
+			case "nf":
+				mods |= 1
+			case "ez":
+				mods |= 2
+			case "nv":
+				mods |= 4
+			case "hd":
+				mods |= 8
+			case "hr":
+				mods |= 16
+			case "sd":
+				mods |= 32
+			case "dt":
+				mods |= 64
+			case "rx":
+				mods |= 128
+			case "ht":
+				mods |= 256
+			case "fl":
+				mods |= 1024
+			case "so":
+				mods |= 4096
+			case "ap":
+				mods |= 8192
+			}
+		}
+
+		currentLobby.ChangeMods(sender, int32(mods))
+
+		return []string{
+			fmt.Sprintf("!mp mods: Changed mods to %s", helpers.FormatMods(uint32(mods))),
+		}
+	}
 }
 
 // Sets a timer
@@ -672,7 +773,7 @@ func MpCommandTimer(sender LobbyClient, args []string) []string {
 		go timeTicker(startTime, "Countdown ends", LobbyWaffleBot{}, sender, ctx, onDone)
 
 		return []string{
-			fmt.Sprintf("Started countdown for %d seconds", startTime),
+			fmt.Sprintf("!mp timer: Started countdown for %d seconds", startTime),
 		}
 	}
 
@@ -692,7 +793,9 @@ func MpCommandAbortTimer(sender LobbyClient, args []string) []string {
 		currentLobby.TimerCancel()
 	}
 
-	return []string{}
+	return []string{
+		"!mp abort: Timer aborted",
+	}
 }
 
 // Kicks a user from the lobby
@@ -704,7 +807,33 @@ func MpCommandKick(sender LobbyClient, args []string) []string {
 		}
 	}
 
-	return []string{}
+	if len(args) < 2 {
+		return []string{
+			"!mp kick: Person or slot to kick required!",
+		}
+	}
+
+	if isAllNumbers(args[1]) {
+		slotParsed, parseErr := strconv.ParseInt(args[1], 10, 64)
+
+		if parseErr != nil {
+			return []string{
+				"!mp kick: Failed to parse slot number",
+			}
+		}
+
+		currentLobby.LockSlot(sender, int(slotParsed))
+		currentLobby.UpdateMatch()
+	} else {
+		foundSlot := currentLobby.GetSlotFromUsername(args[1])
+
+		currentLobby.LockSlot(sender, foundSlot)
+		currentLobby.UpdateMatch()
+	}
+
+	return []string{
+		"!mp kick: Kicked player by locking slot.",
+	}
 }
 
 // Sets or removes the password of the match
@@ -715,6 +844,14 @@ func MpCommandPassword(sender LobbyClient, args []string) []string {
 			"!mp password: Only usable inside multiplayer lobby!",
 		}
 	}
+
+	if len(args) < 2 {
+		currentLobby.MatchInformation.GamePassword = ""
+	} else {
+		currentLobby.MatchInformation.GamePassword = args[1]
+	}
+
+	currentLobby.UpdateMatch()
 
 	return []string{}
 }
@@ -727,6 +864,12 @@ func MpCommandClose(sender LobbyClient, args []string) []string {
 			"!mp close: Only usable inside multiplayer lobby!",
 		}
 	}
+
+	for i := 0; i != len(currentLobby.MatchInformation.SlotUserId); i++ {
+		currentLobby.LockSlot(sender, i)
+	}
+
+	currentLobby.Disband()
 
 	return []string{}
 }

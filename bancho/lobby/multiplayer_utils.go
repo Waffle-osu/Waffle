@@ -15,6 +15,17 @@ func (multiLobby *MultiplayerLobby) GetSlotFromUserId(userId int32) int {
 	return -1
 }
 
+// GetSlotFromUsername is a utility function to get a slot from a players username
+func (multiLobby *MultiplayerLobby) GetSlotFromUsername(username string) int {
+	for i := 0; i != 8; i++ {
+		if multiLobby.MultiClients[i].GetUsername() == username {
+			return i
+		}
+	}
+
+	return -1
+}
+
 // GetOpenSlotCount is a utility function which returns the amount of slots that players can occupy
 func (multiLobby *MultiplayerLobby) GetOpenSlotCount() int {
 	count := 0

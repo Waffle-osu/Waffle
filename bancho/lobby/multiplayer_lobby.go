@@ -574,7 +574,7 @@ func (multiLobby *MultiplayerLobby) LockSlot(client LobbyClient, slotId int) {
 	}
 
 	//Don't allow all slots to be locked
-	if multiLobby.GetOpenSlotCount() > 2 && multiLobby.MatchInformation.SlotStatus[slotId] == base_packet_structures.MultiplayerMatchSlotStatusOpen {
+	if multiLobby.GetOpenSlotCount() > 2 && multiLobby.MatchInformation.SlotStatus[slotId] == base_packet_structures.MultiplayerMatchSlotStatusOpen && !multiLobby.IrcReffed {
 		multiLobby.MatchInformation.SlotStatus[slotId] = base_packet_structures.MultiplayerMatchSlotStatusLocked
 
 		multiLobby.LogEvent(database.MatchHistoryEventTypeLock, multiLobby.MatchHost, fmt.Sprintf("Slot %d was locked", slotId))
