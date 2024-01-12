@@ -1,0 +1,27 @@
+package site
+
+type EmbedInformation struct {
+    Description string
+    ImageLink string
+    Title string
+}
+
+templ CommonSite(embed EmbedInformation, pageTitleSuffix string, pageBody templ.Component) {
+    <html>
+        <head>
+            <title>osu!Waffle {pageTitleSuffix}</title>
+
+            <meta charset="UTF-8"/>
+            <meta name="keywords" content="Waffle, waffle, osu!, private server, server, osu! private server, b1815, osu!b1815, go, golang"/>
+            
+            <meta property="og:site_name" content="osu!Waffle"/>
+            <meta property="og:type" content="website"/>
+            <meta property="og:description" content={embed.Description}/>
+            <meta property="og:image" content={embed.ImageLink}/>
+            <meta property="og:title" content={embed.Title}/>
+        </head>
+        <body>
+            @pageBody
+        </body>
+    </html>
+}

@@ -1,5 +1,9 @@
 package site
 
 templ Index(userData string) {
-	<div>Hello, {userData}</div>
+	@CommonSite(EmbedInformation{}, "Main Page", IndexContent())
+}
+
+templ IndexContent() {
+
 }
