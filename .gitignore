@@ -2,3 +2,4 @@ build/
 .idea/
 .vscode/settings.json
 templ
+*templ.go
