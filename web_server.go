@@ -2,8 +2,10 @@ package main
 
 import (
 	"Waffle/api"
+	"Waffle/site"
 	"Waffle/web"
-	"Waffle/web/bss"
+	"bytes"
+	"context"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +29,7 @@ func RunWeb() {
 	ginServer.GET("/web/maps/:filename", web.HandleOsuMapUpdate)
 
 	//BSS b1815
-	ginServer.POST("/web/osu-bmsubmit-getid5.php", bss.HandleGetId5)
+	// ginServer.POST("/web/osu-bmsubmit-getid5.php", bss.HandleGetId5)
 
 	// updater
 	//ginServer.GET("/p/changelog", HandleUpdaterChangelog)
@@ -53,6 +55,14 @@ func RunWeb() {
 
 	//achievements
 	ginServer.GET("/images/achievements/:filename", web.HandleOsuGetAchievementImage)
+
+	//Site:
+	ginServer.GET("/", func(ctx *gin.Context) {
+		fuck := site.Index("Hi!!!!!")
+		buffer := new(bytes.Buffer)
+		fuck.Render(context.Background(), buffer)
+		ctx.String(200, buffer.String())
+	})
 
 	ginServer.Run("127.0.0.1:80")
 }

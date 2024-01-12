@@ -9,6 +9,8 @@
             "program": "${workspaceFolder}",
             "cwd": "${workspaceFolder}/build",
             "output": "build/Waffle.exe",
+            "asRoot": true,
+            "console": "integratedTerminal"
         },
         {
             "name": "Launch osz Renamer",
