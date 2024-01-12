@@ -5,7 +5,7 @@ go 1.21.5
 require github.com/go-sql-driver/mysql v1.6.0
 
 require (
-	github.com/Waffle-osu/osu-parser v0.0.0-20240108201625-f2df3b982569 // indirect
+	github.com/Waffle-osu/osu-parser v0.0.0-20240108201625-f2df3b982569
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.7.7 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
