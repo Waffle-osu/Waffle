@@ -60,6 +60,8 @@ func main() {
 
 	if len(os.Args) == 3 {
 		switch os.Args[1] {
+		case "beatmap_versions":
+			RunBeatmapClientVersionDetector(os.Args[2])
 		case "beatmap_importer":
 			BeatmapImporter(os.Args[2])
 		case "osz_renamer":

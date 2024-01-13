@@ -1,9 +1,11 @@
 package site
 
-templ Index(userData string) {
-	@CommonSite(EmbedInformation{}, "Main Page", IndexContent())
+templ Index(stats UsageStatistics) {
+	@CommonSite(EmbedInformation{}, "Main Page", IndexContent(stats))
 }
 
-templ IndexContent() {
-
+templ IndexContent(stats UsageStatistics) {
+	@GeneralLayout(stats) {
+		<h1>nya</h1>
+	}
 }

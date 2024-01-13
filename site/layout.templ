@@ -1,0 +1,30 @@
+package site
+
+templ Navigation() {
+    <div>Hi</div>
+}
+
+type UsageStatistics struct {
+    TotalUsers string
+    OnlineUsers string
+}
+
+templ TopInfoBar(stats UsageStatistics) {
+    <h3>Version 0.8.0 - {stats.TotalUsers} users total, {stats.OnlineUsers} ingame</h3>
+}
+
+templ GeneralLayout(stats UsageStatistics) {
+    <div class="container-wrapper">
+        <div class="container">
+            <div class="side-nav-bar">
+                @Navigation()
+            </div>
+            <div class="top-info-bar">
+                @TopInfoBar(stats)
+            </div>
+            <div class="content">
+                {children...}
+            </div>
+        </div>
+    </div>
+}

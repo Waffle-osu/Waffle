@@ -19,6 +19,15 @@ templ CommonSite(embed EmbedInformation, pageTitleSuffix string, pageBody templ.
             <meta property="og:description" content={embed.Description}/>
             <meta property="og:image" content={embed.ImageLink}/>
             <meta property="og:title" content={embed.Title}/>
+
+            <link rel="stylesheet" href="/site-style.css"/>
+
+            <style>
+                body {
+                    background-color: rgb(30,30,30);
+                    font-family: Arial, Helvetica, sans-serif;
+                }
+            </style>
         </head>
         <body>
             @pageBody

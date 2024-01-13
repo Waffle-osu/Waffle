@@ -23,7 +23,9 @@
             "args": [
                 "osz_renamer",
                 "${workspaceFolder}/build/oszs"
-            ] 
+            ],
+            "asRoot": true,
+            "console": "integratedTerminal"
         },
         {
             "name": "Launch .osu Mover",
@@ -36,7 +38,9 @@
             "args": [
                 "osu_mover",
                 "V:/osu!waffle map holder/Songs"
-            ] 
+            ],
+            "asRoot": true,
+            "console": "integratedTerminal"
         },
         {
             "name": "Launch Necessary Migrations",
@@ -48,7 +52,24 @@
             "output": "build/Waffle.exe",
             "args": [
                 "migrate",
-            ] 
+            ],
+            "asRoot": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Launch Beatmap Versioning",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/build",
+            "output": "build/Waffle.exe",
+            "args": [
+                "beatmap_versions",
+                "./osus"
+            ],
+            "asRoot": true,
+            "console": "integratedTerminal"
         }
     ]
 }

@@ -6,6 +6,7 @@ import (
 	"Waffle/web"
 	"bytes"
 	"context"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,10 +59,72 @@ func RunWeb() {
 
 	//Site:
 	ginServer.GET("/", func(ctx *gin.Context) {
-		fuck := site.Index("Hi!!!!!")
 		buffer := new(bytes.Buffer)
-		fuck.Render(context.Background(), buffer)
-		ctx.String(200, buffer.String())
+		err := site.Index(site.UsageStatistics{
+			TotalUsers:  fmt.Sprintf("%d", 24),
+			OnlineUsers: fmt.Sprintf("%d", 3),
+		}).Render(context.Background(), buffer)
+
+		if err != nil {
+			ctx.String(500, err.Error())
+			return
+		}
+
+		str := buffer.String()
+
+		ctx.Header("Content-Type", "text/html")
+		ctx.String(200, str)
+	})
+
+	ginServer.GET("/site-style.css", func(ctx *gin.Context) {
+		ctx.String(200, `
+			.container-wrapper {
+				display: grid;
+				grid-template-columns: 1fr;
+				grid-template-rows: 100vh;
+				align-items: center;
+				justify-items: center;
+				height: 99%;
+			}
+
+			.container {
+				color: white;
+				width: 75%;
+				height: 90%;
+				display: grid; 
+				grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
+				grid-template-rows: 0.75fr 1fr 1fr 1fr 1fr; 
+				gap: 0px 0px; 
+				grid-template-areas: 
+				"side-nav-bar top-info-bar top-info-bar top-info-bar top-info-bar"
+				"side-nav-bar content content content content"
+				"side-nav-bar content content content content"
+				"side-nav-bar content content content content"
+				"side-nav-bar content content content content"; 
+			}
+
+			.side-nav-bar { 
+				padding-left: 16px;
+				padding-top: 8px;
+				background-color: rgb(50,50,50);
+				grid-area: side-nav-bar; 
+				margin-right: 24px;
+			}
+
+			.top-info-bar { 
+				padding-left: 16px;
+				padding-top: 16px;
+				background-color: rgb(50,50,50);
+				grid-area: top-info-bar; 
+				margin-bottom: 24px;
+			}
+
+			.content {
+				padding-left: 16px;
+				background-color: rgb(50,50,50);
+				grid-area: content; 
+			}
+		`)
 	})
 
 	ginServer.Run("127.0.0.1:80")
