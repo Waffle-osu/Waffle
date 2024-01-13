@@ -4,6 +4,8 @@ import (
 	"Waffle/database"
 	"Waffle/helpers"
 	"crypto/sha256"
+	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -29,6 +31,7 @@ func HandleGetId5(ctx *gin.Context) {
 
 	osuFile, osuFileErr := osuFormFile.Open()
 	readOutOsuFile := make([]byte, osuFormFile.Size)
+	osuFile.Close()
 
 	_, readErr := osuFile.Read(readOutOsuFile)
 
@@ -80,23 +83,26 @@ func HandleGetId5(ctx *gin.Context) {
 
 		_, exists, approved, _, queryErrorOccured := CheckBeatmapStatus(uploadRequest.BeatmapsetId, userData, &uploadRequest.Metadata)
 
-		if queryErrorOccured != false {
+		if queryErrorOccured {
 			ctx.String(500, "Internal Queries failed!")
 
 			return true
 		}
 
-		osuTicket := fmt.Sprintf("%d-%s-%s-%s", time.Now().Unix(), username, osuFormFile.Filename, userData.Password)
-		osuTicketBytes := sha256.Sum256([]byte(osuTicket))
-		osuTicketHashed := string(osuTicketBytes[:])
+		osuTicketFormat := fmt.Sprintf("%d-%s-%s-%s", time.Now().Unix(), username, osuFormFile.Filename, userData.Password)
+		osuTicketBytes := sha256.Sum256([]byte(osuTicketFormat))
+		osuTicketHashed := osuTicketBytes[:]
+		osuTicket := hex.EncodeToString(osuTicketHashed)
 
 		uploadTicket := UploadTicket{
-			Ticket:   osuTicketHashed,
+			Ticket:   osuTicket,
 			Filename: osuFormFile.Filename,
 			Size:     osuFormFile.Size,
+			Metadata: parsedOsu.Metadata,
+			FileData: readOutOsuFile,
 		}
 
-		uploadRequest.UploadTickets = append(uploadRequest.UploadTickets, uploadTicket)
+		uploadRequest.UploadTickets[osuTicket] = uploadTicket
 
 		helpers.Logger.Printf("BSS: UploadTicket generated for: %s", osuFormFile.Filename)
 
@@ -146,8 +152,95 @@ func HandleGetId5(ctx *gin.Context) {
 
 		if exists {
 			uploadRequest.IsUpdate = exists
+
+			//Get currently stored versions
+			versionsGetSql := `SELECT version FROM beatmaps WHERE beatmapset_id = ?`
+			versionsGetQuery, versionsGetErr := database.Database.Query(versionsGetSql, uploadRequest.BeatmapsetId)
+
+			if versionsGetErr != nil {
+				ctx.String(500, "Internal Queries failed.")
+
+				return true
+			}
+
+			//Run diff to figure out which diffs got deleted/renamed
+			currentVersions := map[string]bool{}
+			uploadVersions := map[string]bool{}
+			removedVersions := map[string]bool{}
+			addedVersions := map[string]bool{}
+
+			//Current Versions
+			for versionsGetQuery.Next() {
+				versionName := sql.NullString{}
+				scanErr := versionsGetQuery.Scan(&versionName)
+
+				if scanErr != nil {
+					versionsGetQuery.Close()
+					return true
+				}
+
+				if versionName.Valid {
+					currentVersions[versionName.String] = true
+				}
+			}
+
+			//All Currently Uploaded Versions
+			for _, ticket := range uploadRequest.UploadTickets {
+				uploadVersions[ticket.Metadata.Version] = true
+			}
+
+			//All Removed Versions
+			for version, _ := range uploadVersions {
+				_, exists := currentVersions[version]
+
+				if !exists {
+					removedVersions[version] = true
+				}
+			}
+
+			//All Added Versions
+			for version, _ := range currentVersions {
+				_, exists := uploadVersions[version]
+
+				if !exists {
+					addedVersions[version] = true
+				}
+			}
+
+			if len(parsedOsu.TimingPoints.TimingPoints) == 0 {
+				ctx.String(400, "Invalid Timing")
+
+				return true
+			}
+
+			bpm := 60000.0 / parsedOsu.TimingPoints.TimingPoints[0].BeatLength
+
+			//Update metadata as necessary
+			metadataUpdateSql := "UPDATE beatmapsets SET artist = ?, title = ?, creator = ?, source = ?, tags = ?, has_video = ?, has_storyboard = ?, bpm = ? WHERE beatmapset_id = ?"
+			_, metadataUpdateErr := database.Database.Exec(metadataUpdateSql, uploadRequest.Metadata.Artist, uploadRequest.Metadata.Title, uploadRequest.Metadata.Creator, uploadRequest.Metadata.Source, uploadRequest.Metadata.Tags, uploadRequest.HasVideo, uploadRequest.HasStoryboard, bpm, uploadRequest.BeatmapsetId)
+
+			if metadataUpdateErr != nil {
+				ctx.String(500, "Internal queries failed.")
+
+				return true
+			}
+
 		} else {
 			//Create Beatmapset
+			bpm := 60000.0 / parsedOsu.TimingPoints.TimingPoints[0].BeatLength
+
+			insertBeatmapsetSql := "INSERT INTO beatmapsets (beatmapset_id, creator_id, artist, title, creator, source, tags, has_video, has_storyboard, bpm)"
+			_, insertBeatmapsetSqlErr := database.Database.Exec(insertBeatmapsetSql, uploadRequest.BeatmapsetId, -userId, uploadRequest.Metadata.Artist, uploadRequest.Metadata.Title, uploadRequest.Metadata.Creator, uploadRequest.Metadata.Source, uploadRequest.Metadata.Tags, uploadRequest.HasVideo, uploadRequest.HasStoryboard, bpm)
+
+			if insertBeatmapsetSqlErr != nil {
+				ctx.String(500, "Internal queries Failed!")
+
+				return true
+			}
+			//TODO
+			for _, ticket := range uploadRequest.UploadTickets {
+				insertBeatmapSql := "INSERT INTO beatmaps"
+			}
 		}
 
 		return false
@@ -168,15 +261,16 @@ func HandleGetId5(ctx *gin.Context) {
 			return
 		}
 
-		oszTicket := fmt.Sprintf("%d-%s-%s-%s-oszTicket", time.Now().Unix(), username, osuFormFile.Filename, userData.Password)
-		oszTicketBytes := sha256.Sum256([]byte(oszTicket))
-		oszTicketHashed := string(oszTicketBytes[:])
+		oszTicketFormat := fmt.Sprintf("%d-%s-%s-%s-oszTicket", time.Now().Unix(), username, osuFormFile.Filename, userData.Password)
+		oszTicketBytes := sha256.Sum256([]byte(oszTicketFormat))
+		oszTicketHashed := oszTicketBytes[:]
+		oszTicket := hex.EncodeToString([]byte(oszTicketHashed))
 
 		newUploadRequest := UploadRequest{
-			UploadTickets: []UploadTicket{},
+			UploadTickets: map[string]UploadTicket{},
 			HasVideo:      hasVideo == "1",
 			HasStoryboard: hasStoryboard == "1",
-			OszTicket:     oszTicketHashed,
+			OszTicket:     oszTicket,
 			Metadata:      parsedOsu.Metadata,
 		}
 

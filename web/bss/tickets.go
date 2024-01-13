@@ -10,10 +10,12 @@ type UploadTicket struct {
 	Filename string
 	Ticket   string
 	Size     int64
+	Metadata osu_parser.MetadataSection
+	FileData []byte
 }
 
 type UploadRequest struct {
-	UploadTickets []UploadTicket
+	UploadTickets map[string]UploadTicket
 	HasVideo      bool
 	HasStoryboard bool
 	OszTicket     string
@@ -61,4 +63,8 @@ func RegisterRequest(userId int64, uploadRequest *UploadRequest) (int64, error) 
 
 func GetUploadRequest(userId int64) *UploadRequest {
 	return uploadRequests[userId]
+}
+
+func DeleteUploadRequest(userId int64) {
+	delete(uploadRequests, userId)
 }

@@ -28,7 +28,7 @@ func EnsureDirectoryExists(name string) bool {
 		return false
 	}
 
-	_ = os.Mkdir(name, os.ModeDir)
+	_ = os.Mkdir(name, os.ModePerm)
 
 	return true
 }
@@ -43,6 +43,7 @@ func main() {
 	EnsureDirectoryExists("oszs")
 	EnsureDirectoryExists("osus")
 	EnsureDirectoryExists("avatars")
+	EnsureDirectoryExists("bss_temp")
 
 	helpers.InitializeLogger()               //Initializes Logging, logs to both console and to a file
 	chat.InitializeChannels()                //Initializes Chat channels
@@ -53,15 +54,22 @@ func main() {
 	misc.InitializeStatistics()              //Initializes Statistics
 	b1815.InitializeCompatibilityLists()     //Initializes Client Compatibility lists
 	config.ReadConfiguration()               //Initializes all Configurable things
+	scheduler.InitializeJobScheduler()       //Initializes the Scheduler
 	database.Initialize()                    //Initializes Database Connection and things
 	database.InitializeMigrations()          //Initializes Database Migrations
 	database.InitializeDatabaseVersion()     //Initializes the Current Database Version
-	scheduler.InitializeJobScheduler()       //Initializes the Scheduler
 
-	if len(os.Args) == 3 {
+	switch len(os.Args) {
+	case 2:
+		switch os.Args[1] {
+		case "migrate":
+			database.RunNecessaryMigrations()
+			return
+		}
+	case 3:
 		switch os.Args[1] {
 		case "beatmap_versions":
-			RunBeatmapClientVersionDetector(os.Args[2])
+			RunBeatmapClientVersionDetector(os.Args[2], false)
 		case "beatmap_importer":
 			BeatmapImporter(os.Args[2])
 		case "osz_renamer":
@@ -73,11 +81,10 @@ func main() {
 		}
 
 		return
-	} else if len(os.Args) == 2 {
+	case 4:
 		switch os.Args[1] {
-		case "migrate":
-			database.RunNecessaryMigrations()
-			return
+		case "beatmap_versions":
+			RunBeatmapClientVersionDetector(os.Args[2], os.Args[3] == "write")
 		}
 	}
 

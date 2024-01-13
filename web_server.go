@@ -4,6 +4,7 @@ import (
 	"Waffle/api"
 	"Waffle/site"
 	"Waffle/web"
+	"Waffle/web/bss"
 	"bytes"
 	"context"
 	"fmt"
@@ -30,7 +31,8 @@ func RunWeb() {
 	ginServer.GET("/web/maps/:filename", web.HandleOsuMapUpdate)
 
 	//BSS b1815
-	// ginServer.POST("/web/osu-bmsubmit-getid5.php", bss.HandleGetId5)
+	ginServer.POST("/web/osu-bmsubmit-getid5.php", bss.HandleGetId5)
+	ginServer.POST("/web/osu-bmsubmit-upload.php", bss.HandleUpload)
 
 	// updater
 	//ginServer.GET("/p/changelog", HandleUpdaterChangelog)
