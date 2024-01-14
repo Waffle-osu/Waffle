@@ -31,6 +31,7 @@ func RunWeb() {
 	ginServer.GET("/web/maps/:filename", web.HandleOsuMapUpdate)
 
 	//BSS b1815
+	ginServer.POST("/web/osu-bmsubmit-post3.php", bss.HandlePost3)
 	ginServer.POST("/web/osu-bmsubmit-getid5.php", bss.HandleGetId5)
 	ginServer.POST("/web/osu-bmsubmit-upload.php", bss.HandleUpload)
 
