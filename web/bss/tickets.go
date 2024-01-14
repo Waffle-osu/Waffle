@@ -7,11 +7,11 @@ import (
 )
 
 type UploadTicket struct {
-	Filename string
-	Ticket   string
-	Size     int64
-	Metadata osu_parser.MetadataSection
-	FileData []byte
+	Filename  string
+	Ticket    string
+	Size      int64
+	ParsedOsu osu_parser.OsuFile
+	FileData  []byte
 }
 
 type UploadRequest struct {
@@ -28,16 +28,15 @@ type UploadRequest struct {
 var uploadRequests map[int64]*UploadRequest = map[int64]*UploadRequest{}
 
 func RegisterRequest(userId int64, uploadRequest *UploadRequest) (int64, error) {
-
 	minBeatmapsetIdQuery := `
-		SELECT final_beatmapset_id FROM (
-			SELECT
-				MIN(beatmapsets.beatmapset_id),
-				CASE WHEN beatmapset_id IS NULL THEN 100000000 ELSE beatmapset_id END AS 'final_beatmapset_id'
-			FROM 
-				beatmapsets 
-			WHERE beatmapsets.beatmapset_id > 100000000
-		) a
+		SELECT final_beatmapset_id + 1 FROM (
+			SELECT 
+				next_id,
+				CASE WHEN next_id IS NULL THEN (100000000-1) ELSE next_id END AS 'final_beatmapset_id'
+			FROM (
+				SELECT MAX(beatmapset_id) AS 'next_id' FROM beatmapsets WHERE beatmapset_id >= 100000000
+			) a
+		) b
 	`
 
 	query, queryErr := database.Database.Query(minBeatmapsetIdQuery)

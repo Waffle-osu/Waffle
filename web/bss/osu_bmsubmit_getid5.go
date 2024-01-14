@@ -3,6 +3,8 @@ package bss
 import (
 	"Waffle/database"
 	"Waffle/helpers"
+	"Waffle/utils"
+	"crypto/md5"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
@@ -95,11 +97,11 @@ func HandleGetId5(ctx *gin.Context) {
 		osuTicket := hex.EncodeToString(osuTicketHashed)
 
 		uploadTicket := UploadTicket{
-			Ticket:   osuTicket,
-			Filename: osuFormFile.Filename,
-			Size:     osuFormFile.Size,
-			Metadata: parsedOsu.Metadata,
-			FileData: readOutOsuFile,
+			Ticket:    osuTicket,
+			Filename:  osuFormFile.Filename,
+			Size:      osuFormFile.Size,
+			ParsedOsu: parsedOsu,
+			FileData:  readOutOsuFile,
 		}
 
 		uploadRequest.UploadTickets[osuTicket] = uploadTicket
@@ -144,7 +146,7 @@ func HandleGetId5(ctx *gin.Context) {
 
 		_, exists, _, _, queryErrorOccured := CheckBeatmapStatus(uploadRequest.BeatmapsetId, userData, &uploadRequest.Metadata)
 
-		if queryErrorOccured != false {
+		if queryErrorOccured {
 			ctx.String(500, "Internal queries failed!")
 
 			return true
@@ -186,7 +188,7 @@ func HandleGetId5(ctx *gin.Context) {
 
 			//All Currently Uploaded Versions
 			for _, ticket := range uploadRequest.UploadTickets {
-				uploadVersions[ticket.Metadata.Version] = true
+				uploadVersions[ticket.ParsedOsu.Metadata.Version] = true
 			}
 
 			//All Removed Versions
@@ -225,11 +227,14 @@ func HandleGetId5(ctx *gin.Context) {
 				return true
 			}
 
+			//Delete the Deleted diffs
+			//Insert the new diffs
+
 		} else {
 			//Create Beatmapset
 			bpm := 60000.0 / parsedOsu.TimingPoints.TimingPoints[0].BeatLength
 
-			insertBeatmapsetSql := "INSERT INTO beatmapsets (beatmapset_id, creator_id, artist, title, creator, source, tags, has_video, has_storyboard, bpm)"
+			insertBeatmapsetSql := "INSERT INTO beatmapsets (beatmapset_id, creator_id, artist, title, creator, source, tags, has_video, has_storyboard, bpm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			_, insertBeatmapsetSqlErr := database.Database.Exec(insertBeatmapsetSql, uploadRequest.BeatmapsetId, -userId, uploadRequest.Metadata.Artist, uploadRequest.Metadata.Title, uploadRequest.Metadata.Creator, uploadRequest.Metadata.Source, uploadRequest.Metadata.Tags, uploadRequest.HasVideo, uploadRequest.HasStoryboard, bpm)
 
 			if insertBeatmapsetSqlErr != nil {
@@ -237,9 +242,66 @@ func HandleGetId5(ctx *gin.Context) {
 
 				return true
 			}
-			//TODO
+
 			for _, ticket := range uploadRequest.UploadTickets {
-				insertBeatmapSql := "INSERT INTO beatmaps"
+				newBeatmapId := GetNextBssBeatmapId()
+
+				if newBeatmapId == -1 {
+					ctx.String(500, "Internal queries failed!")
+
+					return true
+				}
+
+				currentOsu := ticket.ParsedOsu
+
+				fileHashedBytes := md5.Sum(ticket.FileData)
+				fileHashedHex := hex.EncodeToString(fileHashedBytes[:])
+
+				hitObjectCount := len(ticket.ParsedOsu.HitObjects.HitObjects)
+				totalLength := currentOsu.HitObjects.HitObjects[hitObjectCount-1].Time - currentOsu.HitObjects.HitObjects[0].Time
+
+				breakTime := int32(0)
+
+				for _, event := range ticket.ParsedOsu.Events.Events {
+					if event.EventType == osu_parser.EventTypeBreak {
+						breakTime += event.BreakTimeEnd - event.BreakTimeBegin
+					}
+				}
+
+				countNormal := int32(0)
+				countSlider := int32(0)
+				countSpinner := int32(0)
+
+				for _, object := range currentOsu.HitObjects.HitObjects {
+					if (int32(object.Type) & int32(osu_parser.HitObjectTypeCircle)) > 0 {
+						countNormal++
+					}
+
+					if (int32(object.Type) & int32(osu_parser.HitObjectTypeSlider)) > 0 {
+						countSlider++
+					}
+
+					if (int32(object.Type) & int32(osu_parser.HitObjectTypeSpinner)) > 0 {
+						countSpinner++
+					}
+
+					if (int32(object.Type) & int32(osu_parser.HitObjectTypeHold)) > 0 {
+						countSlider++
+					}
+				}
+
+				drainTime := totalLength - float64(breakTime)
+
+				minVersion := utils.VersionOsuFile(currentOsu)
+
+				insertBeatmapSql := "INSERT INTO beatmaps (beatmap_id, beatmapset_id, creator_id, filename, beatmap_md5, version, total_length, drain_time, count_objects, count_normal, count_slider, count_spinner, diff_hp, diff_cs, diff_od, diff_stars, playmode, ranking_status, last_update, submit_date, approve_date, beatmap_source, status_valid_from_version, status_valid_to_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), '1000-01-01 00:00:00.000000', ?, ?, ?)"
+				_, insertBeatmapErr := database.Database.Query(insertBeatmapSql, newBeatmapId, uploadRequest.BeatmapsetId, -userId, ticket.Filename, fileHashedHex, currentOsu.Metadata.Version, totalLength, drainTime, hitObjectCount, countNormal, countSlider, countSpinner, currentOsu.Difficulty.HPDrainRate, currentOsu.Difficulty.CircleSize, currentOsu.Difficulty.OverallDifficulty, -1, byte(currentOsu.General.Mode), 0, 1, minVersion, 99999999)
+
+				if insertBeatmapErr != nil {
+					ctx.String(500, "Internal queries failed")
+
+					return true
+				}
 			}
 		}
 
