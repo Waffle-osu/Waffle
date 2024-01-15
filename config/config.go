@@ -17,3 +17,5 @@ var IrcSslIp string
 
 var HostIrc string
 var HostIrcSsl string
+
+var UsingWaffleWeb string

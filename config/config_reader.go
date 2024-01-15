@@ -48,6 +48,12 @@ var EnvFileWarningString string = `
 [Initialization] // host_irc:      Enables/Disables IRC Server         //
 [Initialization] // host_irc_ssl:  Enables/Disables IRC SSL Server     //
 [Initialization] //                                                    //
+[Initialization] // using_waffle_web: Whether the original waffle-web  //
+[Initialization] //                   is used, as opposed to a custom  //
+[Initialization] //                   made frontend to go around it.   //
+[Initialization] //                   it used around beatmap forum     //
+[Initialization] //                   posts and ranking queue.         //
+[Initialization] //                                                    //
 [Initialization] ////////////////////////////////////////////////////////
 `
 

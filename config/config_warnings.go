@@ -166,3 +166,36 @@ func IrcSSLIpMissing() {
 
 	displayedWarnings["irc_ssl_ip"] = true
 }
+
+func WaffleWebConfigMissing() {
+	if UsingWaffleWeb == "false" {
+		return
+	}
+
+	_, runAlready := displayedWarnings["using_waffle_web"]
+
+	if runAlready {
+		return
+	}
+
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] //////////////////  Attention!!!!!!!  //////////////////\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] // You have not specified whether you're running      //\n")
+	helpers.Logger.Printf("[Initialization] // waffle-web or not, this is important to the        //\n")
+	helpers.Logger.Printf("[Initialization] // function of the Beatmap Submission system, as      //\n")
+	helpers.Logger.Printf("[Initialization] // forum posts will not be created when not using     //\n")
+	helpers.Logger.Printf("[Initialization] // waffle-web, and the ranking queue will not be run  //\n")
+	helpers.Logger.Printf("[Initialization] // without waffle-web.                                //\n")
+	helpers.Logger.Printf("[Initialization] // silence this warning.                              //\n")
+	helpers.Logger.Printf("[Initialization] //                                                    //\n")
+	helpers.Logger.Printf("[Initialization] // using_waffle_web: Whether the original waffle-web  //\n")
+	helpers.Logger.Printf("[Initialization] //                   is used, as opposed to a custom  //\n")
+	helpers.Logger.Printf("[Initialization] //                   made frontend to go around it.   //\n")
+	helpers.Logger.Printf("[Initialization] //                   it used around beatmap forum     //\n")
+	helpers.Logger.Printf("[Initialization] //                   posts and ranking queue.         //\n")
+	helpers.Logger.Printf("[Initialization] //                                                    //\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+
+	displayedWarnings["using_waffle_web"] = true
+}
