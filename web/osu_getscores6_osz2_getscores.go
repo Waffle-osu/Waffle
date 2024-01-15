@@ -16,16 +16,15 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 	queryUserId := ctx.Query("u")
 	queryPlaymode := ctx.Query("m")
 	beatmapsetId := ctx.Query("i")
-	//osz2hash := ctx.Query("h")
+	osz2hash := ctx.Query("h")
 
 	osz2client := false
 
-	if beatmapsetId != "" {
+	if beatmapsetId != "" || osz2hash != "" {
 		osz2client = true
 	}
 
 	userId, parseErr := strconv.ParseInt(queryUserId, 10, 64)
-	//playmode, parseErr := strconv.ParseInt(queryPlaymode, 10, 64)
 
 	if parseErr != nil {
 		ctx.String(http.StatusOK, "deliberatly fucked string to give out an error client side cuz pain\n")

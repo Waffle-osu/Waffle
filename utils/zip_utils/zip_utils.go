@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func ZipDirectory(zipfilename string) error {
+func ZipDirectory(zipfilename string, path string) error {
 	outFile, err := os.Create(zipfilename)
 	if err != nil {
 		return err
@@ -16,7 +16,7 @@ func ZipDirectory(zipfilename string) error {
 
 	w := zip.NewWriter(outFile)
 
-	if err := AddFilesToZip(w, zipfilename, ""); err != nil {
+	if err := AddFilesToZip(w, path, ""); err != nil {
 		_ = outFile.Close()
 		return err
 	}

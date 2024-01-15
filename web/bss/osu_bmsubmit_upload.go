@@ -2,8 +2,9 @@ package bss
 
 import (
 	"Waffle/database"
-	"Waffle/helpers"
+	"Waffle/utils/zip_utils"
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -18,9 +19,9 @@ func HandleUpload(ctx *gin.Context) {
 	password := ctx.Query("p")
 	ticket := ctx.Query("c")
 	first := ctx.Query("r")
-	oszFilename := ctx.Query("of")
-	oszTicket := ctx.Query("oc")
-	setId := ctx.Query("s")
+	// oszFilename := ctx.Query("of")
+	// oszTicket := ctx.Query("oc")
+	// setId := ctx.Query("s")
 
 	file, fileErr := ctx.FormFile("osu")
 
@@ -67,6 +68,14 @@ func HandleUpload(ctx *gin.Context) {
 
 		DeleteUploadRequest(int64(userId))
 	} else {
+		_, exists := uploadRequest.UploadTickets[ticket]
+
+		if !exists {
+			ctx.String(400, "Invalid ticket")
+
+			return
+		}
+
 		//Extract existing osz
 		if first == "1" {
 			archive, archiveOpenErr := zip.OpenReader(fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId))
@@ -80,18 +89,22 @@ func HandleUpload(ctx *gin.Context) {
 			dirName := fmt.Sprintf("bss_temp/%d", userId)
 			_, err := os.Stat(dirName)
 
-			if err == nil {
-				ctx.String(500, "BSS Upload failed.")
+			if err != nil {
+				if errors.Is(err, os.ErrNotExist) {
+					dirCreateErr := os.Mkdir(dirName, os.ModePerm)
 
-				return
-			}
+					//We just wanna make sure the directory exists
+					//Weird if it did occur but you never know
+					if dirCreateErr != nil && !errors.Is(dirCreateErr, os.ErrExist) {
+						ctx.String(500, "BSS Upload failed.")
 
-			dirCreateErr := os.Mkdir(dirName, os.ModePerm)
+						return
+					}
+				} else {
+					ctx.String(500, "BSS Upload failed.")
 
-			if dirCreateErr == nil {
-				ctx.String(500, "BSS Upload failed.")
-
-				return
+					return
+				}
 			}
 
 			for _, f := range archive.File {
@@ -129,9 +142,25 @@ func HandleUpload(ctx *gin.Context) {
 				dstFile.Close()
 				fileInArchive.Close()
 			}
+
+			archive.Close()
 		}
 
-		newFile, newFileErr := os.Create(fmt.Sprintf("bss_temp/%d/%s", userId, file.Filename))
+		var uploadTicket UploadTicket
+
+		for _, listTicket := range uploadRequest.UploadTickets {
+			if listTicket.Ticket == ticket {
+				uploadTicket = listTicket
+			}
+		}
+
+		osuFilename := uploadTicket.Filename
+
+		if !isASCII(uploadRequest.Metadata.Artist) || !isASCII(uploadRequest.Metadata.Title) {
+			osuFilename = fmt.Sprintf("%s - %s (%s) [%s].osu", uploadTicket.ParsedOsu.Metadata.Artist, uploadTicket.ParsedOsu.Metadata.Title, uploadTicket.ParsedOsu.Metadata.Creator, uploadTicket.ParsedOsu.Metadata.Version)
+		}
+
+		newFile, newFileErr := os.Create(fmt.Sprintf("bss_temp/%d/%s", userId, osuFilename))
 
 		if newFileErr != nil {
 			ctx.String(500, "Failed to finish upload")
@@ -154,26 +183,35 @@ func HandleUpload(ctx *gin.Context) {
 		newFile.Close()
 		openFile.Close()
 
-		_, exists := uploadRequest.UploadTickets[ticket]
+		delete(uploadRequest.UploadTickets, ticket)
 
-		if exists {
-			delete(uploadRequest.UploadTickets, ticket)
-		} else {
-			ctx.String(400, "Invalid ticket")
+		//All tickets gone, create osz
+		if len(uploadRequest.UploadTickets) == 0 {
+			oszFilename := fmt.Sprintf("bss_temp/%d.osz", uploadRequest.BeatmapsetId)
 
-			return
+			oszCreateErr := zip_utils.ZipDirectory(oszFilename, fmt.Sprintf("bss_temp/%d", userId))
+
+			if oszCreateErr != nil {
+				ctx.String(500, "Failed to finish upload")
+
+				return
+			}
+
+			oldPath := fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId)
+
+			removeErr := os.Remove(oldPath)
+
+			if removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+				ctx.String(500, "Failed to finish upload")
+
+				os.Remove(oszFilename)
+
+				return
+			}
+
+			os.Rename(oszFilename, oldPath)
 		}
 	}
-
-	helpers.Logger.Printf("-- Got upload:\n")
-	helpers.Logger.Printf("Username: %s\n", username)
-	helpers.Logger.Printf("Ticket: %s\n", ticket)
-	helpers.Logger.Printf("NoIdea: %s\n", first)
-	helpers.Logger.Printf("OszFilename: %s\n", oszFilename)
-	helpers.Logger.Printf("OszTicket: %s\n", oszTicket)
-	helpers.Logger.Printf("SetId: %s\n", setId)
-	helpers.Logger.Printf("Filename: %s\n", file.Filename)
-	helpers.Logger.Printf("File size: %d\n", file.Size)
 
 	ctx.String(200, "ok")
 }
