@@ -65,6 +65,8 @@ func main() {
 		case "migrate":
 			database.RunNecessaryMigrations()
 			return
+		case "more_data":
+			GetAdditionalBeatmapInfo()
 		}
 	case 3:
 		switch os.Args[1] {

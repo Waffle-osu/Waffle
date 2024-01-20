@@ -34,6 +34,7 @@ func InitializeMigrations() {
 	Migrations[15] = migrations.MigrationAddBeatmapRankedVersionRestriction{}
 	Migrations[16] = migrations.MigrationRemoveScoreVersioningAndBssTables{}
 	Migrations[17] = migrations.MigrationDropSiteTokens{}
+	Migrations[18] = migrations.MigrationAddAdditionalBeatmapData{}
 }
 
 func InitializeDatabaseVersion() {

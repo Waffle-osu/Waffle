@@ -157,47 +157,50 @@ FROM (
 		beatmapRows = topRatedQuery
 	} else {
 		generalSearchSql := `
-SELECT 
-	result.beatmapset_id, 
-	result.artist, 
-	result.title, 
-	result.creator, 
-	result.has_video, 
-	result.has_storyboard, 
-	result.final_rating_sum AS 'rating_sum', 
-	result.final_votes AS 'votes',  
+SELECT
+	result.beatmapset_id,
+	result.artist,
+	result.title,
+	result.creator,
+	result.has_video,
+	result.has_storyboard,
+	result.final_rating_sum AS 'rating_sum',
+	result.final_votes AS 'votes',
 	result.ranking_status,
 	result.approve_date
 FROM (
-	SELECT 
-		beatmapsets.beatmapset_id, 
-		beatmapsets.artist, 
-		beatmapsets.title, 
-		beatmapsets.creator, 
-		beatmapsets.has_video, 
-		beatmapsets.has_storyboard, 
-		beatmap_ratings.rating_sum, 
-		beatmap_ratings.votes, 
+	SELECT
+		beatmapsets.beatmapset_id,
+		beatmapsets.artist,
+		beatmapsets.title,
+		beatmapsets.creator,
+		beatmapsets.source,
+		beatmapsets.tags,
+		beatmapsets.has_video,
+		beatmapsets.has_storyboard,
+		beatmap_ratings.rating_sum,
+		beatmap_ratings.votes,
 		beatmaps.approve_date,
 		beatmaps.ranking_status,
 		CASE WHEN beatmap_ratings.rating_sum IS NULL THEN 0 ELSE beatmap_ratings.rating_sum END AS 'final_rating_sum',
 		CASE WHEN beatmap_ratings.votes IS NULL THEN 1 ELSE beatmap_ratings.votes END AS 'final_votes'
-	FROM waffle.beatmapsets 
+	FROM waffle.beatmapsets
 		LEFT JOIN waffle.beatmaps ON beatmaps.beatmapset_id = beatmapsets.beatmapset_id
 		LEFT JOIN waffle.beatmap_ratings ON beatmap_ratings.beatmapset_id = beatmapsets.beatmapset_id
-	WHERE ranking_status IN (%s) AND (
-		LOWER(title) LIKE CONCAT('%%', ?, '%%') OR 
-		LOWER(artist) LIKE CONCAT('%%', ?, '%%') OR 
-		LOWER(creator) LIKE CONCAT('%%', ?, '%%') OR
-		LOWER(source) LIKE CONCAT('%%', ?, '%%') OR
-		LOWER(tags) LIKE CONCAT('%%', ?, '%%')
-	)
-	GROUP BY beatmapsets.beatmapset_id 
-	LIMIT 250
-) result
+	WHERE ranking_status IN (%s)
+	GROUP BY beatmapsets.beatmapset_id
+) result WHERE (
+	LOWER(result.title) LIKE CONCAT('%%', ?, '%%') OR
+	LOWER(result.artist) LIKE CONCAT('%%', ?, '%%') OR
+	LOWER(result.source) LIKE CONCAT('%%', ?, '%%') OR
+	LOWER(result.creator) LIKE CONCAT('%%', ?, '%%') OR
+	LOWER(result.tags) LIKE CONCAT('%%', ?, '%%')
+) LIMIT 250
 		`
 
 		formattedSql := fmt.Sprintf(generalSearchSql, rankedStatuses)
+
+		fmt.Printf("%s\n", formattedSql)
 
 		searchQuery, searchQueryErr := database.Database.Query(formattedSql, queryQuery, queryQuery, queryQuery, queryQuery, queryQuery)
 
