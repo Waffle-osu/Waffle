@@ -210,6 +210,8 @@ func HandleUpload(ctx *gin.Context) {
 			}
 
 			os.Rename(oszFilename, oldPath)
+
+			DeleteUploadRequest(int64(userId))
 		}
 	}
 

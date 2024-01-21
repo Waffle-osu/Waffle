@@ -4,6 +4,8 @@ go 1.21.5
 
 require github.com/go-sql-driver/mysql v1.6.0
 
+require github.com/Waffle-osu/waffle-pp v0.0.0-20240121120826-953bf80a49c6 // indirect
+
 require (
 	github.com/Waffle-osu/osu-parser v0.0.0-20240121103527-7fc25d444484
 	github.com/bytedance/sonic v1.9.1 // indirect

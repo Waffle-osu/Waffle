@@ -36,6 +36,7 @@ func InitializeMigrations() {
 	Migrations[17] = migrations.MigrationDropSiteTokens{}
 	Migrations[18] = migrations.MigrationAddAdditionalBeatmapData{}
 	Migrations[19] = migrations.MigrationAddUniqueKeyBeatmapFavourites{}
+	Migrations[20] = migrations.MigrationAddDiffCalcTables{}
 }
 
 func InitializeDatabaseVersion() {

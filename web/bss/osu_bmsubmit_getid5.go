@@ -7,7 +7,9 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"os"
 	"time"
 	"unicode"
 
@@ -388,6 +390,26 @@ func HandleGetId5(ctx *gin.Context) {
 
 					return true
 				}
+			}
+		}
+
+		//Copy over all the .osu files
+		for _, ticket := range uploadRequest.UploadTickets {
+			filename := fmt.Sprintf("osus/%s", ticket.Filename)
+
+			if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+				os.WriteFile(filename, ticket.FileData, 0755)
+			} else {
+				file, err := os.Create(filename)
+
+				if err != nil {
+					ctx.String(500, "Internal queries failed")
+
+					return true
+				}
+
+				file.Write(ticket.FileData)
+				file.Close()
 			}
 		}
 

@@ -67,6 +67,10 @@ func main() {
 			return
 		case "more_data":
 			GetAdditionalBeatmapInfo()
+			return
+		case "eyup":
+			InitialDiffCalcEyup()
+			return
 		}
 	case 3:
 		switch os.Args[1] {
