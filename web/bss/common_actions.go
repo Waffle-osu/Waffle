@@ -2,6 +2,7 @@ package bss
 
 import (
 	"Waffle/database"
+	"Waffle/utils"
 	"database/sql"
 	"math"
 
@@ -132,4 +133,40 @@ func GetNextBssBeatmapId() int64 {
 	}
 
 	return result
+}
+
+func InsertIntoBeatmaps(file osu_parser.OsuFile, setId int64, userId int32, filename string) error {
+	newBeatmapId := GetNextBssBeatmapId()
+
+	minVersion := utils.VersionOsuFile(file)
+
+	insertBeatmapSql := "INSERT INTO beatmaps (beatmap_id, beatmapset_id, creator_id, filename, beatmap_md5, version, total_length, drain_time, count_objects, count_normal, count_slider, count_spinner, diff_hp, diff_cs, diff_od, diff_stars, playmode, ranking_status, last_update, submit_date, approve_date, beatmap_source, status_valid_from_version, status_valid_to_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), '1000-01-01 00:00:00.000000', ?, ?, ?)"
+
+	_, insertBeatmapErr :=
+		database.Database.Query(
+			insertBeatmapSql,
+			newBeatmapId,
+			setId,
+			-userId,
+			filename,
+			file.Md5Hash,
+			file.Metadata.Version,
+			file.Length,
+			file.DrainLength,
+			len(file.HitObjects.List),
+			file.HitObjects.CountNormal,
+			file.HitObjects.CountSlider,
+			file.HitObjects.CountSpinner,
+			file.Difficulty.HPDrainRate,
+			file.Difficulty.CircleSize,
+			file.Difficulty.OverallDifficulty,
+			-1,
+			byte(file.General.Mode),
+			0,
+			1,
+			minVersion,
+			99999999,
+		)
+
+	return insertBeatmapErr
 }
