@@ -3,9 +3,11 @@ package zip_utils
 import (
 	"archive/zip"
 	"errors"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func ZipDirectory(zipfilename string, path string) error {
@@ -72,5 +74,69 @@ func AddFilesToZip(w *zip.Writer, basePath, baseInZip string) error {
 			// we ignore non-regular files because they are scary
 		}
 	}
+	return nil
+}
+
+func UnzipFile(filename, dest string, skipOsus bool) error {
+	archive, archiveOpenErr := zip.OpenReader(filename)
+
+	if archiveOpenErr != nil {
+		return archiveOpenErr
+	}
+
+	_, err := os.Stat(dest)
+
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			dirCreateErr := os.Mkdir(dest, os.ModePerm)
+
+			//We just wanna make sure the directory exists
+			//Weird if it did occur but you never know
+			if dirCreateErr != nil && !errors.Is(dirCreateErr, os.ErrExist) {
+				return dirCreateErr
+			}
+		} else {
+			return err
+		}
+	}
+
+	for _, f := range archive.File {
+		filePath := filepath.Join(dest, f.Name)
+
+		//For BSS purposes, They all get reuploaded, we don't need them twice
+		if skipOsus && strings.HasSuffix(filePath, ".osu") {
+			continue
+		}
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(filePath, os.ModePerm)
+
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+			return err
+		}
+
+		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return err
+		}
+
+		fileInArchive, err := f.Open()
+		if err != nil {
+			return err
+		}
+
+		if _, err := io.Copy(dstFile, fileInArchive); err != nil {
+			return err
+		}
+
+		dstFile.Close()
+		fileInArchive.Close()
+	}
+
+	archive.Close()
+
 	return nil
 }

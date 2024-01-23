@@ -25,9 +25,9 @@ type UploadRequest struct {
 	Metadata osu_parser.MetadataSection
 }
 
-var uploadRequests map[int64]*UploadRequest = map[int64]*UploadRequest{}
+var uploadRequests map[int32]*UploadRequest = map[int32]*UploadRequest{}
 
-func RegisterRequest(userId int64, uploadRequest *UploadRequest) (int64, error) {
+func RegisterRequest(userId int32, uploadRequest *UploadRequest) (int64, error) {
 	minBeatmapsetIdQuery := `
 		SELECT final_beatmapset_id + 1 FROM (
 			SELECT 
@@ -60,10 +60,10 @@ func RegisterRequest(userId int64, uploadRequest *UploadRequest) (int64, error) 
 	return newSetId, nil
 }
 
-func GetUploadRequest(userId int64) *UploadRequest {
+func GetUploadRequest(userId int32) *UploadRequest {
 	return uploadRequests[userId]
 }
 
-func DeleteUploadRequest(userId int64) {
+func DeleteUploadRequest(userId int32) {
 	delete(uploadRequests, userId)
 }

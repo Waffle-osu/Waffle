@@ -3,13 +3,9 @@ package bss
 import (
 	"Waffle/database"
 	"Waffle/utils/zip_utils"
-	"archive/zip"
 	"errors"
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +33,7 @@ func HandleUpload(ctx *gin.Context) {
 		return
 	}
 
-	uploadRequest := GetUploadRequest(int64(userId))
+	uploadRequest := GetUploadRequest(userId)
 
 	//full .osz upload
 	if ticket == uploadRequest.OszTicket {
@@ -66,7 +62,7 @@ func HandleUpload(ctx *gin.Context) {
 		openFile.Close()
 		newOsz.Close()
 
-		DeleteUploadRequest(int64(userId))
+		DeleteUploadRequest(userId)
 	} else {
 		_, exists := uploadRequest.UploadTickets[ticket]
 
@@ -78,72 +74,14 @@ func HandleUpload(ctx *gin.Context) {
 
 		//Extract existing osz
 		if first == "1" {
-			archive, archiveOpenErr := zip.OpenReader(fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId))
+			existingOsz := fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId)
+			destFolder := fmt.Sprintf("bss_temp/%d", userId)
 
-			if archiveOpenErr != nil {
-				ctx.String(500, "Failed to read existing osz file")
+			unzipErr := zip_utils.UnzipFile(existingOsz, destFolder, true)
 
-				return
+			if unzipErr != nil {
+				ctx.String(500, "Failed to finish upload")
 			}
-
-			dirName := fmt.Sprintf("bss_temp/%d", userId)
-			_, err := os.Stat(dirName)
-
-			if err != nil {
-				if errors.Is(err, os.ErrNotExist) {
-					dirCreateErr := os.Mkdir(dirName, os.ModePerm)
-
-					//We just wanna make sure the directory exists
-					//Weird if it did occur but you never know
-					if dirCreateErr != nil && !errors.Is(dirCreateErr, os.ErrExist) {
-						ctx.String(500, "BSS Upload failed.")
-
-						return
-					}
-				} else {
-					ctx.String(500, "BSS Upload failed.")
-
-					return
-				}
-			}
-
-			for _, f := range archive.File {
-				filePath := filepath.Join(dirName, f.Name)
-
-				//They all get reuploaded, we don't need them twice
-				if strings.HasSuffix(filePath, ".osu") {
-					continue
-				}
-
-				if f.FileInfo().IsDir() {
-					os.MkdirAll(filePath, os.ModePerm)
-
-					continue
-				}
-
-				if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
-					panic(err)
-				}
-
-				dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-				if err != nil {
-					panic(err)
-				}
-
-				fileInArchive, err := f.Open()
-				if err != nil {
-					panic(err)
-				}
-
-				if _, err := io.Copy(dstFile, fileInArchive); err != nil {
-					panic(err)
-				}
-
-				dstFile.Close()
-				fileInArchive.Close()
-			}
-
-			archive.Close()
 		}
 
 		var uploadTicket UploadTicket
@@ -211,7 +149,7 @@ func HandleUpload(ctx *gin.Context) {
 
 			os.Rename(oszFilename, oldPath)
 
-			DeleteUploadRequest(int64(userId))
+			DeleteUploadRequest(userId)
 		}
 	}
 

@@ -70,7 +70,7 @@ func HandleGetId5(ctx *gin.Context) {
 		return
 	}
 
-	uploadRequest := GetUploadRequest(int64(userId))
+	uploadRequest := GetUploadRequest(userId)
 
 	parsedOsu, err := osu_parser.ParseText(string(readOutOsuFile))
 
@@ -444,7 +444,7 @@ func HandleGetId5(ctx *gin.Context) {
 			Metadata:      parsedOsu.Metadata,
 		}
 
-		beatmapsetId, newSetIdErr := RegisterRequest(int64(userId), &newUploadRequest)
+		beatmapsetId, newSetIdErr := RegisterRequest(userId, &newUploadRequest)
 
 		uploadRequest = &newUploadRequest
 
