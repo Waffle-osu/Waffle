@@ -37,7 +37,7 @@ func HandleUpload(ctx *gin.Context) {
 
 	//full .osz upload
 	if ticket == uploadRequest.OszTicket {
-		os.Remove(fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId))
+		//os.Remove(fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId))
 
 		openFile, openFileErr := file.Open()
 
@@ -47,7 +47,8 @@ func HandleUpload(ctx *gin.Context) {
 			return
 		}
 
-		newOsz, createErr := os.Create(fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId))
+		newOszFilename := fmt.Sprintf("bss_temp/%d.osz", uploadRequest.BeatmapsetId)
+		newOsz, createErr := os.Create(newOszFilename)
 
 		if createErr != nil {
 			ctx.String(500, "Failed to create new osz")
@@ -63,6 +64,18 @@ func HandleUpload(ctx *gin.Context) {
 		newOsz.Close()
 
 		DeleteUploadRequest(userId)
+
+		unzipErr := zip_utils.UnzipFile(newOszFilename, fmt.Sprintf("bss_tmp/oszs/%d.osz", uploadRequest.BeatmapsetId), false)
+
+		if unzipErr != nil {
+			ctx.String(500, "Failed to create new osz")
+
+			return
+		}
+
+		//Check every .osu file and check it againt its ticket
+		//if everything's fine, take the first ticket sent
+		//take its background and generate the thumbnail and mp3 preview
 	} else {
 		_, exists := uploadRequest.UploadTickets[ticket]
 
