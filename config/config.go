@@ -19,3 +19,5 @@ var HostIrc string
 var HostIrcSsl string
 
 var UsingWaffleWeb string
+
+var FFMPEGPath string = "ffmpeg"

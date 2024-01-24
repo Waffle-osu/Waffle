@@ -1,10 +1,20 @@
 package bss
 
 import (
+	"Waffle/config"
 	"Waffle/database"
 	"Waffle/utils"
+	"Waffle/web/bss/thumbnail"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
+	"fmt"
 	"math"
+	"os"
+	"os/exec"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/Waffle-osu/osu-parser/osu_parser"
 )
@@ -169,4 +179,81 @@ func InsertIntoBeatmaps(file osu_parser.OsuFile, setId int64, userId int32, file
 		)
 
 	return insertBeatmapErr
+}
+
+func CreateTicket(user database.User, filename string, oszTicket bool) string {
+	prefix := "osu"
+
+	if oszTicket {
+		prefix = "osz"
+	}
+
+	ticketFormat := fmt.Sprintf("%s::%d-%s-%s-%s", prefix, time.Now().Unix(), user.Username, filename, user.Password)
+	ticketBytes := sha256.Sum256([]byte(ticketFormat))
+	ticketHashed := ticketBytes[:]
+	ticket := hex.EncodeToString(ticketHashed)
+
+	return ticket
+}
+
+func GenerateThumbnail(uploadTicket UploadTicket, setId int64) {
+	tempOszDir := fmt.Sprintf("bss_temp/oszs/%d", setId)
+
+	//take its background and generate the thumbnail
+	backgroundFilename := ""
+
+	for _, event := range uploadTicket.ParsedOsu.Events.Events {
+		if event.EventType == osu_parser.EventTypeBackground {
+			backgroundFilename = event.BackgroundImage
+
+			break
+		}
+	}
+
+	backgroundFilename = strings.TrimPrefix(backgroundFilename, "\"")
+	backgroundFilename = strings.TrimSuffix(backgroundFilename, "\"")
+
+	imagePath := fmt.Sprintf("%s/%s", tempOszDir, backgroundFilename)
+
+	generator := thumbnail.NewGenerator(thumbnail.Generator{
+		Scaler: "CatmullRom",
+	})
+
+	generator.Width = 80
+	generator.Height = 64
+
+	image, imageErr := generator.NewImageFromFile(imagePath)
+
+	if imageErr == nil {
+		thumbnailBytes, thumbnailErr := generator.CreateThumbnail(image)
+
+		if thumbnailErr == nil {
+			os.WriteFile(fmt.Sprintf("direct_thumbnails/%d", setId), thumbnailBytes, 0644)
+		}
+
+		generator.Width = 160
+		generator.Height = 120
+
+		thumbnailBytes, thumbnailErr = generator.CreateThumbnail(image)
+
+		if thumbnailErr == nil {
+			os.WriteFile(fmt.Sprintf("direct_thumbnails/%dl", setId), thumbnailBytes, 0644)
+		}
+	}
+}
+
+func CreateMp3Preview(audioFilename string, previewTimeMs int32, setId int64) {
+	tempOszDir := fmt.Sprintf("bss_temp/oszs/%d", setId)
+
+	//And the mp3 preview
+	previewStart := int(float64(previewTimeMs) / 1000.0)
+	toString := strconv.FormatInt(int64(previewStart), 10)
+
+	mp3Path := fmt.Sprintf("%s/%s", tempOszDir, audioFilename)
+	outPath := fmt.Sprintf("mp3_previews/%d", setId)
+
+	cmd := exec.Command(config.FFMPEGPath, "-ss", toString, "-t", "10", "-i", mp3Path, "-codec:a", "libmp3lame", "-b:a", "64k", outPath+".mp3")
+	cmd.Run()
+
+	os.Rename(outPath+".mp3", outPath)
 }

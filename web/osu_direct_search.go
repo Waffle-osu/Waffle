@@ -200,8 +200,6 @@ FROM (
 
 		formattedSql := fmt.Sprintf(generalSearchSql, rankedStatuses)
 
-		fmt.Printf("%s\n", formattedSql)
-
 		searchQuery, searchQueryErr := database.Database.Query(formattedSql, queryQuery, queryQuery, queryQuery, queryQuery, queryQuery)
 
 		if searchQueryErr != nil {

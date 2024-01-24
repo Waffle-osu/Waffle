@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,10 +36,14 @@ func HandleUpload(ctx *gin.Context) {
 
 	uploadRequest := GetUploadRequest(userId)
 
+	if uploadRequest == nil {
+		ctx.String(400, "No upload request!")
+
+		return
+	}
+
 	//full .osz upload
 	if ticket == uploadRequest.OszTicket {
-		//os.Remove(fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId))
-
 		openFile, openFileErr := file.Open()
 
 		if openFileErr != nil {
@@ -63,9 +68,9 @@ func HandleUpload(ctx *gin.Context) {
 		openFile.Close()
 		newOsz.Close()
 
-		DeleteUploadRequest(userId)
-
-		unzipErr := zip_utils.UnzipFile(newOszFilename, fmt.Sprintf("bss_tmp/oszs/%d.osz", uploadRequest.BeatmapsetId), false)
+		tempOszDir := fmt.Sprintf("bss_temp/oszs/%d", uploadRequest.BeatmapsetId)
+		os.MkdirAll(tempOszDir, 0777)
+		unzipErr := zip_utils.UnzipFile(newOszFilename, tempOszDir, false)
 
 		if unzipErr != nil {
 			ctx.String(500, "Failed to create new osz")
@@ -73,9 +78,71 @@ func HandleUpload(ctx *gin.Context) {
 			return
 		}
 
+		tempDir, tempDirErr := os.ReadDir(tempOszDir)
+
+		if tempDirErr != nil {
+			ctx.String(500, "Failed to check osz")
+
+			return
+		}
+
 		//Check every .osu file and check it againt its ticket
+		for _, entry := range tempDir {
+			foundTicket := false
+
+			if entry.IsDir() {
+				continue
+			}
+
+			filename := entry.Name()
+
+			if !strings.HasSuffix(filename, ".osu") {
+				continue
+			}
+
+			for _, ticket := range uploadRequest.UploadTickets {
+				if ticket.Filename == filename {
+					foundTicket = true
+
+					break
+				}
+			}
+
+			if !foundTicket {
+				ctx.String(400, "File not in ticket")
+
+				DeleteUploadRequest(userId)
+
+				return
+			}
+		}
+
+		//Save osz
+		os.Remove(fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId))
+
+		savedOszErr := zip_utils.ZipDirectory(fmt.Sprintf("oszs/%d.osz", uploadRequest.BeatmapsetId), tempOszDir)
+
+		if savedOszErr != nil {
+			ctx.String(500, "Failed to save osz")
+
+			DeleteUploadRequest(userId)
+
+			return
+		}
+
 		//if everything's fine, take the first ticket sent
-		//take its background and generate the thumbnail and mp3 preview
+		var firstTicket UploadTicket
+
+		for _, value := range uploadRequest.UploadTickets {
+			firstTicket = value
+			break
+		}
+
+		//Generate Thumbnail and Mp3
+		GenerateThumbnail(firstTicket, uploadRequest.BeatmapsetId)
+		CreateMp3Preview(firstTicket.ParsedOsu.General.AudioFilename, firstTicket.ParsedOsu.General.PreviewTime, uploadRequest.BeatmapsetId)
+
+		DeleteUploadRequest(userId)
 	} else {
 		_, exists := uploadRequest.UploadTickets[ticket]
 
@@ -94,6 +161,10 @@ func HandleUpload(ctx *gin.Context) {
 
 			if unzipErr != nil {
 				ctx.String(500, "Failed to finish upload")
+
+				DeleteUploadRequest(userId)
+
+				return
 			}
 		}
 

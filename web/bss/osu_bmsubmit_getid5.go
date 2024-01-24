@@ -4,13 +4,10 @@ import (
 	"Waffle/database"
 	"Waffle/helpers"
 	"Waffle/utils"
-	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
-	"time"
 	"unicode"
 
 	"github.com/Waffle-osu/osu-parser/osu_parser"
@@ -77,11 +74,15 @@ func HandleGetId5(ctx *gin.Context) {
 	if err != nil {
 		ctx.String(400, "Could not read out file")
 
+		DeleteUploadRequest(userId)
+
 		return
 	}
 
 	if osuFileErr != nil {
 		ctx.String(400, "Could not read out file")
+
+		DeleteUploadRequest(userId)
 
 		return
 	}
@@ -91,6 +92,8 @@ func HandleGetId5(ctx *gin.Context) {
 		if uploadRequest == nil {
 			ctx.String(400, "Action is invalid in this context.")
 
+			DeleteUploadRequest(userId)
+
 			return true
 		}
 
@@ -99,13 +102,12 @@ func HandleGetId5(ctx *gin.Context) {
 		if queryErrorOccured {
 			ctx.String(500, "Internal Queries failed!")
 
+			DeleteUploadRequest(userId)
+
 			return true
 		}
 
-		osuTicketFormat := fmt.Sprintf("%d-%s-%s-%s", time.Now().Unix(), username, osuFormFile.Filename, userData.Password)
-		osuTicketBytes := sha256.Sum256([]byte(osuTicketFormat))
-		osuTicketHashed := osuTicketBytes[:]
-		osuTicket := hex.EncodeToString(osuTicketHashed)
+		osuTicket := CreateTicket(userData, osuFormFile.Filename, false)
 
 		filename := osuFormFile.Filename
 
@@ -431,10 +433,7 @@ func HandleGetId5(ctx *gin.Context) {
 			return
 		}
 
-		oszTicketFormat := fmt.Sprintf("%d-%s-%s-%s-oszTicket", time.Now().Unix(), username, osuFormFile.Filename, userData.Password)
-		oszTicketBytes := sha256.Sum256([]byte(oszTicketFormat))
-		oszTicketHashed := oszTicketBytes[:]
-		oszTicket := hex.EncodeToString([]byte(oszTicketHashed))
+		oszTicket := CreateTicket(userData, osuFormFile.Filename, true)
 
 		newUploadRequest := UploadRequest{
 			UploadTickets: map[string]UploadTicket{},

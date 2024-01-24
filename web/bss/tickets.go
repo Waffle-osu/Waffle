@@ -2,6 +2,8 @@ package bss
 
 import (
 	"Waffle/database"
+	"fmt"
+	"os"
 
 	"github.com/Waffle-osu/osu-parser/osu_parser"
 )
@@ -65,5 +67,14 @@ func GetUploadRequest(userId int32) *UploadRequest {
 }
 
 func DeleteUploadRequest(userId int32) {
+	uploadRequest, exists := uploadRequests[userId]
+
+	if exists && uploadRequest != nil {
+		//clear temp files
+		os.RemoveAll(fmt.Sprintf("bss_temp/%d", userId))
+		os.RemoveAll(fmt.Sprintf("bss_temp/oszs/%d", uploadRequest.BeatmapsetId))
+		os.RemoveAll(fmt.Sprintf("bss_temp/%d.osz", uploadRequest.BeatmapsetId))
+	}
+
 	delete(uploadRequests, userId)
 }
