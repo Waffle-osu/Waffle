@@ -418,19 +418,11 @@ func HandleGetId5(ctx *gin.Context) {
 		return false
 	}
 
-	switch action {
-	//Push file
-	case "0":
-		if commonPush() {
-			return
-		}
-
-	//Initial submission, first push
-	case "1":
+	commonBeginning := func() bool {
 		if uploadRequest != nil {
 			ctx.String(400, "Action is invalid in this context.")
 
-			return
+			return true
 		}
 
 		oszTicket := CreateTicket(userData, osuFormFile.Filename, true)
@@ -450,12 +442,28 @@ func HandleGetId5(ctx *gin.Context) {
 		if newSetIdErr != nil {
 			ctx.String(500, "Internal queries failed!")
 
-			return
+			return true
 		}
 
 		newUploadRequest.BeatmapsetId = beatmapsetId
 
 		helpers.Logger.Printf("BSS: Created new UploadRequest for %s", username)
+
+		return false
+	}
+
+	switch action {
+	//Push file
+	case "0":
+		if commonPush() {
+			return
+		}
+
+	//Initial submission, first push
+	case "1":
+		if commonBeginning() {
+			return
+		}
 
 		if commonPush() {
 			return
@@ -471,6 +479,10 @@ func HandleGetId5(ctx *gin.Context) {
 		}
 	//Push single and end
 	case "3":
+		if commonBeginning() {
+			return
+		}
+
 		if commonPush() {
 			return
 		}

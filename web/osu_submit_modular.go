@@ -349,7 +349,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 
 	oldLeaderboardPlace := int64(0)
 
-	if (bestLeaderboardScoreExists == 1 && bestLeaderboardScore.Score < scoreSubmission.TotalScore) || ((bestLeaderboardScore.Passed == 0 && scoreQueryResult == 0) && scoreSubmission.Passed) {
+	if (bestLeaderboardScoreExists == 1 && bestLeaderboardScore.Score < scoreSubmission.TotalScore) || ((bestLeaderboardScore.Passed == 0 && scoreQueryResult == 0) && (scoreSubmission.Passed && wasExit == "0")) {
 		queryResult, oldLeaderboardPlaceResult := database.ScoresGetBeatmapLeaderboardPlace(bestLeaderboardScore.ScoreId, int32(bestLeaderboardScore.BeatmapId))
 
 		if queryResult != 0 {
@@ -422,7 +422,7 @@ func HandleOsuSubmit(ctx *gin.Context) {
 		bestMapsetScoreExists = 1
 	}
 
-	if bestMapsetScoreExists == 1 && mapsetBestScore.Score < scoreSubmission.TotalScore && scoreSubmission.Passed && scoreBeatmap.RankingStatus != 2 {
+	if bestMapsetScoreExists == 1 && mapsetBestScore.Score < scoreSubmission.TotalScore && (scoreSubmission.Passed && wasExit == "0") && scoreBeatmap.RankingStatus != 2 {
 		//I like to do this in 2 steps, makes me feel better
 		userStats.RankedScore -= uint64(mapsetBestScore.Score)
 

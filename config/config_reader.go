@@ -81,6 +81,7 @@ var ExpectedKeys map[ExpectedKey]func() = map[ExpectedKey]func(){
 	{"host_irc_ssl", false}:        nil,
 	{"irc_ip", false}:              IrcIpMissing,
 	{"irc_ssl_ip", false}:          IrcSSLIpMissing,
+	{"ffmpeg_executable", false}:   FfmpegMissing,
 }
 
 var DefaultSettings map[string]string = map[string]string{
@@ -278,5 +279,9 @@ func UnsafeSetKey(key string, value string) {
 		IrcIp = value
 	case "irc_ssl_ip":
 		IrcSslIp = value
+	case "using_waffle_web":
+		UsingWaffleWeb = value
+	case "ffmpeg_path":
+		FFMPEGPath = value
 	}
 }

@@ -29,7 +29,7 @@ type DirectBeatmapQuery struct {
 	RatingSum     int64
 	Votes         int64
 	RankingStatus int8
-	ApproveDate   string
+	LastUpdate    string
 }
 
 func HandleOsuDirectSearch(ctx *gin.Context) {
@@ -167,7 +167,7 @@ SELECT
 	result.final_rating_sum AS 'rating_sum',
 	result.final_votes AS 'votes',
 	result.ranking_status,
-	result.approve_date
+	result.last_update
 FROM (
 	SELECT
 		beatmapsets.beatmapset_id,
@@ -180,7 +180,7 @@ FROM (
 		beatmapsets.has_storyboard,
 		beatmap_ratings.rating_sum,
 		beatmap_ratings.votes,
-		beatmaps.approve_date,
+		beatmaps.last_update,
 		beatmaps.ranking_status,
 		CASE WHEN beatmap_ratings.rating_sum IS NULL THEN 0 ELSE beatmap_ratings.rating_sum END AS 'final_rating_sum',
 		CASE WHEN beatmap_ratings.votes IS NULL THEN 1 ELSE beatmap_ratings.votes END AS 'final_votes'
@@ -215,7 +215,7 @@ FROM (
 	for beatmapRows.Next() {
 		beatmap := DirectBeatmapQuery{}
 
-		scanErr := beatmapRows.Scan(&beatmap.BeatmapsetId, &beatmap.Artist, &beatmap.Title, &beatmap.Creator, &beatmap.HasVideo, &beatmap.HasStoryboard, &beatmap.RatingSum, &beatmap.Votes, &beatmap.RankingStatus, &beatmap.ApproveDate)
+		scanErr := beatmapRows.Scan(&beatmap.BeatmapsetId, &beatmap.Artist, &beatmap.Title, &beatmap.Creator, &beatmap.HasVideo, &beatmap.HasStoryboard, &beatmap.RatingSum, &beatmap.Votes, &beatmap.RankingStatus, &beatmap.LastUpdate)
 
 		if scanErr != nil {
 			beatmapRows.Close()
@@ -241,7 +241,7 @@ FROM (
 		if fileStats, err := os.Stat("oszs/" + strconv.FormatInt(int64(beatmap.BeatmapsetId), 10) + ".osz"); errors.Is(err, os.ErrNotExist) {
 
 		} else {
-			returnString += fmt.Sprintf("%s|%s|%s|%s|%d|%.2f|%s|%d|%d|%d|%d|%d|%d\n", strconv.FormatInt(int64(beatmap.BeatmapsetId), 10)+".osz", beatmap.Artist, beatmap.Title, beatmap.Creator, beatmap.RankingStatus, float64(beatmap.RatingSum)/float64(beatmap.Votes), beatmap.ApproveDate, beatmap.BeatmapsetId, 0, beatmap.HasVideo, beatmap.HasStoryboard, fileStats.Size(), fileStats.Size())
+			returnString += fmt.Sprintf("%s|%s|%s|%s|%d|%.2f|%s|%d|%d|%d|%d|%d|%d\n", strconv.FormatInt(int64(beatmap.BeatmapsetId), 10)+".osz", beatmap.Artist, beatmap.Title, beatmap.Creator, beatmap.RankingStatus, float64(beatmap.RatingSum)/float64(beatmap.Votes), beatmap.LastUpdate, beatmap.BeatmapsetId, 0, beatmap.HasVideo, beatmap.HasStoryboard, fileStats.Size(), fileStats.Size())
 		}
 	}
 

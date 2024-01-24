@@ -1,7 +1,9 @@
 package bss
 
 import (
+	"Waffle/bancho/client_manager"
 	"Waffle/database"
+	"Waffle/helpers"
 	"Waffle/utils/zip_utils"
 	"errors"
 	"fmt"
@@ -31,6 +33,8 @@ func HandleUpload(ctx *gin.Context) {
 	if !success {
 		ctx.String(401, "Authentication failed!")
 
+		helpers.Logger.Printf("BSS Request for %s failed to authenticate.", username)
+
 		return
 	}
 
@@ -38,6 +42,8 @@ func HandleUpload(ctx *gin.Context) {
 
 	if uploadRequest == nil {
 		ctx.String(400, "No upload request!")
+
+		helpers.Logger.Printf("Upload request for UserID %d not found.", userId)
 
 		return
 	}
@@ -49,6 +55,10 @@ func HandleUpload(ctx *gin.Context) {
 		if openFileErr != nil {
 			ctx.String(500, "Failed to open osz")
 
+			DeleteUploadRequest(userId)
+
+			helpers.Logger.Printf("BSS:U %d failed to open osz", userId)
+
 			return
 		}
 
@@ -57,6 +67,10 @@ func HandleUpload(ctx *gin.Context) {
 
 		if createErr != nil {
 			ctx.String(500, "Failed to create new osz")
+
+			helpers.Logger.Printf("BSS:U %d failed to create osz", userId)
+
+			DeleteUploadRequest(userId)
 
 			return
 		}
@@ -73,7 +87,21 @@ func HandleUpload(ctx *gin.Context) {
 		unzipErr := zip_utils.UnzipFile(newOszFilename, tempOszDir, false)
 
 		if unzipErr != nil {
+			if errors.Is(unzipErr, errors.ErrUnsupported) {
+				foundClient := client_manager.ClientManager.GetClientById(userId)
+
+				if foundClient != nil {
+					foundClient.BanchoAnnounce("Your upload failed due to a invalid filename, this could be because of Unicode characters in your Metadata. Make sure a Non-Unicode metadata is present, or if using an older client, only the regular alphabet is used.")
+				}
+
+				helpers.Logger.Printf("BSS:U %d failed due to unicode", userId)
+			} else {
+				helpers.Logger.Printf("BSS:U %d failed to unzip", userId)
+			}
+
 			ctx.String(500, "Failed to create new osz")
+
+			DeleteUploadRequest(userId)
 
 			return
 		}
@@ -82,6 +110,8 @@ func HandleUpload(ctx *gin.Context) {
 
 		if tempDirErr != nil {
 			ctx.String(500, "Failed to check osz")
+
+			helpers.Logger.Printf("BSS:U %d failed to list files for osz", userId)
 
 			return
 		}
@@ -111,6 +141,8 @@ func HandleUpload(ctx *gin.Context) {
 			if !foundTicket {
 				ctx.String(400, "File not in ticket")
 
+				helpers.Logger.Printf("BSS:U %d file was not in ticket", userId)
+
 				DeleteUploadRequest(userId)
 
 				return
@@ -124,6 +156,8 @@ func HandleUpload(ctx *gin.Context) {
 
 		if savedOszErr != nil {
 			ctx.String(500, "Failed to save osz")
+
+			helpers.Logger.Printf("BSS:U %d failed to save osz", userId)
 
 			DeleteUploadRequest(userId)
 
@@ -149,6 +183,8 @@ func HandleUpload(ctx *gin.Context) {
 		if !exists {
 			ctx.String(400, "Invalid ticket")
 
+			helpers.Logger.Printf("BSS:U %d no ticket", userId)
+
 			return
 		}
 
@@ -161,6 +197,8 @@ func HandleUpload(ctx *gin.Context) {
 
 			if unzipErr != nil {
 				ctx.String(500, "Failed to finish upload")
+
+				helpers.Logger.Printf("BSS:U %d failed to unzip osz", userId)
 
 				DeleteUploadRequest(userId)
 
@@ -187,6 +225,10 @@ func HandleUpload(ctx *gin.Context) {
 		if newFileErr != nil {
 			ctx.String(500, "Failed to finish upload")
 
+			helpers.Logger.Printf("BSS:U %d failed to create osu file", userId)
+
+			DeleteUploadRequest(userId)
+
 			return
 		}
 
@@ -194,6 +236,10 @@ func HandleUpload(ctx *gin.Context) {
 
 		if openFileErr != nil {
 			ctx.String(500, "Failed to open osu")
+
+			helpers.Logger.Printf("BSS:U %d failed to open osu file", userId)
+
+			DeleteUploadRequest(userId)
 
 			return
 		}
@@ -216,6 +262,10 @@ func HandleUpload(ctx *gin.Context) {
 			if oszCreateErr != nil {
 				ctx.String(500, "Failed to finish upload")
 
+				helpers.Logger.Printf("BSS:U %d failed to create new osz after update", userId)
+
+				DeleteUploadRequest(userId)
+
 				return
 			}
 
@@ -225,6 +275,8 @@ func HandleUpload(ctx *gin.Context) {
 
 			if removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
 				ctx.String(500, "Failed to finish upload")
+
+				helpers.Logger.Printf("BSS:U %d failed to remove old osz", userId)
 
 				os.Remove(oszFilename)
 

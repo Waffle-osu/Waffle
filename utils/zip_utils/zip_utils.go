@@ -108,6 +108,10 @@ func UnzipFile(filename, dest string, skipOsus bool) error {
 			continue
 		}
 
+		if strings.ContainsAny(filePath, "?:*/<>|") {
+			return errors.ErrUnsupported
+		}
+
 		if f.FileInfo().IsDir() {
 			os.MkdirAll(filePath, os.ModePerm)
 
@@ -120,11 +124,13 @@ func UnzipFile(filename, dest string, skipOsus bool) error {
 
 		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
+			dstFile.Close()
 			return err
 		}
 
 		fileInArchive, err := f.Open()
 		if err != nil {
+			fileInArchive.Close()
 			return err
 		}
 
@@ -135,8 +141,6 @@ func UnzipFile(filename, dest string, skipOsus bool) error {
 		dstFile.Close()
 		fileInArchive.Close()
 	}
-
-	archive.Close()
 
 	return nil
 }

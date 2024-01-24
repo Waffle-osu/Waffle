@@ -3,15 +3,18 @@ package bss
 import (
 	"Waffle/config"
 	"Waffle/database"
+	"Waffle/helpers"
 	"Waffle/utils"
 	"Waffle/web/bss/thumbnail"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -229,6 +232,8 @@ func GenerateThumbnail(uploadTicket UploadTicket, setId int64) {
 
 		if thumbnailErr == nil {
 			os.WriteFile(fmt.Sprintf("direct_thumbnails/%d", setId), thumbnailBytes, 0644)
+		} else {
+			helpers.Logger.Printf("BSS:U %s failed to generate small thumbnail", uploadTicket.Filename)
 		}
 
 		generator.Width = 160
@@ -238,11 +243,21 @@ func GenerateThumbnail(uploadTicket UploadTicket, setId int64) {
 
 		if thumbnailErr == nil {
 			os.WriteFile(fmt.Sprintf("direct_thumbnails/%dl", setId), thumbnailBytes, 0644)
+		} else {
+			helpers.Logger.Printf("BSS:U %s failed to generate large thumbnail", uploadTicket.Filename)
 		}
+	} else {
+		helpers.Logger.Printf("BSS:U %s failed to load image", uploadTicket.Filename)
 	}
 }
 
 func CreateMp3Preview(audioFilename string, previewTimeMs int32, setId int64) {
+	if config.FFMPEGPath == "" {
+		helpers.Logger.Printf("FFMPEG Path not set, mp3 preview not generated.")
+
+		return
+	}
+
 	tempOszDir := fmt.Sprintf("bss_temp/oszs/%d", setId)
 
 	//And the mp3 preview
@@ -252,8 +267,23 @@ func CreateMp3Preview(audioFilename string, previewTimeMs int32, setId int64) {
 	mp3Path := fmt.Sprintf("%s/%s", tempOszDir, audioFilename)
 	outPath := fmt.Sprintf("mp3_previews/%d", setId)
 
-	cmd := exec.Command(config.FFMPEGPath, "-ss", toString, "-t", "10", "-i", mp3Path, "-codec:a", "libmp3lame", "-b:a", "64k", outPath+".mp3")
-	cmd.Run()
+	result, err := exec.Command(config.FFMPEGPath, "-ss", toString, "-t", "10", "-i", mp3Path, "-codec:a", "libmp3lame", "-b:a", "64k", outPath+".mp3").Output()
+
+	if err != nil {
+		if errors.Is(err, exec.ErrDot) {
+			executable, execErr := os.Executable()
+
+			if execErr == nil {
+				ffmpegPath := fmt.Sprintf("%s/%s", filepath.Dir(executable), config.FFMPEGPath)
+
+				result, err = exec.Command(ffmpegPath, "-ss", toString, "-t", "10", "-i", mp3Path, "-codec:a", "libmp3lame", "-b:a", "64k", outPath+".mp3").Output()
+			}
+		}
+
+		if result != nil && err != nil {
+			helpers.Logger.Printf("FFMPEG failed to generate mp3 preview: %s :::: %s", err.Error(), string(result))
+		}
+	}
 
 	os.Rename(outPath+".mp3", outPath)
 }

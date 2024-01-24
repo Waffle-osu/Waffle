@@ -199,3 +199,29 @@ func WaffleWebConfigMissing() {
 
 	displayedWarnings["using_waffle_web"] = true
 }
+
+func FfmpegMissing() {
+	if HostIrcSsl == "false" {
+		return
+	}
+
+	_, runAlready := displayedWarnings["ffmpeg_executable"]
+
+	if runAlready {
+		return
+	}
+
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] //////////////////  Attention!!!!!!!  //////////////////\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+	helpers.Logger.Printf("[Initialization] // FFMPEG executable path unset!                      //\n")
+	helpers.Logger.Printf("[Initialization] // Beatmaps uploaded by the Beatmap Submission System //\n")
+	helpers.Logger.Printf("[Initialization] // will not be generating mp3 previews heard on the   //\n")
+	helpers.Logger.Printf("[Initialization] // Website and inside osu!direct.                     //\n")
+	helpers.Logger.Printf("[Initialization] //                                                    //\n")
+	helpers.Logger.Printf("[Initialization] // ffmpeg_executable: Path to the ffmpeg executable   //\n")
+	helpers.Logger.Printf("[Initialization] //                    including extension on Windows  //\n")
+	helpers.Logger.Printf("[Initialization] ////////////////////////////////////////////////////////\n")
+
+	displayedWarnings["ffmpeg_executable"] = true
+}

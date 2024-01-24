@@ -27,6 +27,7 @@ type Score struct {
 	LeaderboardBest int8
 	MapsetBest      int8
 	ScoreHash       string
+	Version         int64
 }
 
 func (score Score) ScoresFormatLeaderboardScore(username string, onlineRank int32) string {
@@ -62,7 +63,7 @@ func ScoresGetUserLeaderboardBest(beatmapId int32, userId uint64, mode int8) (qu
 		var username string
 		var onlineRank int64
 
-		scanErr := scoreQuery.Scan(&onlineRank, &username, &returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Playmode, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash)
+		scanErr := scoreQuery.Scan(&onlineRank, &username, &returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Playmode, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash, &returnScore.Version)
 
 		scoreQuery.Close()
 
