@@ -4,7 +4,6 @@ import (
 	"Waffle/api"
 	"Waffle/web"
 	"Waffle/web/bss"
-	"Waffle/web/internal_api"
 
 	"github.com/gin-gonic/gin"
 )
@@ -56,8 +55,6 @@ func RunWeb() {
 
 	//achievements
 	ginServer.GET("/images/achievements/:filename", web.HandleOsuGetAchievementImage)
-
-	ginServer.POST("/internal/do-auth", internal_api.InternalDoAuth)
 
 	ginServer.Run("127.0.0.1:80")
 }
