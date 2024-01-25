@@ -181,6 +181,10 @@ func InsertIntoBeatmaps(file osu_parser.OsuFile, setId int64, userId int32, file
 			99999999,
 		)
 
+	if insertBeatmapErr == nil {
+		go RunAndCreateDiffCalc(file, newBeatmapId, setId)
+	}
+
 	return insertBeatmapErr
 }
 

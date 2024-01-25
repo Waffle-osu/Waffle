@@ -336,6 +336,8 @@ func HandleGetId5(ctx *gin.Context) {
 
 					return true
 				}
+
+				go RunDiffCalcMd5(ticket.ParsedOsu, ticket.ParsedOsu.Md5Hash)
 			}
 
 			//Insert the new diffs

@@ -93,9 +93,11 @@ func UnzipFile(filename, dest string, skipOsus bool) error {
 			//We just wanna make sure the directory exists
 			//Weird if it did occur but you never know
 			if dirCreateErr != nil && !errors.Is(dirCreateErr, os.ErrExist) {
+				archive.Close()
 				return dirCreateErr
 			}
 		} else {
+			archive.Close()
 			return err
 		}
 	}
@@ -109,6 +111,7 @@ func UnzipFile(filename, dest string, skipOsus bool) error {
 		}
 
 		if strings.ContainsAny(filePath, "?:*/<>|") {
+			archive.Close()
 			return errors.ErrUnsupported
 		}
 
@@ -119,6 +122,7 @@ func UnzipFile(filename, dest string, skipOsus bool) error {
 		}
 
 		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+			archive.Close()
 			return err
 		}
 
@@ -141,6 +145,8 @@ func UnzipFile(filename, dest string, skipOsus bool) error {
 		dstFile.Close()
 		fileInArchive.Close()
 	}
+
+	archive.Close()
 
 	return nil
 }
