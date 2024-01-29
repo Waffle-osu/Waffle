@@ -2,6 +2,7 @@ package web
 
 import (
 	"Waffle/database"
+	"Waffle/web/actions"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -31,41 +32,18 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 		return
 	}
 
-	leaderboardBeatmapQueryResult, leaderboardBeatmap := database.BeatmapsGetByFilename(osuFilename)
+	playmode, parseErr := strconv.ParseInt(queryPlaymode, 10, 64)
 
-	if leaderboardBeatmapQueryResult == -2 {
+	if parseErr != nil {
 		ctx.String(http.StatusOK, "deliberatly fucked string to give out an error client side cuz pain\n")
 		return
 	}
 
-	if leaderboardBeatmapQueryResult == -1 {
-		response := "-1"
-
-		if osz2client {
-			response += "|false"
-		}
-
-		ctx.String(http.StatusOK, response)
-		return
-	}
-
-	if beatmapChecksum != leaderboardBeatmap.BeatmapMd5 {
-		response := "1"
-
-		if osz2client {
-			response += "|false"
-		}
-
-		ctx.String(http.StatusOK, response)
-		return
-	}
-
-	beatmapsetQueryResult, beatmapset := database.BeatmapsetsGetBeatmapsetById(leaderboardBeatmap.BeatmapsetId)
-
-	if beatmapsetQueryResult == -2 {
-		ctx.String(http.StatusOK, "deliberatly fucked string to give out an error client side cuz pain\n")
-		return
-	}
+	leaderboardResponse := actions.GetLeaderboards(actions.GetLeaderboardsRequest{
+		BeatmapChecksum: beatmapChecksum,
+		Filename:        osuFilename,
+		Playmode:        byte(playmode),
+	})
 
 	returnString := ""
 
@@ -110,13 +88,6 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 
 	if skipScores == "1" {
 		ctx.String(http.StatusOK, returnString)
-		return
-	}
-
-	playmode, parseErr := strconv.ParseInt(queryPlaymode, 10, 64)
-
-	if parseErr != nil {
-		ctx.String(http.StatusOK, "deliberatly fucked string to give out an error client side cuz pain\n")
 		return
 	}
 

@@ -16,26 +16,48 @@ type GetLeaderboardsRequest struct {
 
 	GetScores        bool
 	GetOffset        bool
+	GetRating        bool
 	GetRequesterBest bool
 }
 
 type LeaderboardScore struct {
-	ScoreId  int64
-	Username string
-	UserId   int64
-	Score    int64
+	ScoreId    int64
+	OnlineRank int64
+	Username   string
+	UserId     int64
+	Score      int64
 
 	Hit300  int32
 	Hit100  int32
 	Hit50   int32
 	HitGeki int32
 	HitKatu int32
+	HitMiss int32
 
 	MaxCombo int32
-	Perfect  bool
+	Perfect  int8
 	Mods     int32
-	Rank     int32
 	Date     string
+}
+
+func LeaderboardScoreFromDbScore(score database.Score, onlineRank int64, username string) LeaderboardScore {
+	return LeaderboardScore{
+		ScoreId:    int64(score.ScoreId),
+		OnlineRank: onlineRank,
+		Username:   username,
+		UserId:     int64(score.UserId),
+		Score:      int64(score.Score),
+		Hit300:     int32(score.Hit300),
+		Hit100:     int32(score.Hit100),
+		Hit50:      int32(score.Hit50),
+		HitGeki:    int32(score.HitGeki),
+		HitKatu:    int32(score.HitKatu),
+		HitMiss:    int32(score.HitMiss),
+		MaxCombo:   int32(score.MaxCombo),
+		Perfect:    score.Perfect,
+		Mods:       int32(score.EnabledMods),
+		Date:       score.Date,
+	}
 }
 
 type GetLeaderboardsResponse struct {
@@ -51,7 +73,8 @@ type GetLeaderboardsResponse struct {
 	DisplayTitle string
 	OnlineRating float64
 
-	Scores []LeaderboardScore
+	PersonalBest LeaderboardScore
+	Scores       []LeaderboardScore
 }
 
 func GetLeaderboards(request GetLeaderboardsRequest) GetLeaderboardsResponse {
@@ -76,7 +99,7 @@ func GetLeaderboards(request GetLeaderboardsRequest) GetLeaderboardsResponse {
 	switch beatmapQueryResult {
 	//Query failed
 	case -2:
-		response.Error = errors.New("Beatmap Query failed.")
+		response.Error = errors.New("beatmap query failed")
 
 		fallthrough
 	//Not found
@@ -95,7 +118,7 @@ func GetLeaderboards(request GetLeaderboardsRequest) GetLeaderboardsResponse {
 	beatmapsetQueryResult, beatmapset = database.BeatmapsetsGetBeatmapsetById(beatmap.BeatmapsetId)
 
 	if beatmapsetQueryResult != 0 {
-		response.Error = errors.New("Beatmapset Query failed")
+		response.Error = errors.New("beatmapset query failed")
 
 		return response
 	}
@@ -118,6 +141,7 @@ func GetLeaderboards(request GetLeaderboardsRequest) GetLeaderboardsResponse {
 		response.SubmissionStatus = 3
 	}
 
+	//Only a thing since late 2008
 	if request.GetOffset {
 		offsetQueryResult, offset := database.BeatmapOffsetsGetBeatmapOffset(beatmap.BeatmapId)
 
@@ -125,6 +149,57 @@ func GetLeaderboards(request GetLeaderboardsRequest) GetLeaderboardsResponse {
 			response.OnlineOffset = offset.Offset
 		}
 	}
+
+	//Only a thing since late 2008 aswell
+	if request.GetRequesterBest && request.RequesterUserId != 0 {
+		userBestScoreQueryResult, userBestScore, userUsername, userOnlineRank := database.ScoresGetUserLeaderboardBest(beatmap.BeatmapId, uint64(request.RequesterUserId), int8(request.Playmode))
+
+		switch userBestScoreQueryResult {
+		case -2:
+			response.Error = errors.New("user best query failed")
+
+			return response
+		case -1:
+			response.PersonalBest = LeaderboardScore{
+				ScoreId: -1,
+			}
+		case 0:
+			response.PersonalBest = LeaderboardScoreFromDbScore(userBestScore, userOnlineRank, userUsername)
+		}
+	}
+
+	leaderboardQuery, leaderboardQueryErr := database.Database.Query("SELECT ROW_NUMBER() OVER (ORDER BY score DESC) AS 'online_rank', users.username, scores.* FROM waffle.scores LEFT JOIN waffle.users ON scores.user_id = users.user_id WHERE beatmap_id = ? AND leaderboard_best = 1 AND passed = 1 AND playmode = ? ORDER BY score DESC", beatmap.BeatmapId, int8(request.Playmode))
+
+	if leaderboardQueryErr != nil {
+		if leaderboardQuery != nil {
+			leaderboardQuery.Close()
+		}
+
+		response.Error = leaderboardQueryErr
+
+		return response
+	}
+
+	for leaderboardQuery.Next() {
+		returnScore := database.Score{}
+
+		var username string
+		var onlineRank int64
+
+		scanErr := leaderboardQuery.Scan(&onlineRank, &username, &returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Playmode, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash, &returnScore.Version)
+
+		if scanErr != nil {
+			leaderboardQuery.Close()
+
+			response.Error = scanErr
+
+			return response
+		}
+
+		response.Scores = append(response.Scores, LeaderboardScoreFromDbScore(returnScore, onlineRank, username))
+	}
+
+	leaderboardQuery.Close()
 
 	return response
 }
