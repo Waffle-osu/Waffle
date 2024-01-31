@@ -81,6 +81,9 @@ func GetLeaderboards(request GetLeaderboardsRequest) GetLeaderboardsResponse {
 	response := GetLeaderboardsResponse{
 		Error:          nil,
 		HasOsz2Version: false,
+		PersonalBest: LeaderboardScore{
+			ScoreId: -1,
+		},
 	}
 
 	beatmap := database.Beatmap{}
@@ -166,6 +169,10 @@ func GetLeaderboards(request GetLeaderboardsRequest) GetLeaderboardsResponse {
 		case 0:
 			response.PersonalBest = LeaderboardScoreFromDbScore(userBestScore, userOnlineRank, userUsername)
 		}
+	}
+
+	if request.GetRating {
+		response.OnlineRating = database.BeatmapRatingsGetBeatmapRating(beatmapset.BeatmapsetId)
 	}
 
 	leaderboardQuery, leaderboardQueryErr := database.Database.Query("SELECT ROW_NUMBER() OVER (ORDER BY score DESC) AS 'online_rank', users.username, scores.* FROM waffle.scores LEFT JOIN waffle.users ON scores.user_id = users.user_id WHERE beatmap_id = ? AND leaderboard_best = 1 AND passed = 1 AND playmode = ? ORDER BY score DESC", beatmap.BeatmapId, int8(request.Playmode))

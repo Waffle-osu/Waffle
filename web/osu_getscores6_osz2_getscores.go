@@ -1,7 +1,6 @@
 package web
 
 import (
-	"Waffle/database"
 	"Waffle/web/actions"
 	"fmt"
 	"net/http"
@@ -40,94 +39,70 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 	}
 
 	leaderboardResponse := actions.GetLeaderboards(actions.GetLeaderboardsRequest{
-		BeatmapChecksum: beatmapChecksum,
-		Filename:        osuFilename,
-		Playmode:        byte(playmode),
+		BeatmapChecksum:  beatmapChecksum,
+		Filename:         osuFilename,
+		Playmode:         byte(playmode),
+		GetScores:        skipScores == "0",
+		GetOffset:        true,
+		GetRating:        true,
+		GetRequesterBest: true,
+		RequesterUserId:  int32(userId),
 	})
 
-	returnString := ""
+	if leaderboardResponse.Error != nil {
+		ctx.String(500, "string to make the client go aaaaaaaaaaaaaaaaaaaaaa")
 
-	returnRankedStatus := "0"
-
-	switch leaderboardBeatmap.RankingStatus {
-	case 0:
-		if osz2client {
-			ctx.String(http.StatusOK, "0|false")
-		} else {
-			ctx.String(http.StatusOK, "0")
-		}
 		return
-	case 1:
-		returnRankedStatus = "2"
-	case 2:
-		returnRankedStatus = "3"
 	}
-	//Ranked Status|Server has osz2 of map
-	returnString += returnRankedStatus
+
+	returnString := fmt.Sprintf("%d", leaderboardResponse.SubmissionStatus)
 
 	if osz2client {
-		returnString += "|false\n"
-	} else {
-		returnString += "\n"
+		returnString += fmt.Sprintf("|%t", leaderboardResponse.HasOsz2Version)
 	}
 
-	offsetQueryResult, offset := database.BeatmapOffsetsGetBeatmapOffset(leaderboardBeatmap.BeatmapId)
+	returnString += "\n"
 
-	//Online Offset
-	if offsetQueryResult != 0 {
-		returnString += "0\n"
-	} else {
-		returnString += fmt.Sprintf("%d\n", offset.Offset)
-	}
+	//Offset
+	returnString += fmt.Sprintf("%d\n", leaderboardResponse.OnlineOffset)
 
 	//Display Title
-	returnString += fmt.Sprintf("[bold:0,size:20]%s|%s\n", beatmapset.Artist, beatmapset.Title)
+	returnString += leaderboardResponse.DisplayTitle
 
 	//Online Rating
-	returnString += fmt.Sprintf("%.2f\n", database.BeatmapRatingsGetBeatmapRating(beatmapset.BeatmapsetId))
+	returnString += fmt.Sprintf("%.2f\n", leaderboardResponse.OnlineRating)
 
 	if skipScores == "1" {
 		ctx.String(http.StatusOK, returnString)
 		return
 	}
 
-	userBestScoreQueryResult, userBestScore, userUsername, userOnlineRank := database.ScoresGetUserLeaderboardBest(leaderboardBeatmap.BeatmapId, uint64(userId), int8(playmode))
+	formatScore := func(score actions.LeaderboardScore) string {
+		perfectString := "0"
 
-	if userBestScoreQueryResult == -1 || userBestScore.Passed == 0 {
-		returnString += "\n"
+		if score.Perfect == 1 {
+			perfectString = "1"
+		}
+
+		scoreIdstring := ""
+
+		if score.OnlineRank != 0 {
+			scoreIdstring = strconv.FormatInt(score.OnlineRank, 10)
+		}
+
+		return fmt.Sprintf("%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d|%d|%s|%s\n", score.ScoreId, score.Username, score.Score, score.MaxCombo, score.Hit50, score.Hit100, score.Hit300, score.HitMiss, score.HitKatu, score.HitKatu, perfectString, score.Mods, score.UserId, scoreIdstring, score.Date)
+	}
+
+	//0 is invalid and -1 is too
+	if leaderboardResponse.PersonalBest.ScoreId > 0 {
+		returnString += formatScore(leaderboardResponse.PersonalBest)
 	} else {
-		returnString += userBestScore.ScoresFormatLeaderboardScore(userUsername, int32(userOnlineRank))
+		returnString += "\n"
 	}
 
-	leaderboardQuery, leaderboardQueryErr := database.Database.Query("SELECT ROW_NUMBER() OVER (ORDER BY score DESC) AS 'online_rank', users.username, scores.* FROM waffle.scores LEFT JOIN waffle.users ON scores.user_id = users.user_id WHERE beatmap_id = ? AND leaderboard_best = 1 AND passed = 1 AND playmode = ? ORDER BY score DESC", leaderboardBeatmap.BeatmapId, int8(playmode))
-
-	if leaderboardQueryErr != nil {
-		if leaderboardQuery != nil {
-			leaderboardQuery.Close()
-		}
-
-		ctx.String(http.StatusOK, "deliberatly fucked string to give out an error client side cuz pain\n")
-		return
+	for _, score := range leaderboardResponse.Scores {
+		returnString += formatScore(score)
 	}
-
-	for leaderboardQuery.Next() {
-		returnScore := database.Score{}
-
-		var username string
-		var onlineRank int64
-
-		scanErr := leaderboardQuery.Scan(&onlineRank, &username, &returnScore.ScoreId, &returnScore.BeatmapId, &returnScore.BeatmapsetId, &returnScore.UserId, &returnScore.Playmode, &returnScore.Score, &returnScore.MaxCombo, &returnScore.Ranking, &returnScore.Hit300, &returnScore.Hit100, &returnScore.Hit50, &returnScore.HitMiss, &returnScore.HitGeki, &returnScore.HitKatu, &returnScore.EnabledMods, &returnScore.Perfect, &returnScore.Passed, &returnScore.Date, &returnScore.LeaderboardBest, &returnScore.MapsetBest, &returnScore.ScoreHash, &returnScore.Version)
-
-		if scanErr != nil {
-			leaderboardQuery.Close()
-			ctx.String(http.StatusOK, "deliberatly fucked string to give out an error client side cuz pain\n")
-			return
-		}
-
-		returnString += returnScore.ScoresFormatLeaderboardScore(username, int32(onlineRank))
-	}
-
-	leaderboardQuery.Close()
 
 	ctx.String(http.StatusOK, returnString)
 }
