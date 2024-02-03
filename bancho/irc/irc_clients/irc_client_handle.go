@@ -29,6 +29,14 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		if client.Username == "" && client.Realname == "" {
 			client.Username = message.Params[0]
 			client.Realname = message.Trailing
+
+			if message.Params[0] == "OSU" {
+				client.IsOsu = true
+
+				client.packetQueue <- irc_messages.IrcSendPrivMsg("WaffleBot", "#osu", "Please let your next chat message your username.")
+
+				client.IsAwaitingUsername = true
+			}
 		} else {
 			client.packetQueue <- irc_messages.IrcSendAlreadyRegistered("You may not reregister")
 		}
@@ -158,6 +166,25 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 					} else {
 						client.packetQueue <- irc_messages.IrcSendErrNoTextToSend("No text to send. You either put no text in, or you're using a wack IRC client.")
 					}
+				}
+
+				if client.IsAwaitingUsername {
+					client.IsAwaitingUsername = false
+
+					client.Username = messageText
+
+					client.packetQueue <- irc_messages.IrcSendPrivMsg("WaffleBot", "#osu", "Please let your next chat message be the OTP for IRC to continue authorization.")
+					client.IsAwaitingOtp = true
+
+					return
+				}
+
+				if client.IsAwaitingOtp {
+					client.IsAwaitingOtp = false
+
+					client.Password = messageText
+
+					return
 				}
 
 				//Commands start with !
@@ -412,7 +439,7 @@ func (client *IrcClient) MaintainClient(ctx context.Context) {
 		case <-pingTicker.C:
 			client.lastPingToken = fmt.Sprintf("irc.waffle.nya@%d", time.Now().Unix())
 
-			client.packetQueue <- irc_messages.IrcSendPing(client.lastPingToken)
+			client.packetQueue <- irc_messages.IrcSendPing(client.lastPingToken, client.IsOsu)
 
 			client.lastPing = time.Now()
 		case <-receiveTicker.C:

@@ -57,4 +57,6 @@ type WaffleClient interface {
 	SetSilencedUntilUnix(untilUnix int64)
 	// Retrieves until what time the client is silenced.
 	GetSilencedUntilUnix() int64
+
+	GetClientVersion() ClientVersion
 }

@@ -14,6 +14,7 @@ type Message struct {
 	Params       []string
 	Trailing     string
 	SkipUsername bool
+	SkipSource   bool
 }
 
 const (
@@ -215,6 +216,10 @@ func (message Message) FormatMessage(username string) (formatted string, formatE
 
 	if len(message.Trailing) != 0 {
 		returnString = fmt.Sprintf("%s :%s", returnString, message.Trailing)
+	}
+
+	if message.SkipSource {
+		returnString = strings.TrimPrefix(returnString, ":"+source+" ")
 	}
 
 	return returnString + "\n", ""

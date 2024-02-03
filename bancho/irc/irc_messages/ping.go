@@ -1,11 +1,12 @@
 package irc_messages
 
-func IrcSendPing(token string) Message {
+func IrcSendPing(token string, skipSource bool) Message {
 	return Message{
 		Command: "PING",
 		Params: []string{
 			token,
 		},
+		SkipSource: skipSource,
 	}
 }
 

@@ -133,3 +133,7 @@ func (waffleBot *WaffleBot) BanchoAnnounce(message string) {
 func (waffleBot *WaffleBot) BanchoGetAttention() {
 
 }
+
+func (waffleBot *WaffleBot) GetClientVersion() client_manager.ClientVersion {
+	return client_manager.ClientVersionHiddenOsu
+}

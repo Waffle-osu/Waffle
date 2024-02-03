@@ -12,7 +12,7 @@ func RunWeb() {
 	ginServer := gin.Default()
 	ginServer.SetTrustedProxies(nil)
 
-	// /weeb
+	// /web
 	ginServer.POST("/web/osu-screenshot.php", web.HandleOsuScreenshot)
 	ginServer.GET("/web/osu-title-image.php", web.HandleTitleImage)
 	ginServer.POST("/web/osu-submit-modular.php", web.HandleOsuSubmit)
@@ -25,6 +25,10 @@ func RunWeb() {
 	ginServer.GET("/rating/ingame-rate2.php", web.HandleOsuIngameRate2)
 	ginServer.GET("/web/osu-search.php", web.HandleOsuDirectSearch)
 	ginServer.GET("/web/maps/:filename", web.HandleOsuMapUpdate)
+
+	ginServer.GET("/web/osu-login.php", web.HandleOsuLogin)
+	ginServer.GET("/web/osu-stat.php", web.HandleOsuStats)
+	ginServer.GET("/web/osu-statoth.php", web.HandleOsuStatsOthers)
 
 	//BSS b1815
 	ginServer.POST("/web/osu-bmsubmit-post3.php", bss.HandlePost3)
@@ -45,6 +49,7 @@ func RunWeb() {
 
 	//avatars
 	ginServer.GET("/a/:filename", web.HandleOsuGetAvatar)
+	ginServer.GET("/forum/download.php", web.HandleOsuGetForumAvatar)
 
 	// screenshots
 	ginServer.GET("/ss/:filename", web.HandleOsuGetScreenshot)

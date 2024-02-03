@@ -69,6 +69,15 @@ type IrcClient struct {
 	Password string
 
 	UserData database.User
+
+	//Is it a IRC osu! client
+	IsOsu bool
+	//Next message sent is the username
+	IsAwaitingUsername bool
+	//Next message sent is the OTP
+	IsAwaitingOtp bool
+
+	ClientVersion client_manager.ClientVersion
 }
 
 func (client *IrcClient) CleanupClient(reason string) {
@@ -96,7 +105,10 @@ func (client *IrcClient) CleanupClient(reason string) {
 	client.clean = true
 	client.cleanMutex.Unlock()
 
-	client.maintainCancel()
+	if client.maintainCancel != nil {
+		client.maintainCancel()
+	}
+
 	client.continueRunning = false
 }
 

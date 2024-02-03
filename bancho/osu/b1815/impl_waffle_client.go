@@ -1,6 +1,7 @@
 package b1815
 
 import (
+	"Waffle/bancho/client_manager"
 	"Waffle/bancho/lobby"
 	"time"
 )
@@ -25,4 +26,8 @@ func (client *Client) GetFormattedJoinedChannels() string {
 // Gets the multiplayer lobby this client is currently in
 func (client *Client) GetMultiplayerLobby() *lobby.MultiplayerLobby {
 	return client.currentMultiLobby
+}
+
+func (client *Client) GetClientVersion() client_manager.ClientVersion {
+	return client_manager.ClientVersionOsuB1815
 }

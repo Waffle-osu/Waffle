@@ -35,6 +35,7 @@ func HandleNewIrcClient(connection net.Conn) {
 		message := irc_messages.ParseMessage(line)
 
 		ircClient.ProcessMessage(message, line)
+		ircClient.SendOffMessages()
 	}
 
 	//TODO: IRC OTP: https://github.com/Eeveelution/Waffle/issues/15
@@ -96,6 +97,14 @@ func HandleNewIrcClient(connection net.Conn) {
 
 	ircClient.packetQueue <- irc_messages.IrcSendMotdEnd()
 
+	if ircClient.IsOsu {
+		ircClient.packetQueue <- irc_messages.IrcSendPrivMsg("WaffleBot", "#osu", "Welcome to Waffle!")
+
+		ircClient.ClientVersion = client_manager.ClientVersionOsuIrc
+	} else {
+		ircClient.ClientVersion = client_manager.ClientVersionIrc
+	}
+
 	client_manager.ClientManager.LockClientList()
 
 	//Loop over every client which exists
@@ -114,6 +123,13 @@ func HandleNewIrcClient(connection net.Conn) {
 
 	client_manager.ClientManager.UnlockClientList()
 	client_manager.ClientManager.RegisterClient(&ircClient)
+
+	if ircClient.IsOsu {
+		channelOsu, _ := chat.GetChannelByName("#osu")
+
+		channelOsu.Join(&ircClient)
+		ircClient.SendChannelNames(channelOsu)
+	}
 
 	ircClient.lastPing = time.Now()
 	ircClient.lastReceive = time.Now()
@@ -136,4 +152,12 @@ func (client *IrcClient) SendOffMessagesAndClose() {
 	}
 
 	client.connection.Close()
+}
+
+func (client *IrcClient) SendOffMessages() {
+	for len(client.packetQueue) != 0 {
+		formatted, _ := (<-client.packetQueue).FormatMessage(client.Username)
+
+		client.connection.Write([]byte(formatted))
+	}
 }

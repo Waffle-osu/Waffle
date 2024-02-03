@@ -21,11 +21,23 @@ func (client *IrcClient) SendChannelNames(channel *chat.Channel) {
 	for _, client := range channel.Clients {
 		userPrefix := ""
 
+		asWaffleClient := client.(client_manager.WaffleClient)
+
 		if client.GetUserPrivileges() > chat.PrivilegesNormal {
 			userPrefix = "@"
 		}
 
-		nameString += userPrefix + strings.ReplaceAll(client.GetUsername(), " ", "_") + " "
+		newUsername := userPrefix + strings.ReplaceAll(client.GetUsername(), " ", "_")
+
+		switch asWaffleClient.GetClientVersion() {
+		case client_manager.ClientVersionOsuIrc:
+			fallthrough
+		case client_manager.ClientVersionOsuB1815:
+			newUsername += "-osu"
+			newUsername = strings.TrimPrefix(newUsername, "@")
+		}
+
+		nameString += newUsername + " "
 
 		if len(nameString) > 255 {
 			nameLines = append(nameLines, nameString)

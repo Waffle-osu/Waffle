@@ -23,3 +23,13 @@ func HandleOsuGetAvatar(ctx *gin.Context) {
 
 	ctx.File("avatars/" + filename + ".png")
 }
+
+func HandleOsuGetForumAvatar(ctx *gin.Context) {
+	filename := ctx.Param("avatar")
+
+	if _, err := os.Stat("avatars/" + filename + ".png"); errors.Is(err, os.ErrNotExist) {
+		filename = "2"
+	}
+
+	ctx.File("avatars/" + filename + ".png")
+}

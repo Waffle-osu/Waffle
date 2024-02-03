@@ -1,6 +1,7 @@
 package irc_clients
 
 import (
+	"Waffle/bancho/client_manager"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/bancho/osu/base_packet_structures"
 	"Waffle/database"
@@ -125,4 +126,8 @@ func (ircClient *IrcClient) BanchoAnnounce(message string) {
 // Used to get the attention of the client.
 func (ircClient *IrcClient) BanchoGetAttention() {
 
+}
+
+func (IrcClient *IrcClient) GetClientVersion() client_manager.ClientVersion {
+	return IrcClient.ClientVersion
 }
