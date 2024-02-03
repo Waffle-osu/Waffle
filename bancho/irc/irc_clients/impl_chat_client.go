@@ -34,6 +34,7 @@ func (client *IrcClient) GetAwayMessage() string {
 // Sends the equivilant of a Channel Join information/message to this client
 func (client *IrcClient) InformChannelJoin(chatClient chat.ChatClient, channel *chat.Channel) {
 	client.packetQueue <- irc_messages.IrcSendJoin(chatClient.GetUsername(), channel.Name)
+	client.SendChannelNames(channel)
 }
 
 // Sends the equivilant of a Channel Part information/message to this client

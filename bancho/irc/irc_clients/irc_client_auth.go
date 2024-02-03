@@ -88,6 +88,14 @@ func HandleNewIrcClient(connection net.Conn) {
 		return
 	}
 
+	if ircClient.IsOsu {
+		statsQueryResult, stats := database.UserStatsFromDatabase(ircClient.UserData.UserID, 0)
+
+		if statsQueryResult == 0 {
+			ircClient.OsuStats = stats
+		}
+	}
+
 	ircClient.packetQueue <- irc_messages.IrcSendTopic("#osu", "beyley is cute")
 	ircClient.packetQueue <- irc_messages.IrcSendMotdBegin()
 
@@ -128,7 +136,9 @@ func HandleNewIrcClient(connection net.Conn) {
 		channelOsu, _ := chat.GetChannelByName("#osu")
 
 		channelOsu.Join(&ircClient)
+
 		ircClient.SendChannelNames(channelOsu)
+		ircClient.joinedChannels["#osu"] = channelOsu
 	}
 
 	ircClient.lastPing = time.Now()

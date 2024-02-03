@@ -72,6 +72,8 @@ type IrcClient struct {
 
 	//Is it a IRC osu! client
 	IsOsu bool
+
+	OsuStats database.UserStats
 	//Next message sent is the username
 	IsAwaitingUsername bool
 	//Next message sent is the OTP

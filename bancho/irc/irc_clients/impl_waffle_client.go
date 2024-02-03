@@ -11,35 +11,39 @@ import (
 
 // Retrieves the Relevant User stats of this client, relevant meaning for the currently active mode.
 func (client *IrcClient) GetRelevantUserStats() database.UserStats {
-	//If the ID is below 1, it gets recognized as a IRC client
-	//Inside osu! clients, because inside b1815 BanchoPresence
-	//we use the stats.UserID instead of user.UserID, this is exactly why.
-	minusOne := int32(-1)
+	if client.IsOsu {
+		return client.OsuStats
+	} else {
+		//If the ID is below 1, it gets recognized as a IRC client
+		//Inside osu! clients, because inside b1815 BanchoPresence
+		//we use the stats.UserID instead of user.UserID, this is exactly why.
+		minusOne := int32(-1)
 
-	return database.UserStats{
-		UserID:         uint64(minusOne),
-		Mode:           0,
-		Rank:           0,
-		RankedScore:    0,
-		TotalScore:     0,
-		Level:          0,
-		Accuracy:       0,
-		Playcount:      0,
-		CountSSH:       0,
-		CountSS:        0,
-		CountSH:        0,
-		CountS:         0,
-		CountA:         0,
-		CountB:         0,
-		CountC:         0,
-		CountD:         0,
-		Hit300:         0,
-		Hit100:         0,
-		Hit50:          0,
-		HitMiss:        0,
-		HitGeki:        0,
-		HitKatu:        0,
-		ReplaysWatched: 0,
+		return database.UserStats{
+			UserID:         uint64(minusOne),
+			Mode:           0,
+			Rank:           0,
+			RankedScore:    0,
+			TotalScore:     0,
+			Level:          0,
+			Accuracy:       0,
+			Playcount:      0,
+			CountSSH:       0,
+			CountSS:        0,
+			CountSH:        0,
+			CountS:         0,
+			CountA:         0,
+			CountB:         0,
+			CountC:         0,
+			CountD:         0,
+			Hit300:         0,
+			Hit100:         0,
+			Hit50:          0,
+			HitMiss:        0,
+			HitGeki:        0,
+			HitKatu:        0,
+			ReplaysWatched: 0,
+		}
 	}
 }
 
