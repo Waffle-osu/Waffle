@@ -4,6 +4,7 @@ import (
 	"Waffle/bancho/chat"
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/irc/irc_messages"
+	"Waffle/bancho/spectator"
 	"Waffle/database"
 	"bufio"
 	"context"
@@ -23,6 +24,7 @@ func HandleNewIrcClient(connection net.Conn) {
 		packetQueue:    make(chan irc_messages.Message, 128),
 		joinedChannels: make(map[string]*chat.Channel),
 		cleanMutex:     sync.Mutex{},
+		spectators:     make(map[int32]spectator.SpectatorClient),
 	}
 
 	for ircClient.Username == "" || ircClient.Password == "" {
@@ -131,6 +133,9 @@ func HandleNewIrcClient(connection net.Conn) {
 
 	client_manager.ClientManager.UnlockClientList()
 	client_manager.ClientManager.RegisterClient(&ircClient)
+
+	//Also register on the spectatable list
+	spectator.ClientManager.RegisterClient(&ircClient)
 
 	if ircClient.IsOsu {
 		channelOsu, _ := chat.GetChannelByName("#osu")

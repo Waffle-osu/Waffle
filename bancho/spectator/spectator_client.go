@@ -1,6 +1,9 @@
 package spectator
 
-import "Waffle/bancho/osu/base_packet_structures"
+import (
+	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/database"
+)
 
 type SpectatorClient interface {
 	// Retrieves this client's User ID
@@ -26,4 +29,9 @@ type SpectatorClient interface {
 	// Sends the equivilant of Spectator Replay Frames to the client.
 	// This contains the next replay data of the client that this client is spectating
 	BanchoSpectateFrames(frameBundle base_packet_structures.SpectatorFrameBundle)
+
+	// Retrieves the Relevant User stats of this client, relevant meaning for the currently active mode.
+	GetRelevantUserStats() database.UserStats
+	// Gets the client's current Status
+	GetUserStatus() base_packet_structures.StatusUpdate
 }

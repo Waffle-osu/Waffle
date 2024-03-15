@@ -5,6 +5,7 @@ import (
 	"Waffle/bancho/client_manager"
 	"Waffle/bancho/irc/irc_messages"
 	"Waffle/bancho/lobby"
+	"Waffle/bancho/spectator"
 	"Waffle/database"
 	"Waffle/helpers"
 	"bufio"
@@ -80,6 +81,11 @@ type IrcClient struct {
 	IsAwaitingOtp bool
 
 	ClientVersion client_manager.ClientVersion
+
+	//Only relevant for osu!irc clients
+	spectators       map[int32]spectator.SpectatorClient
+	spectatorMutex   sync.Mutex
+	spectatingClient spectator.SpectatorClient
 }
 
 func (client *IrcClient) CleanupClient(reason string) {

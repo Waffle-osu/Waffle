@@ -8,7 +8,9 @@ import (
 	"Waffle/bancho/lobby"
 	"Waffle/bancho/misc"
 	"Waffle/bancho/osu/base_packet_structures"
+	"Waffle/bancho/spectator"
 	"Waffle/helpers"
+	"Waffle/helpers/packets"
 	"context"
 	"fmt"
 	"strings"
@@ -62,25 +64,56 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 
 		//For each channel, try joining
 		for _, channel := range channels {
-			foundChannel, exists := chat.GetChannelByName(channel)
+			//osu!irc client is trying to spectate user
+			if client.IsOsu && strings.HasSuffix(channel, "-osu-r") {
+				//Get username from channel
+				actualName := strings.TrimSuffix(channel, "-osu-r")
+				actualName = strings.TrimPrefix(actualName, "#")
 
-			//If it doesn't exist
-			if !exists {
-				client.packetQueue <- irc_messages.IrcSendNoSuchChannel("No such channel!", channel)
-				return
-			}
+				//The client initially tries to join its own spectator channel
+				//To listen for joins and stuff so it knows who's spectating
+				//Since we essentially emulate all that behaviour without actual channels
+				//We dont need to do this
+				//Also don't try to join if there's no login yet (userid != 0)
+				if actualName != client.UserData.Username && client.UserData.UserID != 0 {
+					client.spectatingClient = spectator.ClientManager.GetClientByName(actualName)
 
-			//Try joining
-			success := foundChannel.Join(client)
+					if client.spectatingClient != nil {
+						client.spectatingClient.BanchoSpectatorJoined(client.GetUserId())
 
-			if success {
-				client.joinedChannels[foundChannel.Name] = foundChannel
+						spectatingClientUsername := client.spectatingClient.GetUsername()
+						channelName := fmt.Sprintf("#%s-osu-r", spectatingClientUsername)
 
-				client.packetQueue <- irc_messages.IrcSendTopic(channel, foundChannel.Description)
+						client.SendChatMessage(spectatingClientUsername, "", channelName)
 
-				client.SendChannelNames(foundChannel)
+						if client.spectatingClient.GetUserStatus().Status == packets.OsuStatusIdle {
+							client.SendChatMessage(spectatingClientUsername, "NO", channelName)
+						} else {
+							client.sendChk(base_packet_structures.SpectatorFrameBundle{})
+						}
+					}
+				}
 			} else {
-				client.packetQueue <- irc_messages.IrcSendBannedFromChan("Joining channel failed.", channel)
+				foundChannel, exists := chat.GetChannelByName(channel)
+
+				//If it doesn't exist
+				if !exists {
+					client.packetQueue <- irc_messages.IrcSendNoSuchChannel("No such channel!", channel)
+					return
+				}
+
+				//Try joining
+				success := foundChannel.Join(client)
+
+				if success {
+					client.joinedChannels[foundChannel.Name] = foundChannel
+
+					client.packetQueue <- irc_messages.IrcSendTopic(channel, foundChannel.Description)
+
+					client.SendChannelNames(foundChannel)
+				} else {
+					client.packetQueue <- irc_messages.IrcSendBannedFromChan("Joining channel failed.", channel)
+				}
 			}
 		}
 	// Client is requesting to leave channels
@@ -98,6 +131,10 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 
 			if exists {
 				joinedChannel.Leave(client)
+
+				if client.IsOsu && strings.HasSuffix(channel, "-r") {
+					client.spectatingClient.BanchoSpectatorLeft(client.GetUserId())
+				}
 			} else {
 				client.packetQueue <- irc_messages.IrcSendNotOnChannel(channel)
 			}

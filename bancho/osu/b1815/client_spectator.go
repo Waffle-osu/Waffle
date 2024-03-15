@@ -18,13 +18,7 @@ func (client *Client) BroadcastToSpectators(packetFunction func(client spectator
 // InformSpectatorJoin is called by a new spectator, informing this client that its now being watched
 func (client *Client) InformSpectatorJoin(spectatingClient spectator.SpectatorClient) {
 	client.spectatorMutex.Lock()
-
 	client.spectators[spectatingClient.GetUserId()] = spectatingClient
-
-	for _, spectator := range client.spectators {
-		spectator.BanchoFellowSpectatorJoined(spectator.GetUserId())
-	}
-
 	client.spectatorMutex.Unlock()
 
 	client.BroadcastToSpectators(func(client spectator.SpectatorClient) {
@@ -35,9 +29,7 @@ func (client *Client) InformSpectatorJoin(spectatingClient spectator.SpectatorCl
 // InformSpectatorLeft is called by a spectator, informing that it has stopped watching
 func (client *Client) InformSpectatorLeft(spectatingClient spectator.SpectatorClient) {
 	client.spectatorMutex.Lock()
-
 	delete(client.spectators, spectatingClient.GetUserId())
-
 	client.spectatorMutex.Unlock()
 
 	client.BroadcastToSpectators(func(client spectator.SpectatorClient) {

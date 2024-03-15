@@ -49,6 +49,7 @@ func (manager *ClientManager[TClient]) RegisterClient(client TClient) {
 
 	manager.clientList = append(manager.clientList, client)
 	manager.clientsById[client.GetUserId()] = client
+	manager.clientsByName[client.GetUsername()] = client
 }
 
 // Removes a client from the list
