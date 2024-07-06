@@ -90,7 +90,7 @@ func HandleOsuGetLeaderboards(ctx *gin.Context) {
 			scoreIdstring = strconv.FormatInt(score.OnlineRank, 10)
 		}
 
-		return fmt.Sprintf("%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d|%d|%s|%s\n", score.ScoreId, score.Username, score.Score, score.MaxCombo, score.Hit50, score.Hit100, score.Hit300, score.HitMiss, score.HitKatu, score.HitKatu, perfectString, score.Mods, score.UserId, scoreIdstring, score.Date)
+		return fmt.Sprintf("%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d|%d|%s|%s\n", score.ScoreId, score.Username, score.Score, score.MaxCombo, score.Hit50, score.Hit100, score.Hit300, score.HitMiss, score.HitKatu, score.HitGeki, perfectString, score.Mods, score.UserId, scoreIdstring, score.Date)
 	}
 
 	//0 is invalid and -1 is too
