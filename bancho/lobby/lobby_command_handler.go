@@ -24,18 +24,18 @@ func LobbyHandleCommandMultiplayer(sender LobbyClient, message string) []string 
 
 	args := splitMessage[1:]
 
+	if len(args) == 0 {
+		return []string{
+			"Subcommand missing!",
+		}
+	}
+
 	subcommand := strings.ToLower(args[0])
 	senderLobby := sender.GetMultiplayerLobby()
 
 	if senderLobby == nil && subcommand != "make" {
 		return []string{
 			fmt.Sprintf("%s: Command only valid inside multiplayer lobbies!", subcommand),
-		}
-	}
-
-	if len(args) == 0 {
-		return []string{
-			"Subcommand missing!",
 		}
 	}
 

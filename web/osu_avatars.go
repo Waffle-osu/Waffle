@@ -25,7 +25,7 @@ func HandleOsuGetAvatar(ctx *gin.Context) {
 }
 
 func HandleOsuGetForumAvatar(ctx *gin.Context) {
-	filename := ctx.Param("avatar")
+	filename := ctx.Query("avatar")
 
 	if _, err := os.Stat("avatars/" + filename + ".png"); errors.Is(err, os.ErrNotExist) {
 		filename = "2"
