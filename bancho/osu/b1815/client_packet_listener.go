@@ -96,7 +96,7 @@ func (client *Client) handlePackets(packetChannel chan packets.BanchoPacket, ctx
 					var returnMessages []string
 
 					//Commands start with !
-					if message.Message[0] == '!' {
+					if strings.HasPrefix(message.Message, "!") {
 						//mp commands take a different route cuz they have to take in LobbyClient
 						//instead of just WaffleClient
 						if strings.HasPrefix(message.Message, "!mp") {
@@ -231,7 +231,6 @@ func (client *Client) handlePackets(packetChannel chan packets.BanchoPacket, ctx
 				client.isInLobby = false
 			//The client is requesting to join a chat channel
 			case packets.OsuChannelJoin:
-				//channelName := string(serialization.ReadBanchoString(packetDataReader))
 				channelName := packets.Read[string](packetDataReader)
 
 				channel, exists := chat.GetChannelByName(channelName)

@@ -29,6 +29,10 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 	// Client is setting their Username and Realname
 	case "USER":
 		if client.Username == "" && client.Realname == "" {
+			//Invalid message, needs to have the username as param
+			if len(message.Params) == 0 {
+
+			}
 			client.Username = message.Params[0]
 			client.Realname = message.Trailing
 
@@ -177,6 +181,12 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 				client.SendChatMessage("WaffleBot", fmt.Sprintf("You're silenced for at least %d seconds!", int64(client.UserData.SilencedUntil)-time.Now().Unix()), client.UserData.Username)
 			} else {
 				messageText := message.Trailing
+
+				//Invalid message, needs to have a target
+				if len(message.Params) == 0 {
+					break
+				}
+
 				target := message.Params[0]
 
 				//Channel into which the message gets sent
@@ -293,7 +303,17 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		}
 	// Client is looking for more information on a client or channel
 	case "WHO":
+		//Needs query
+		if len(message.Params) == 0 {
+			break
+		}
+
 		query := message.Params[0]
+
+		//query needs to be at least 1 char long, just here for safety
+		if len(query) == 0 {
+			break
+		}
 
 		channelQuery := query[0] == '#'
 
@@ -414,6 +434,11 @@ func (client *IrcClient) ProcessMessage(message irc_messages.Message, rawLine st
 		client.packetQueue <- irc_messages.IrcSendListEnd()
 	// Client is pinging the server
 	case "PING":
+		//Needs token
+		if len(message.Params) == 0 {
+			break
+		}
+
 		token := message.Params[0]
 
 		client.packetQueue <- irc_messages.IrcSendPong(token)
