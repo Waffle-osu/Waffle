@@ -224,6 +224,11 @@ mysql_database=waffle
 
 token_format=wa%sff%sle%dto%dke%sn
 
+# Arcade PIN Salt
+# Used to add an unknown to the Arcade PIN hashes
+# So in the event of a database leak the PIN can't simply be brute forced (which would be quite easy)
+arcade_pin_salt=(678) 999-8212@osu!arcade
+
 # Uncomment the Following line if you wish to silence the SSL Certificate missing warning.
 # ssl_silence_warning=true
 
@@ -283,5 +288,7 @@ func UnsafeSetKey(key string, value string) {
 		UsingWaffleWeb = value
 	case "ffmpeg_path":
 		FFMPEGPath = value
+	case "arcade_pin_salt":
+		ArcadePinSalt = value
 	}
 }

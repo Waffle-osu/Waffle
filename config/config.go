@@ -1,6 +1,7 @@
 package config
 
 var TokenFormatString string
+var ArcadePinSalt string
 
 var MySqlUsername string
 var MySqlPassword string

@@ -37,6 +37,7 @@ func InitializeMigrations() {
 	Migrations[18] = migrations.MigrationAddAdditionalBeatmapData{}
 	Migrations[19] = migrations.MigrationAddUniqueKeyBeatmapFavourites{}
 	Migrations[20] = migrations.MigrationAddDiffCalcTables{}
+	Migrations[21] = migrations.MigrationAddArcadeCardStructure{}
 }
 
 func InitializeDatabaseVersion() {

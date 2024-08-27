@@ -2,6 +2,7 @@ package main
 
 import (
 	"Waffle/api"
+	"Waffle/stream"
 	"Waffle/web"
 	"Waffle/web/bss"
 
@@ -60,6 +61,11 @@ func RunWeb() {
 
 	//achievements
 	ginServer.GET("/images/achievements/:filename", web.HandleOsuGetAchievementImage)
+
+	//osu!stream arcade thingy
+	ginServer.POST("/stream/arcade-auth", stream.HandleArcadeAuth)
+	ginServer.POST("/stream/arcade-link", stream.HandleArcadeLink)
+	ginServer.POST("/stream/arcade-token", stream.HandleArcadeToken)
 
 	ginServer.Run("127.0.0.1:80")
 }
